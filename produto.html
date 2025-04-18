@@ -9,8 +9,71 @@
 </head>
 <body>
   <div class="wrapper">
-    <!-- Sidebar (mantido conforme estrutura original) -->
-    <aside class="sidebar">...</aside>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="assets/img/logo.png" alt="ORION PDV">
+        <span class="logo-text">ORION PDV</span>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="dashboard.html" class="nav-link">
+            <i class="fas fa-tachometer-alt nav-icon"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="venda.html" class="nav-link">
+            <i class="fas fa-shopping-cart nav-icon"></i>
+            <span>Registrar Venda</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="produto.html" class="nav-link active">
+            <i class="fas fa-box nav-icon"></i>
+            <span>Cadastrar Produto</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="cliente.html" class="nav-link">
+            <i class="fas fa-user nav-icon"></i>
+            <span>Cadastrar Cliente</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="relatorio.html" class="nav-link">
+            <i class="fas fa-chart-bar nav-icon"></i>
+            <span>Painel Financeiro</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="estoque.html" class="nav-link">
+            <i class="fas fa-warehouse nav-icon"></i>
+            <span>Gerenciar Estoque</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="config.html" class="nav-link">
+            <i class="fas fa-cog nav-icon"></i>
+            <span>Configurações</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <h4 class="user-name" id="user-name">Nome do Usuário</h4>
+          <p class="user-role">Administrador</p>
+        </div>
+        <button id="btn-logout" class="btn btn-sm btn-outline-primary">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </aside>
 
     <!-- Conteúdo principal -->
     <main class="content">
@@ -20,13 +83,16 @@
       </div>
       
       <div class="grid-layout">
-        <!-- Lista de produtos integrada com produtos.json -->
+        <!-- Lista de produtos -->
         <div class="card">
           <div class="card-header">
             <div class="card-title"><i class="fas fa-list"></i> Produtos Cadastrados</div>
             <div class="toolbar">
-              <input type="text" id="busca-produto" class="form-control" placeholder="Buscar produto..." 
-                onkeyup="Produto.filtrar(this.value)">
+              <div class="search-container">
+                <input type="text" id="busca-produto" class="form-control" placeholder="Buscar produto..." 
+                  onkeyup="Produto.filtrar(this.value)">
+                <i class="fas fa-search"></i>
+              </div>
               <select id="filtro-grupo" class="form-control" onchange="Produto.filtrarPorGrupo(this.value)">
                 <option value="">Todos os Grupos</option>
               </select>
@@ -36,55 +102,139 @@
             </div>
           </div>
           <div class="card-body">
-            <table class="table" id="tabela-produtos">
-              <!-- Dados carregados dinamicamente via produto.js -->
-            </table>
+            <div class="table-responsive">
+              <table class="table" id="tabela-produtos">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Grupo</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Dados carregados via JavaScript -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-
-        <!-- Formulário integrado com produtos.json e estoque.json -->
+        
+        <!-- Formulário de produto -->
         <div class="card">
-          <form id="form-produto" onsubmit="Produto.salvar(event)">
-            <input type="hidden" id="produto-id">
-            
-            <div class="form-group">
-              <label>Código de Barras</label>
-              <div class="input-group">
-                <input type="text" id="codigo-barras" class="form-control" required>
-                <button type="button" onclick="ProdutoBarcode.gerarCodigo()" 
-                  class="btn btn-outline-primary">
-                  <i class="fas fa-barcode"></i>
-                </button>
-                <button type="button" onclick="BarcodeScanner.init('cadastro')" 
-                  class="btn btn-outline-primary">
-                  <i class="fas fa-camera"></i>
-                </button>
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-box"></i> <span id="form-titulo">Novo Produto</span></div>
+          </div>
+          <div class="card-body">
+            <form id="form-produto" onsubmit="Produto.salvar(event)">
+              <input type="hidden" id="produto-id">
+              
+              <div class="form-group">
+                <label for="codigo-barras" class="form-label">Código de Barras</label>
+                <div class="input-group">
+                  <input type="text" id="codigo-barras" class="form-control" required>
+                  <button type="button" onclick="ProdutoBarcode.gerarCodigo()" class="btn btn-outline-primary" title="Gerar código">
+                    <i class="fas fa-barcode"></i>
+                  </button>
+                  <button type="button" onclick="BarcodeScanner.init('cadastro')" class="btn btn-outline-primary" title="Escanear código">
+                    <i class="fas fa-camera"></i>
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <!-- Demais campos do formulário -->
-            <div class="form-group">...</div>
-            
-            <div class="form-actions">
-              <button type="button" onclick="Produto.cancelar()" class="btn btn-outline-primary">
-                Cancelar
-              </button>
-              <button type="submit" class="btn btn-primary">Salvar</button>
-            </div>
-          </form>
+              
+              <div class="form-group">
+                <label for="nome" class="form-label">Nome do Produto</label>
+                <input type="text" id="nome" class="form-control" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="grupo" class="form-label">Grupo</label>
+                <div class="input-group">
+                  <select id="grupo" class="form-control" required>
+                    <option value="">Selecione...</option>
+                  </select>
+                  <button type="button" id="btn-novo-grupo" class="btn btn-outline-primary" onclick="Produto.abrirModalGrupo()">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="preco" class="form-label">Preço de Venda (R$)</label>
+                <input type="number" id="preco" class="form-control" step="0.01" min="0.01" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="estoque" class="form-label">Estoque Inicial</label>
+                <input type="number" id="estoque" class="form-control" min="0" step="1" required>
+              </div>
+              
+              <div class="form-actions">
+                <button type="button" onclick="Produto.cancelar()" class="btn btn-outline-primary">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 
-      <!-- Modais (mantidos com integração JS) -->
-      <div id="modal-scanner">...</div>
-      <div id="modal-adicionar">...</div>
+      <!-- Modal Adicionar Grupo -->
+      <div id="modal-adicionar" class="modal">
+        <div class="modal-content">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-plus-circle"></i> Novo Grupo</div>
+            <button type="button" class="btn-close-modal" onclick="Produto.fecharModal()">&times;</button>
+          </div>
+          <div class="card-body">
+            <form id="form-modal" onsubmit="Produto.salvarGrupo(event)">
+              <div class="form-group">
+                <label>Nome do Grupo</label>
+                <input type="text" id="novo-grupo" class="form-control" required>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-outline-primary" onclick="Produto.fecharModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Scanner -->
+      <div id="modal-scanner" class="modal">
+        <div class="modal-content">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-camera"></i> Scanner de Código</div>
+            <button type="button" class="btn-close-scanner" onclick="BarcodeScanner.parar()">&times;</button>
+          </div>
+          <div class="card-body">
+            <div id="camera-container"></div>
+            <div class="scanner-instructions">
+              <i class="fas fa-info-circle"></i>
+              Posicione o código de barras frente à câmera
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
-  <!-- Scripts com nova integração JSON -->
+  <!-- Scripts -->
+  <script src="assets/js/auth.js"></script>
   <script src="assets/js/database.js"></script>
   <script src="assets/js/barcode-scanner.js"></script>
   <script src="assets/js/produto-barcode.js"></script>
   <script src="assets/js/produto.js"></script>
+  <script>
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+      Produto.carregarTabela();
+      Produto.carregarGrupos();
+      Auth.validarSessao();
+      DateHelper.atualizarData();
+    });
+  </script>
 </body>
 </html>
