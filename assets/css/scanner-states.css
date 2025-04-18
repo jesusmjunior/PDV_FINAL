@@ -1,0 +1,24 @@
+/* scanner-states.css */
+.scanner-loading {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.scanner-error {
+  color: #ff4444;
+  padding: 1rem;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.scanner-success {
+  color: #00C851;
+  padding: 1rem;
+  background: rgba(0, 200, 81, 0.1);
+  border-radius: 4px;
+  margin-top: 1rem;
+}
