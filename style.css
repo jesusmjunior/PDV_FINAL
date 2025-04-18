@@ -1,0 +1,91 @@
+/* Arquivo: css/style.css */
+body {
+    background-color: #f8f9fa;
+}
+
+.sidebar {
+    min-height: 100vh;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Personalização da barra lateral */
+.nav-pills .nav-link {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.nav-pills .nav-link:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-pills .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Estilização dos cards */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+/* Continuação - Arquivo: css/style.css */
+.card-header {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Estilização para os itens do carrinho */
+.item-carrinho {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.item-carrinho:last-child {
+    border-bottom: none;
+}
+
+/* Estilização para imagens de produto */
+.img-produto {
+    object-fit: contain;
+    max-height: 150px;
+    width
+  /* Continuação - Arquivo: css/style.css */
+.card-header {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Estilização para os itens do carrinho */
+.item-carrinho {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.item-carrinho:last-child {
+    border-bottom: none;
+}
+
+/* Estilização para imagens de produto */
+.img-produto {
+    object-fit: contain;
+    max-height: 150px;
+    width: auto;
+    margin: 0 auto;
+    display: block;
+}
+
+/* Alertas e notificações */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+}
+
+/* Personalizações para telas menores */
+@media (max-width: 768px) {
+      
