@@ -6,14 +6,15 @@
   <title>Gerenciamento de Estoque - ORION PDV</title>
   <link rel="stylesheet" href="assets/css/orion-theme.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
   <div class="wrapper">
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">
-        <img src="assets/img/logo.png" alt="ORION PDV">
+        <div class="logo-icon">
+          <i class="fas fa-star"></i>
+        </div>
         <span class="logo-text">ORION PDV</span>
       </div>
       
@@ -62,77 +63,64 @@
         </li>
       </ul>
       
-      <div style="margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
-        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-          <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-right: 10px;"></i>
-          <div>
-            <div id="user-name" style="font-weight: 500;">Nome do Usuário</div>
-            <small class="text-muted">Administrador</small>
-          </div>
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
         </div>
-        <button id="btn-logout" class="btn btn-outline-primary" style="width: 100%;">
-          <i class="fas fa-sign-out-alt"></i> Sair
+        <div class="user-details">
+          <h4 class="user-name" id="user-name">Nome do Usuário</h4>
+          <p class="user-role">Administrador</p>
+        </div>
+        <button id="btn-logout" class="btn btn-sm btn-outline-primary">
+          <i class="fas fa-sign-out-alt"></i>
         </button>
       </div>
     </aside>
 
     <!-- Conteúdo principal -->
     <main class="content">
-      <div class="header" style="margin-bottom: 1.5rem;">
+      <div class="header">
         <h1>Gerenciamento de Estoque</h1>
-        <div>
-          <span id="current-date"></span>
-        </div>
+        <div class="date" id="current-date"></div>
       </div>
       
-      <!-- Abas de Estoque -->
-      <ul class="nav nav-tabs" style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-        <li class="nav-item">
-          <a class="nav-link active" id="tab-listagem" href="#" style="color: var(--text-light); border: none; padding: 0.75rem 1.5rem; border-bottom: 2px solid var(--primary);">
-            <i class="fas fa-list"></i> Listagem de Produtos
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" id="tab-movimentacoes" href="#" style="color: var(--text-muted); border: none; padding: 0.75rem 1.5rem; border-bottom: 2px solid transparent;">
+      <!-- Abas -->
+      <div class="nav-tabs-container">
+        <ul class="nav-tabs">
+          <li class="nav-tab active" id="tab-listagem">
+            <i class="fas fa-list"></i> Listagem
+          </li>
+          <li class="nav-tab" id="tab-movimentacoes">
             <i class="fas fa-exchange-alt"></i> Movimentações
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" id="tab-scanner" href="#" style="color: var(--text-muted); border: none; padding: 0.75rem 1.5rem; border-bottom: 2px solid transparent;">
-            <i class="fas fa-barcode"></i> Scanner de Código
-          </a>
-        </li>
-      </ul>
-      
-      <!-- Conteúdo das abas -->
-      <div id="tab-content">
-        <!-- Aba Listagem -->
+          </li>
+          <li class="nav-tab" id="tab-scanner">
+            <i class="fas fa-barcode"></i> Scanner
+          </li>
+        </ul>
+      </div>
+
+      <!-- Conteúdo das Abas -->
+      <div class="tab-content">
+        <!-- Listagem -->
         <div id="content-listagem" class="tab-pane active">
           <div class="card">
             <div class="card-header">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <i class="fas fa-boxes"></i> Produtos em Estoque
+              <div class="card-title"><i class="fas fa-boxes"></i> Produtos em Estoque</div>
+              <div class="toolbar">
+                <div class="search-container">
+                  <input type="text" id="busca-produto" class="form-control" placeholder="Buscar...">
+                  <i class="fas fa-search"></i>
                 </div>
-                <div style="display: flex; gap: 0.5rem;">
-                  <div class="form-group" style="margin-bottom: 0;">
-                    <select id="filtro-grupo" class="form-control" style="width: 150px;">
-                      <option value="">Todos os Grupos</option>
-                      <!-- Preenchido via JavaScript -->
-                    </select>
-                  </div>
-                  <div style="position: relative;">
-                    <input type="text" id="busca-produto" class="form-control" placeholder="Buscar produto..." style="width: 200px; padding-left: 36px;">
-                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                  </div>
-                  <button id="btn-exportar" class="btn btn-outline-primary">
-                    <i class="fas fa-file-export"></i> Exportar
-                  </button>
-                </div>
+                <select id="filtro-grupo" class="form-control">
+                  <option value="">Todos os Grupos</option>
+                </select>
+                <button id="btn-exportar" class="btn btn-outline-primary">
+                  <i class="fas fa-file-export"></i> Exportar
+                </button>
               </div>
             </div>
             <div class="card-body">
-              <div class="table-container">
+              <div class="table-responsive">
                 <table class="table" id="tabela-produtos">
                   <thead>
                     <tr>
@@ -140,38 +128,30 @@
                       <th>Nome</th>
                       <th>Grupo</th>
                       <th>Preço</th>
-                      <th>Estoque Atual</th>
-                      <th>Est. Mínimo</th>
+                      <th>Estoque</th>
+                      <th>Mínimo</th>
                       <th>Status</th>
                       <th>Ações</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <!-- Preenchido via JavaScript -->
-                  </tbody>
+                  <tbody><!-- Dados via JS --></tbody>
                 </table>
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- Aba Movimentações -->
-        <div id="content-movimentacoes" class="tab-pane" style="display: none;">
+
+        <!-- Movimentações -->
+        <div id="content-movimentacoes" class="tab-pane">
           <div class="card">
             <div class="card-header">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <i class="fas fa-exchange-alt"></i> Movimentações de Estoque
-                </div>
-                <div>
-                  <button id="btn-nova-movimentacao" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Nova Movimentação
-                  </button>
-                </div>
-              </div>
+              <div class="card-title"><i class="fas fa-exchange-alt"></i> Histórico de Movimentações</div>
+              <button id="btn-nova-movimentacao" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nova
+              </button>
             </div>
             <div class="card-body">
-              <div class="table-container">
+              <div class="table-responsive">
                 <table class="table" id="tabela-movimentacoes">
                   <thead>
                     <tr>
@@ -180,131 +160,78 @@
                       <th>Tipo</th>
                       <th>Quantidade</th>
                       <th>Motivo</th>
-                      <th>Usuário</th>
+                      <th>Responsável</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <!-- Preenchido via JavaScript -->
-                  </tbody>
+                  <tbody><!-- Dados via JS --></tbody>
                 </table>
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- Aba Scanner -->
-        <div id="content-scanner" class="tab-pane" style="display: none;">
+
+        <!-- Scanner -->
+        <div id="content-scanner" class="tab-pane">
           <div class="card">
             <div class="card-header">
-              <i class="fas fa-barcode"></i> Scanner de Código de Barras
+              <div class="card-title"><i class="fas fa-barcode"></i> Scanner de Código</div>
             </div>
             <div class="card-body">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div>
-                  <div class="alert" style="background-color: rgba(30, 136, 229, 0.1); border: 1px solid rgba(30, 136, 229, 0.3); color: var(--primary); border-radius: var(--border-radius); padding: 1rem; margin-bottom: 1rem;">
-                    <h4 style="margin-top: 0;"><i class="fas fa-info-circle"></i> Como usar o scanner</h4>
-                    <p>Para escanear códigos de barras, você pode:</p>
-                    <ol style="margin-bottom: 0;">
-                      <li>Digitar o código de barras no campo abaixo</li>
-                      <li>Usar um leitor de código de barras conectado ao computador</li>
-                      <li>Usar a câmera do celular clicando no botão "Escanear"</li>
-                    </ol>
+              <div class="scanner-container">
+                <div class="scanner-guide">
+                  <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Posicione o código na área destacada
                   </div>
-                  
-                  <div class="form-group">
-                    <label for="codigo-barras" class="form-label">Código de Barras</label>
-                    <div style="display: flex; gap: 0.5rem;">
-                      <input type="text" id="codigo-barras" class="form-control">
-                      <button id="btn-buscar-codigo" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Buscar
-                      </button>
-                      <button id="btn-escanear" class="btn btn-outline-primary">
-                        <i class="fas fa-camera"></i> Escanear
-                      </button>
-                    </div>
+                  <div class="scanner-viewport" id="camera-container">
+                    <video id="scanner-video"></video>
                   </div>
-                  
-                  <div id="camera-container" style="display: none; margin-top: 1rem;">
-                    <video id="scanner-video" style="width: 100%; border-radius: var(--border-radius);"></video>
-                    <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
-                      <button id="btn-cancelar-scan" class="btn btn-outline-danger">
-                        <i class="fas fa-times"></i> Cancelar
-                      </button>
-                    </div>
-                  </div>
+                  <button id="btn-cancelar-scan" class="btn btn-outline-danger">
+                    <i class="fas fa-times"></i> Cancelar
+                  </button>
                 </div>
-                
-                <div id="resultado-scanner">
-                  <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
-                    <i class="fas fa-barcode" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                    <p>Escaneie um código ou digite manualmente</p>
-                  </div>
+                <div class="scanner-actions">
+                  <input type="text" id="codigo-barras" class="form-control" placeholder="Ou digite o código">
+                  <button id="btn-buscar-codigo" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Buscar
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- Modal de Adição/Ajuste de Estoque -->
-      <div id="modal-estoque" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background-color: var(--dark-surface); width: 500px; max-width: 90%; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
-          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 id="modal-titulo">Movimentação de Estoque</h3>
-            <button type="button" class="btn-close-modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+
+      <!-- Modal Movimentação -->
+      <div id="modal-estoque" class="modal">
+        <div class="modal-content">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-edit"></i> <span id="modal-titulo">Nova Movimentação</span></div>
+            <button class="btn-close-modal">&times;</button>
           </div>
           <div class="card-body">
             <form id="form-estoque">
               <div class="form-group">
-                <label for="produto-id" class="form-label">Produto</label>
-                <select id="produto-id" class="form-control" required>
-                  <!-- Preenchido via JavaScript -->
-                </select>
+                <label>Produto</label>
+                <select id="produto-id" class="form-control" required></select>
               </div>
               
               <div class="form-group">
-                <label for="tipo-movimentacao" class="form-label">Tipo de Movimentação</label>
+                <label>Tipo</label>
                 <select id="tipo-movimentacao" class="form-control" required>
-                  <option value="entrada">Entrada de Estoque</option>
-                  <option value="saida">Saída de Estoque</option>
-                  <option value="ajuste">Ajuste de Inventário</option>
+                  <option value="entrada">Entrada</option>
+                  <option value="saida">Saída</option>
+                  <option value="ajuste">Ajuste</option>
                 </select>
               </div>
-              
+
               <div class="form-group">
-                <label for="quantidade" class="form-label">Quantidade</label>
-                <input type="number" id="quantidade" class="form-control" min="1" step="1" required>
+                <label>Quantidade</label>
+                <input type="number" id="quantidade" class="form-control" min="1" required>
               </div>
-              
-              <div class="form-group">
-                <label for="motivo" class="form-label">Motivo</label>
-                <select id="motivo" class="form-control" required>
-                  <option value="compra">Compra</option>
-                  <option value="devolucao">Devolução</option>
-                  <option value="ajuste">Ajuste de Inventário</option>
-                  <option value="perda">Perda/Dano</option>
-                  <option value="venda">Venda</option>
-                  <option value="outro">Outro</option>
-                </select>
-              </div>
-              
-              <div class="form-group" id="outro-motivo-container" style="display: none;">
-                <label for="outro-motivo" class="form-label">Especifique o Motivo</label>
-                <input type="text" id="outro-motivo" class="form-control">
-              </div>
-              
-              <div class="form-group">
-                <label for="observacao" class="form-label">Observação (opcional)</label>
-                <textarea id="observacao" class="form-control" rows="2"></textarea>
-              </div>
-              
-              <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
-                <button type="button" class="btn-close-modal btn btn-outline-primary">
-                  Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary">
-                  Salvar
-                </button>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-outline-primary btn-close-modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
               </div>
             </form>
           </div>
@@ -313,12 +240,9 @@
     </main>
   </div>
 
-  <!-- Scripts -->
   <script src="assets/js/database.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/estoque.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   <script src="assets/js/barcode-scanner.js"></script>
-  <script src="assets/js/barcode-integration.js"></script>
 </body>
 </html>
