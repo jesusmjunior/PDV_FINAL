@@ -1,208 +1,149 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - ORION PDV</title>
-  <link rel="stylesheet" href="assets/css/orion-theme.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Dashboard - ORION PDV</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    
+    <!-- Dependências -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-  <div class="wrapper">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="logo">
-        <img src="assets/img/logo.png" alt="ORION PDV">
-        <span class="logo-text">ORION PDV</span>
-      </div>
-      
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="dashboard.html" class="nav-link active">
-            <i class="fas fa-tachometer-alt nav-icon"></i>
-            <span>Dashboard</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="venda.html" class="nav-link">
-            <i class="fas fa-shopping-cart nav-icon"></i>
-            <span>Registrar Venda</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="produto.html" class="nav-link">
-            <i class="fas fa-box nav-icon"></i>
-            <span>Cadastrar Produto</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="cliente.html" class="nav-link">
-            <i class="fas fa-user nav-icon"></i>
-            <span>Cadastrar Cliente</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="relatorio.html" class="nav-link">
-            <i class="fas fa-chart-bar nav-icon"></i>
-            <span>Painel Financeiro</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="estoque.html" class="nav-link">
-            <i class="fas fa-warehouse nav-icon"></i>
-            <span>Gerenciar Estoque</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="config.html" class="nav-link">
-            <i class="fas fa-cog nav-icon"></i>
-            <span>Configurações</span>
-          </a>
-        </li>
-      </ul>
-      
-      <div style="margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
-        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-          <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-right: 10px;"></i>
-          <div>
-            <div id="user-name" style="font-weight: 500;">Jesus Martins</div>
-            <small class="text-muted">Administrador</small>
-          </div>
-        </div>
-        <button id="btn-logout" class="btn btn-outline-primary" style="width: 100%;">
-          <i class="fas fa-sign-out-alt"></i> Sair
+<body class="theme-dark">
+    <!-- Menu Mobile -->
+    <div class="mobile-header">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
         </button>
-      </div>
-    </aside>
+        <h1 class="mobile-title">Dashboard</h1>
+    </div>
 
-    <!-- Conteúdo principal -->
-    <main class="content">
-      <div class="header" style="margin-bottom: 1.5rem;">
-        <h1>Dashboard</h1>
-        <div>
-          <span id="current-date"></span>
-        </div>
-      </div>
-      
-      <!-- Cards de estatísticas -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-        <div class="stat-card">
-          <i class="fas fa-shopping-cart stat-icon"></i>
-          <div class="label">Total de Vendas</div>
-          <div class="value" id="total-vendas">0</div>
-          <div class="trend up"><i class="fas fa-arrow-up"></i> 15% desde ontem</div>
-        </div>
-        
-        <div class="stat-card">
-          <i class="fas fa-dollar-sign stat-icon"></i>
-          <div class="label">Faturamento Total</div>
-          <div class="value" id="faturamento-total">R$ 0,00</div>
-          <div class="trend up"><i class="fas fa-arrow-up"></i> 8% desde ontem</div>
-        </div>
-        
-        <div class="stat-card">
-          <i class="fas fa-box stat-icon"></i>
-          <div class="label">Produtos Cadastrados</div>
-          <div class="value" id="total-produtos">0</div>
-          <div class="trend up"><i class="fas fa-arrow-up"></i> 3 novos hoje</div>
-        </div>
-        
-        <div class="stat-card">
-          <i class="fas fa-user stat-icon"></i>
-          <div class="label">Clientes Cadastrados</div>
-          <div class="value" id="total-clientes">0</div>
-          <div class="trend up"><i class="fas fa-arrow-up"></i> 2 novos hoje</div>
-        </div>
-      </div>
-      
-      <!-- Gráficos -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title"><i class="fas fa-chart-line"></i> Vendas Recentes</h2>
-          </div>
-          <div class="card-body">
-            <canvas id="chart-vendas" height="250"></canvas>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title"><i class="fas fa-chart-pie"></i> Vendas por Forma de Pagamento</h2>
-          </div>
-          <div class="card-body">
-            <canvas id="chart-pagamentos" height="250"></canvas>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Tabelas de dados -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title"><i class="fas fa-list"></i> Últimas Vendas</h2>
-          <a href="relatorio.html" class="btn btn-sm btn-outline-primary">
-            Ver Todas
-          </a>
-        </div>
-        <div class="card-body">
-          <div class="table-container">
-            <table class="table" id="tabela-vendas">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Data</th>
-                  <th>Cliente</th>
-                  <th>Forma de Pagamento</th>
-                  <th>Total</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colspan="6" class="text-center">Nenhuma venda registrada.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Produtos com baixo estoque -->
-      <div class="card" style="margin-top: 1.5rem;">
-        <div class="card-header">
-          <h2 class="card-title"><i class="fas fa-exclamation-triangle"></i> Produtos com Estoque Baixo</h2>
-          <a href="estoque.html" class="btn btn-sm btn-outline-primary">
-            Gerenciar Estoque
-          </a>
-        </div>
-        <div class="card-body">
-          <div class="table-container">
-            <table class="table" id="tabela-estoque-baixo">
-              <thead>
-                <tr>
-                  <th>Produto</th>
-                  <th>Código</th>
-                  <th>Estoque Atual</th>
-                  <th>Estoque Mínimo</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colspan="5" class="text-center">Nenhum produto com estoque baixo.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+    <!-- Wrapper Principal -->
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-inner">
+                <div class="logo-container">
+                    <img src="assets/img/logo.png" alt="ORION PDV" class="logo">
+                    <span class="logo-text">ORION PDV</span>
+                </div>
 
-  <script src="assets/js/database.js"></script>
-  <script src="assets/js/auth.js"></script>
-  <script src="assets/js/dashboard.js"></script>
+                <nav class="nav-menu">
+                    <a href="dashboard.html" class="nav-item active">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <!-- Outros itens do menu -->
+                </nav>
+
+                <!-- Footer Sidebar -->
+                <div class="sidebar-footer">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <div class="user-details">
+                            <span id="user-name">Usuário</span>
+                            <small>Administrador</small>
+                        </div>
+                    </div>
+                    <button id="btn-logout" class="btn btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="content">
+            <!-- Header -->
+            <div class="content-header">
+                <div class="header-title">
+                    <h1>Visão Geral</h1>
+                    <span class="current-date" id="current-date"></span>
+                </div>
+            </div>
+
+            <!-- Cards de Métricas -->
+            <div class="metrics-grid">
+                <!-- Cards individuais -->
+                <div class="metric-card sales">
+                    <div class="metric-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="metric-content">
+                        <span class="metric-value" id="total-vendas">0</span>
+                        <span class="metric-label">Vendas Hoje</span>
+                    </div>
+                </div>
+                <!-- Repetir para outros cards -->
+            </div>
+
+            <!-- Seção de Gráficos -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Desempenho de Vendas</h3>
+                        <div class="chart-legend">
+                            <span class="legend-item"><i class="fas fa-circle primary"></i> Este Mês</span>
+                            <span class="legend-item"><i class="fas fa-circle secondary"></i> Mês Passado</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Métodos de Pagamento</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabelas -->
+            <div class="tables-container">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Últimas Transações</h3>
+                        <a href="#" class="btn-link">Ver Todas</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <!-- Conteúdo da tabela -->
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/dashboard.js"></script>
+    <script>
+        // Controle do Menu Mobile
+        function toggleMenu() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.mobile-header').classList.toggle('menu-open');
+        }
+
+        // Ajuste Responsivo
+        function adjustLayout() {
+            const isMobile = window.innerWidth < 768;
+            document.body.classList.toggle('mobile-view', isMobile);
+        }
+
+        window.addEventListener('resize', adjustLayout);
+        window.onload = () => {
+            adjustLayout();
+            Auth.validarSessao();
+        };
+    </script>
 </body>
 </html>
