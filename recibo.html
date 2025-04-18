@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recibo de Venda - ORION PDV</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #000;
+      background-color: #fff;
+      padding: 20px;
+      max-width: 80mm; /* Largura padrão de impressora térmica */
+      margin: 0 auto;
+    }
+    
+    .recibo-header {
+      text-align: center;
+      margin-bottom: 15px;
+      border-bottom: 1px dashed #000;
+      padding-bottom: 10px;
+    }
+    
+    .recibo-header h1 {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    
+    .recibo-header p {
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+    
+    .recibo-info {
+      margin-bottom: 15px;
+    }
+    
+    .recibo-info p {
+      margin-bottom: 5px;
+    }
+    
+    .recibo-items {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    
+    .recibo-items th {
+      text-align: left;
+      border-bottom: 1px dashed #000;
+      padding: 3px 0;
+    }
+    
+    .recibo-items td {
+      padding: 3px 0;
+    }
+    
+    .recibo-items .right {
+      text-align: right;
+    }
+    
+    .recibo-totais {
+      border-top: 1px dashed #000;
+      padding-top: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .recibo-total {
+      font-weight: bold;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    
+    .recibo-pagamento {
+      border-top: 1px dashed #000;
+      padding-top: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .recibo-footer {
+      text-align: center;
+      border-top: 1px dashed #000;
+      padding-top: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .recibo-qrcode {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    .text-right {
+      text-align: right;
+    }
+    
+    .font-bold {
+      font-weight: bold;
+    }
+    
+    .no-print {
+      display: none;
+    }
+    
+    @media print {
+      body {
+        padding: 0;
+      }
+      
+      .no-print {
+        display: none !important;
+      }
+      
+      @page {
+        margin: 0;
+        size: 80mm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="recibo-header">
+    <h1>{{NOME_EMPRESA}}</h1>
+    <p>{{ENDERECO}}</p>
+    <p>{{CIDADE}}</p>
+    <p>CNPJ: {{CNPJ}}</p>
+    <p>{{TEL}}</p>
+  </div>
+  
+  <div class="recibo-info">
+    <p><span class="font-bold">CUPOM NÃO FISCAL</span></p>
+    <p><span class="font-bold">Venda:</span> {{ID_VENDA}}</p>
+    <p><span class="font-bold">Data:</span> {{DATA_VENDA}}</p>
+    <p><span class="font-bold">Cliente:</span> {{CLIENTE}}</p>
+    <p><span class="font-bold">Operador:</span> {{OPERADOR}}</p>
+  </div>
+  
+  <table class="recibo-items">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Qtd</th>
+        <th>Valor</th>
+        <th class="right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ITEMS}}
+    </tbody>
+  </table>
+  
+  <div class="recibo-totais">
+    <p class="text-right"><span class="font-bold">Subtotal:</span> {{SUBTOTAL}}</p>
+    <p class="text-right"><span class="font-bold">Desconto:</span> {{DESCONTO}}</p>
+    <p class="recibo-total text-right">TOTAL: {{TOTAL}}</p>
+  </div>
+  
+  <div class="recibo-pagamento">
+    <p><span class="font-bold">Forma de pagamento:</span> {{FORMA_PAGAMENTO}}</p>
+    <p><span class="font-bold">Valor recebido:</span> {{VALOR_PAGO}}</p>
+    <p><span class="font-bold">Troco:</span> {{TROCO}}</p>
+  </div>
+  
+  <div class="recibo-footer">
+    <p>ORION PDV - Sistema de Gestão de Vendas</p>
+    <p>{{DATA_HORA}}</p>
+    <p class="font-bold">OBRIGADO PELA PREFERÊNCIA!</p>
+    <p>Volte Sempre</p>
+  </div>
+  
+  <div class="recibo-qrcode">
+    <p>{{QR_CODE}}</p>
+  </div>
+  
+  <div class="no-print" style="position: fixed; bottom: 20px; left: 0; width: 100%; text-align: center; padding: 10px; background-color: #f5f5f5;">
+    <button onclick="window.print();" style="padding: 10px 20px; background-color: #0B3D91; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+      <i style="margin-right: 5px;">🖨️</i> Imprimir Recibo
+    </button>
+    &nbsp;
+    <button onclick="window.close();" style="padding: 10px 20px; background-color: #555; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      Fechar
+    </button>
+  </div>
+  
+  <script>
+    // Auto-imprimir quando aberto em nova janela
+    window.onload = function() {
+      // Se foi aberto como pop-up, imprimir automaticamente
+      if (window.opener) {
+        setTimeout(function() {
+          window.print();
+        }, 500);
+      }
+    };
+  </script>
+</body>
+</html>

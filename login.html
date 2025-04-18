@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ORION PDV</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow my-5">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <img src="https://i.imgur.com/Ka8kNST.png" alt="Logo ORION PDV" width="200">
+                            <h1 class="h4 mt-3">ORION PDV</h1>
+                            <p class="text-muted">ADM. JESUS MARTINS & ORION I.A.</p>
+                        </div>
+                        
+                        <div id="alertMessage"></div>
+                        
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="usuario" class="form-label">Usuário</label>
+                                <input type="text" class="form-control" id="usuario" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="senha" class="form-label">Senha</label>
+                                <input type="password" class="form-control" id="senha" required>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Entrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Redirecionar para index se já estiver autenticado
+            if (auth.verificarAutenticacao()) {
+                window.location.href = 'index.html';
+            }
+            
+            // Login
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const usuario = document.getElementById('usuario').value;
+                const senha = document.getElementById('senha').value;
+                
+                const resultado = auth.login(usuario, senha);
+                
+                if (resultado.sucesso) {
+                    window.location.href = 'index.html';
+                } else {
+                    const alertDiv = document.getElementById('alertMessage');
+                    alertDiv.innerHTML = `<div class="alert alert-danger">${resultado.mensagem}</div>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

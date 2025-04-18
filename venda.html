@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrar Venda - ORION PDV</title>
+  <link rel="stylesheet" href="assets/css/orion-theme.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    .produto-card {
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+    
+    .produto-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--box-shadow);
+      border-color: var(--primary);
+    }
+    
+    .produto-img {
+      height: 140px;
+      width: 100%;
+      background-color: var(--dark-lighter);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .produto-img img {
+      max-height: 120px;
+      max-width: 90%;
+      object-fit: contain;
+    }
+    
+    .produto-info {
+      padding: 0.75rem;
+    }
+    
+    .produto-preco {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 1.25rem;
+    }
+    
+    .produto-estoque {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    
+    .carrinho-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.75rem 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .carrinho-img {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .carrinho-img img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .carrinho-info {
+      flex: 1;
+    }
+    
+    .carrinho-nome {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    
+    .carrinho-detalhes {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Sidebar (igual ao dashboard.html) -->
+    <!-- ... incluir sidebar aqui ... -->
+
+    <!-- Conteúdo principal -->
+    <main class="content">
+      <div class="header" style="margin-bottom: 1.5rem;">
+        <h1>Registrar Venda</h1>
+        <div>
+          <span id="current-date"></span>
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 400px; gap: 1.5rem;">
+        <!-- Painel de Produtos -->
+        <div class="card" style="height: calc(100vh - 130px); overflow: hidden; display: flex; flex-direction: column;">
+          <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <i class="fas fa-box"></i> Produtos
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <select id="filtro-grupo" class="form-control" style="width: 150px;">
+                    <option value="">Todos os Grupos</option>
+                    <!-- Preenchido via JavaScript -->
+                  </select>
+                </div>
+                <div style="position: relative;">
+                  <input type="text" id="busca-produto" class="form-control" placeholder="Buscar produto..." style="width: 200px; padding-left: 36px;">
+                  <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card-body" style="overflow-y: auto; flex: 1;">
+            <!-- Tabs de busca -->
+            <ul class="nav nav-tabs" style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+              <li class="nav-item">
+                <a class="nav-link active" id="tab-produtos" href="#" style="color: var(--text-light); border: none; padding: 0.5rem 1rem; border-bottom: 2px solid transparent;">
+                  Produtos
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="tab-scanner" href="#" style="color: var(--text-muted); border: none; padding: 0.5rem 1rem; border-bottom: 2px solid transparent;">
+                  Scanner de Código
+                </a>
+              </li>
+            </ul>
+            
+            <!-- Conteúdo das tabs -->
+            <div id="conteudo-tabs">
+              <!-- Tab Produtos -->
+              <div id="tab-conteudo-produtos" class="tab-content active">
+                <div id="lista-produtos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem;">
+                  <!-- Preenchido via JavaScript -->
+                </div>
+              </div>
+              
+              <!-- Tab Scanner -->
+              <div id="tab-conteudo-scanner" class="tab-content" style="display: none;">
+                <div class="alert" style="background-color: rgba(30, 136, 229, 0.1); border: 1px solid rgba(30, 136, 229, 0.3); color: var(--primary); border-radius: var(--border-radius); padding: 1rem; margin-bottom: 1rem;">
+                  <h4 style="margin-top: 0;"><i class="fas fa-info-circle"></i> Como usar o scanner</h4>
+                  <p style="margin-bottom: 0;">Para escanear códigos de barras, você pode:</p>
+                  <ol style="margin-bottom: 0;">
+                    <li>Digitar o código de barras no campo abaixo</li>
+                    <li>Usar um leitor de código de barras conectado ao computador</li>
+                    <li>Usar a câmera do celular para escanear o código e digitar o resultado</li>
+                  </ol>
+                </div>
+                
+                <div class="form-group">
+                  <label for="codigo-barras" class="form-label">Código de Barras</label>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="codigo-barras" class="form-control">
+                    <button id="btn-buscar-codigo" class="btn btn-primary">
+                      <i class="fas fa-search"></i> Buscar
+                    </button>
+                  </div>
+                </div>
+                
+                <div id="resultado-scanner" style="margin-top: 1.5rem;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Carrinho de Compras -->
+        <div class="card" style="height: calc(100vh - 130px); overflow: hidden; display: flex; flex-direction: column;">
+          <div class="card-header">
+            <i class="fas fa-shopping-cart"></i> Carrinho
+          </div>
+          
+          <div id="carrinho-conteudo" style="flex: 1; display: flex; flex-direction: column;">
+            <div id="carrinho-itens" style="flex: 1; overflow-y: auto; padding: 1rem;">
+              <div id="carrinho-vazio" style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
+                <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p>Carrinho vazio</p>
+                <p style="font-size: 0.9rem;">Adicione produtos para iniciar a venda</p>
+              </div>
+              
+              <!-- Lista de itens do carrinho (preenchido via JavaScript) -->
+            </div>
+            
+            <!-- Rodapé do carrinho -->
+            <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <!-- Subtotal -->
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Subtotal</span>
+                <span id="subtotal">R$ 0,00</span>
+              </div>
+              
+              <!-- Desconto -->
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Desconto</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <input type="number" id="desconto" class="form-control" value="0" min="0" step="0.01" style="width: 80px; text-align: right;">
+                  <span>%</span>
+                </div>
+              </div>
+              
+              <!-- Total -->
+              <div style="display: flex; justify-content: space-between; margin: 1rem 0; font-size: 1.25rem; font-weight: 600;">
+                <span>Total</span>
+                <span id="total" style="color: var(--primary);">R$ 0,00</span>
+              </div>
+              
+              <!-- Formulário de Finalização -->
+              <div class="form-group">
+                <label for="cliente" class="form-label">Cliente</label>
+                <select id="cliente" class="form-control">
+                  <option value="1">Consumidor Final</option>
+                  <!-- Preenchido via JavaScript -->
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
+                <select id="forma-pagamento" class="form-control">
+                  <!-- Preenchido via JavaScript -->
+                </select>
+              </div>
+              
+              <button id="btn-finalizar" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" disabled>
+                <i class="fas fa-check-circle"></i> Finalizar Venda
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Modal de Recibo -->
+      <div id="modal-recibo" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background-color: var(--dark-surface); width: 600px; max-width: 90%; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Recibo da Venda</h3>
+            <button type="button" class="btn-close-recibo" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+          </div>
+          <div class="card-body">
+            <div id="recibo-conteudo" style="max-height: 70vh; overflow-y: auto;"></div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
+              <button id="btn-imprimir" class="btn btn-outline-primary">
+                <i class="fas fa-print"></i> Imprimir
+              </button>
+              <button id="btn-nova-venda" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Nova Venda
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/vendas.js"></script>
+</body>
+</html>

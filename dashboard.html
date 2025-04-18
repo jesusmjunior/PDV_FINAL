@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - ORION PDV</title>
+  <link rel="stylesheet" href="assets/css/orion-theme.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="assets/img/logo.png" alt="ORION PDV">
+        <span class="logo-text">ORION PDV</span>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="dashboard.html" class="nav-link active">
+            <i class="fas fa-tachometer-alt nav-icon"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="venda.html" class="nav-link">
+            <i class="fas fa-shopping-cart nav-icon"></i>
+            <span>Registrar Venda</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="produto.html" class="nav-link">
+            <i class="fas fa-box nav-icon"></i>
+            <span>Cadastrar Produto</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="cliente.html" class="nav-link">
+            <i class="fas fa-user nav-icon"></i>
+            <span>Cadastrar Cliente</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="relatorio.html" class="nav-link">
+            <i class="fas fa-chart-bar nav-icon"></i>
+            <span>Painel Financeiro</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="estoque.html" class="nav-link">
+            <i class="fas fa-warehouse nav-icon"></i>
+            <span>Gerenciar Estoque</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="config.html" class="nav-link">
+            <i class="fas fa-cog nav-icon"></i>
+            <span>Configurações</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div style="margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+          <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-right: 10px;"></i>
+          <div>
+            <div id="user-name" style="font-weight: 500;">Nome do Usuário</div>
+            <small class="text-muted">Administrador</small>
+          </div>
+        </div>
+        <button id="btn-logout" class="btn btn-outline-primary" style="width: 100%;">
+          <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+      </div>
+    </aside>
+
+    <!-- Conteúdo principal -->
+    <main class="content">
+      <div class="header" style="margin-bottom: 1.5rem;">
+        <h1>Dashboard</h1>
+        <div>
+          <span id="current-date"></span>
+        </div>
+      </div>
+      
+      <!-- Cards de estatísticas -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div class="card">
+          <div class="stat-card">
+            <i class="fas fa-shopping-cart icon" style="color: var(--primary);"></i>
+            <div class="value" id="total-vendas">0</div>
+            <div class="label">Total de Vendas</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="stat-card">
+            <i class="fas fa-dollar-sign icon" style="color: var(--success);"></i>
+            <div class="value" id="faturamento-total">R$ 0,00</div>
+            <div class="label">Faturamento Total</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="stat-card">
+            <i class="fas fa-box icon" style="color: var(--warning);"></i>
+            <div class="value" id="total-produtos">0</div>
+            <div class="label">Produtos Cadastrados</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="stat-card">
+            <i class="fas fa-user icon" style="color: var(--info);"></i>
+            <div class="value" id="total-clientes">0</div>
+            <div class="label">Clientes Cadastrados</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gráficos -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div class="card">
+          <div class="card-header">
+            <i class="fas fa-chart-line"></i> Vendas Recentes
+          </div>
+          <div class="card-body">
+            <canvas id="chart-vendas" height="250"></canvas>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <i class="fas fa-chart-pie"></i> Vendas por Forma de Pagamento
+          </div>
+          <div class="card-body">
+            <canvas id="chart-pagamentos" height="250"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tabelas de dados -->
+      <div class="card">
+        <div class="card-header">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <i class="fas fa-list"></i> Últimas Vendas
+            </div>
+            <a href="relatorio.html" class="btn btn-outline-primary btn-sm">
+              Ver Todas
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="table" id="tabela-vendas">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Data</th>
+                  <th>Cliente</th>
+                  <th>Forma de Pagamento</th>
+                  <th>Total</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Preenchido via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Produtos com baixo estoque -->
+      <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <i class="fas fa-exclamation-triangle"></i> Produtos com Estoque Baixo
+            </div>
+            <a href="estoque.html" class="btn btn-outline-primary btn-sm">
+              Gerenciar Estoque
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="table" id="tabela-estoque-baixo">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Código</th>
+                  <th>Estoque Atual</th>
+                  <th>Estoque Mínimo</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Preenchido via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar autenticação
+      if (!auth.verificarAutenticacao()) {
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // Dados do usuário
+      const user = auth.getUsuarioAtual();
+      document.getElementById('user-name').textContent = user.nome;
+      
+      // Data atual
+      const dataAtual = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('current-date').textContent = dataAtual.toLocaleDateString('pt-BR', options);
+      
+      // Carregar dados
+      carregarEstatisticas();
+      carregarGraficos();
+      carregarUltimasVendas();
+      carregarProdutosEstoqueBaixo();
+      
+      // Logout
+      document.getElementById('btn-logout').addEventListener('click', function() {
+        auth.fazerLogout();
+        window.location.href = 'index.html';
+      });
+      
+      // Funções de carregamento de dados
+      function carregarEstatisticas() {
+        const vendas = db.getVendas();
+        const produtos = db.getProdutos();
+        const clientes = db.getClientes();
+        
+        // Total de vendas
+        document.getElementById('total-vendas').textContent = vendas.length;
+        
+        // Faturamento total
+        const faturamento = vendas.reduce((acc, venda) => acc + venda.total, 0);
+        document.getElementById('faturamento-total').textContent = `R$ ${faturamento.toFixed(2)}`;
+        
+        // Total de produtos
+        document.getElementById('total-produtos').textContent = Object.keys(produtos).length;
+        
+        // Total de clientes
+        document.getElementById('total-clientes').textContent = clientes.length;
+      }
+      
+      function carregarGraficos() {
+        const vendas = db.getVendas();
+        
+        // Dados para gráfico de vendas por dia
+        const vendasPorDia = {};
+        const hoje = new Date();
+        
+        // Adicionar últimos 7 dias
+        for (let i = 6; i >= 0; i--) {
+          const data = new Date(hoje);
+          data.setDate(data.getDate() - i);
+          const dataFormatada = data.toISOString().split('T')[0];
+          vendasPorDia[dataFormatada] = 0;
+        }
+        
+        // Somar vendas por dia
+        vendas.forEach(venda => {
+          const dataVenda = venda.data.split('T')[0];
+          if (vendasPorDia[dataVenda] !== undefined) {
+            vendasPorDia[dataVenda] += venda.total;
+          }
+        });
+        
+        // Criar gráfico de vendas
+        const ctxVendas = document.getElementById('chart-vendas').getContext('2d');
+        new Chart(ctxVendas, {
+          type: 'line',
+          data: {
+            labels: Object.keys(vendasPorDia).map(data => {
+              const partes = data.split('-');
+              return `${partes[2]}/${partes[1]}`;
+            }),
+            datasets: [{
+              label: 'Vendas (R$)',
+              data: Object.values(vendasPorDia),
+              borderColor: '#1E88E5',
+              backgroundColor: 'rgba(30, 136, 229, 0.1)',
+              tension: 0.3,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.05)'
+                }
+              },
+              x: {
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.05)'
+                }
+              }
+            }
+          }
+        });
+        
+        // Dados para gráfico de pagamentos
+        const pagamentos = {};
+        vendas.forEach(venda => {
+          if (!pagamentos[venda.forma_pagamento]) {
+            pagamentos[venda.forma_pagamento] = 0;
+          }
+          pagamentos[venda.forma_pagamento] += venda.total;
+        });
+        
+        // Cores para o gráfico
+        const cores = [
+          '#1E88E5', // Azul
+          '#43A047', // Verde
+          '#FFB300', // Amarelo
+          '#E53935', // Vermelho
+          '#8E24AA'  // Roxo
+        ];
+        
+        // Criar gráfico de pagamentos
+        const ctxPagamentos = document.getElementById('chart-pagamentos').getContext('2d');
+        new Chart(ctxPagamentos, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(pagamentos),
+            datasets: [{
+              data: Object.values(pagamentos),
+              backgroundColor: cores.slice(0, Object.keys(pagamentos).length),
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right'
+              }
+            },
+            cutout: '70%'
+          }
+        });
+      }
+      
+      function carregarUltimasVendas() {
+        const vendas = db.getVendas();
+        const tbody = document.querySelector('#tabela-vendas tbody');
+        
+        // Limpar tabela
+        tbody.innerHTML = '';
+        
+        // Ordenar vendas por data (mais recentes primeiro)
+        const vendasOrdenadas = [...vendas].sort((a, b) => {
+          return new Date(b.data) - new Date(a.data);
+        }).slice(0, 5); // Mostrar apenas as 5 mais recentes
+        
+        // Adicionar linhas
+        if (vendasOrdenadas.length > 0) {
+          vendasOrdenadas.forEach(venda => {
+            const tr = document.createElement('tr');
+            
+            // Formatar data
+            const data = new Date(venda.data);
+            const dataFormatada = data.toLocaleDateString('pt-BR') + ' ' + 
+                                  data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            tr.innerHTML = `
+              <td>${venda.id}</td>
+              <td>${dataFormatada}</td>
+              <td>${venda.cliente_nome}</td>
+              <td>${venda.forma_pagamento}</td>
+              <td>R$ ${venda.total.toFixed(2)}</td>
+              <td>
+                <button class="btn btn-outline-primary btn-sm btn-view-venda" data-id="${venda.id}">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </td>
+            `;
+            
+            tbody.appendChild(tr);
+          });
+        } else {
+          // Caso não tenha vendas
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+       <!-- Continuação do dashboard.html -->
+            <td colspan="6" style="text-align: center;">Nenhuma venda registrada</td>
+          `;
+          tbody.appendChild(tr);
+        }
+        
+        // Adicionar eventos aos botões de visualização
+        document.querySelectorAll('.btn-view-venda').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            // Redirecionar para página de detalhes da venda
+            window.location.href = `relatorio.html?venda=${id}`;
+          });
+        });
+      }
+      
+      function carregarProdutosEstoqueBaixo() {
+        const produtos = db.getProdutos();
+        const tbody = document.querySelector('#tabela-estoque-baixo tbody');
+        
+        // Limpar tabela
+        tbody.innerHTML = '';
+        
+        // Filtrar produtos com estoque baixo
+        const produtosBaixoEstoque = Object.values(produtos).filter(produto => {
+          return produto.estoque <= (produto.estoque_minimo || 10);
+        });
+        
+        // Ordenar por estoque (menor primeiro)
+        produtosBaixoEstoque.sort((a, b) => a.estoque - b.estoque);
+        
+        // Limitar aos 5 primeiros
+        const produtosExibir = produtosBaixoEstoque.slice(0, 5);
+        
+        // Adicionar linhas
+        if (produtosExibir.length > 0) {
+          produtosExibir.forEach(produto => {
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+              <td>${produto.nome}</td>
+              <td>${produto.codigo_barras}</td>
+              <td>
+                <span class="${produto.estoque === 0 ? 'text-danger' : 'text-warning'}">
+                  ${produto.estoque}
+                </span>
+              </td>
+              <td>${produto.estoque_minimo || 10}</td>
+              <td>
+                <button class="btn btn-outline-primary btn-sm btn-add-estoque" data-id="${produto.id}">
+                  <i class="fas fa-plus"></i> Adicionar
+                  <!-- Continuação do dashboard.html -->
+                <button class="btn btn-outline-primary btn-sm btn-add-estoque" data-id="${produto.id}">
+                  <i class="fas fa-plus"></i> Adicionar
+                </button>
+              </td>
+            `;
+            
+            tbody.appendChild(tr);
+          });
+        } else {
+          // Caso não tenha produtos com estoque baixo
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td colspan="5" style="text-align: center;">Não há produtos com estoque baixo</td>
+          `;
+          tbody.appendChild(tr);
+        }
+        
+        // Adicionar eventos aos botões de adicionar estoque
+        document.querySelectorAll('.btn-add-estoque').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const produto = db.getProduto(id);
+            
+            if (produto) {
+              // Abrir modal para adição de estoque
+              abrirModalAdicionarEstoque(produto);
+            }
+          });
+        });
+      }
+      
+      // Modal para adicionar estoque
+      function abrirModalAdicionarEstoque(produto) {
+        // Criar elemento do modal
+        const modalEl = document.createElement('div');
+        modalEl.className = 'modal';
+        modalEl.style.display = 'flex';
+        modalEl.style.position = 'fixed';
+        modalEl.style.top = '0';
+        modalEl.style.left = '0';
+        modalEl.style.width = '100%';
+        modalEl.style.height = '100%';
+        modalEl.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        modalEl.style.justifyContent = 'center';
+        modalEl.style.alignItems = 'center';
+        modalEl.style.zIndex = '1000';
+        
+        // Conteúdo do modal
+        modalEl.innerHTML = `
+          <div class="modal-content" style="background-color: var(--dark-surface); width: 400px; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h3>Adicionar Estoque</h3>
+              <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background-color: rgba(255, 255, 255, 0.05); border-radius: var(--border-radius);">
+                  <i class="fas fa-box" style="font-size: 2rem; color: var(--primary);"></i>
+                </div>
+                <div style="flex: 1;">
+                  <h4>${produto.nome}</h4>
+                  <p style="margin: 0; color: var(--text-muted);">Código: ${produto.codigo_barras}</p>
+                  <p style="margin: 0; color: var(--text-muted);">Estoque atual: ${produto.estoque}</p>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="quantidade" class="form-label">Quantidade a adicionar</label>
+                <input type="number" id="quantidade" class="form-control" value="1" min="1" step="1">
+              </div>
+              
+              <div class="form-group" style="margin-top: 1.5rem;">
+                <button type="button" id="btn-confirmar-estoque" class="btn btn-primary" style="width: 100%;">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Adicionar modal ao body
+        document.body.appendChild(modalEl);
+        
+        // Fechar modal
+        modalEl.querySelector('.btn-close').addEventListener('click', function() {
+          document.body.removeChild(modalEl);
+        });
+        
+        // Confirmar adição de estoque
+        modalEl.querySelector('#btn-confirmar-estoque').addEventListener('click', function() {
+          const quantidade = parseInt(modalEl.querySelector('#quantidade').value);
+          
+          if (quantidade > 0) {
+            // Atualizar estoque
+            db.atualizarEstoqueProduto(produto.id, quantidade);
+            
+            // Exibir mensagem de sucesso
+            alert(`Estoque atualizado com sucesso! Novo estoque: ${produto.estoque + quantidade}`);
+            
+            // Fechar modal
+            document.body.removeChild(modalEl);
+            
+            // Recarregar dados
+            carregarProdutosEstoqueBaixo();
+          } else {
+            alert('Por favor, informe uma quantidade válida');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
