@@ -36,7 +36,26 @@
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>
-                    <!-- Outros itens do menu -->
+                    <a href="venda.html" class="nav-item">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Vendas</span>
+                    </a>
+                    <a href="produto.html" class="nav-item">
+                        <i class="fas fa-box"></i>
+                        <span>Produtos</span>
+                    </a>
+                    <a href="estoque.html" class="nav-item">
+                        <i class="fas fa-warehouse"></i>
+                        <span>Estoque</span>
+                    </a>
+                    <a href="relatorio.html" class="nav-item">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Relatórios</span>
+                    </a>
+                    <a href="config.html" class="nav-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
+                    </a>
                 </nav>
 
                 <!-- Footer Sidebar -->
@@ -48,7 +67,7 @@
                             <small>Administrador</small>
                         </div>
                     </div>
-                    <button id="btn-logout" class="btn btn-logout">
+                    <button id="btn-logout" class="btn btn-logout" onclick="Auth.fazerLogout()">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
@@ -67,7 +86,6 @@
 
             <!-- Cards de Métricas -->
             <div class="metrics-grid">
-                <!-- Cards individuais -->
                 <div class="metric-card sales">
                     <div class="metric-icon">
                         <i class="fas fa-shopping-cart"></i>
@@ -77,7 +95,36 @@
                         <span class="metric-label">Vendas Hoje</span>
                     </div>
                 </div>
-                <!-- Repetir para outros cards -->
+
+                <div class="metric-card revenue">
+                    <div class="metric-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="metric-content">
+                        <span class="metric-value" id="faturamento">R$ 0,00</span>
+                        <span class="metric-label">Faturamento</span>
+                    </div>
+                </div>
+
+                <div class="metric-card products">
+                    <div class="metric-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="metric-content">
+                        <span class="metric-value" id="total-produtos">0</span>
+                        <span class="metric-label">Produtos</span>
+                    </div>
+                </div>
+
+                <div class="metric-card clients">
+                    <div class="metric-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="metric-content">
+                        <span class="metric-value" id="total-clientes">0</span>
+                        <span class="metric-label">Clientes</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Seção de Gráficos -->
@@ -110,11 +157,45 @@
                 <div class="table-card">
                     <div class="table-header">
                         <h3>Últimas Transações</h3>
-                        <a href="#" class="btn-link">Ver Todas</a>
+                        <a href="relatorio.html" class="btn-link">Ver Todas</a>
                     </div>
                     <div class="table-responsive">
                         <table class="data-table">
-                            <!-- Conteúdo da tabela -->
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Data/Hora</th>
+                                    <th>Valor</th>
+                                    <th>Método</th>
+                                    <th>Detalhes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ultimas-vendas">
+                                <!-- Dados serão preenchidos via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="table-card" style="margin-top: 1.5rem;">
+                    <div class="table-header">
+                        <h3>Estoque Crítico</h3>
+                        <a href="estoque.html" class="btn-link">Gerenciar</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Código</th>
+                                    <th>Estoque</th>
+                                    <th>Mínimo</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="estoque-critico">
+                                <!-- Dados serão preenchidos via JavaScript -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -129,21 +210,34 @@
     <script>
         // Controle do Menu Mobile
         function toggleMenu() {
-            document.querySelector('.sidebar').classList.toggle('active');
-            document.querySelector('.mobile-header').classList.toggle('menu-open');
+            const sidebar = document.querySelector('.sidebar');
+            const mobileHeader = document.querySelector('.mobile-header');
+            sidebar.classList.toggle('active');
+            mobileHeader.classList.toggle('menu-open');
         }
 
-        // Ajuste Responsivo
+        // Gestão de Layout Responsivo
         function adjustLayout() {
             const isMobile = window.innerWidth < 768;
             document.body.classList.toggle('mobile-view', isMobile);
+            
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.toggle('mobile-optimized', isMobile);
+            });
         }
 
+        // Event Listeners
         window.addEventListener('resize', adjustLayout);
-        window.onload = () => {
+        window.addEventListener('DOMContentLoaded', () => {
             adjustLayout();
             Auth.validarSessao();
-        };
+            Dashboard.carregarDados();
+        });
+
+        // Logout
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            Auth.fazerLogout();
+        });
     </script>
 </body>
 </html>
