@@ -2,218 +2,88 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Estoque - ORION PDV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Estoque - ORION PDV</title>
   <link rel="stylesheet" href="assets/css/orion-theme.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    /* Adaptações específicas para mobile */
-    @media (max-width: 768px) {
-      .wrapper {
-        flex-direction: column;
-      }
-
-      .sidebar {
-        width: 100%;
-        height: 60px;
-        flex-direction: row;
-        padding: 0 1rem;
-      }
-
-      .nav-menu,
-      .user-info {
-        display: none;
-      }
-
-      .logo {
-        padding: 0;
-      }
-
-      .logo-text {
-        display: none;
-      }
-
-      .content {
-        margin-left: 0;
-        padding: 1rem;
-      }
-
-      .nav-tabs {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-
-      .nav-tab {
-        flex: 1 1 45%;
-        padding: 0.5rem;
-        font-size: 0.9rem;
-      }
-
-      .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .modal-content {
-        width: 95%;
-      }
-
-      .toolbar {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .scanner-container {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (min-width: 769px) {
-      .mobile-only {
-        display: none;
-      }
-    }
-  </style>
 </head>
 <body>
-  <div class="wrapper">
-    <!-- Sidebar Mobile -->
-    <div class="mobile-only">
-      <div class="sidebar-mobile">
-        <button class="btn btn-menu">
-          <i class="fas fa-bars"></i>
-        </button>
-        <span class="logo-text">ORION</span>
+  <!-- Sidebar idêntico ao do produto.html -->
+
+  <main class="content">
+    <div class="header">
+      <h1>Gestão de Estoque</h1>
+      <div class="date" id="current-date"></div>
+    </div>
+    
+    <div class="grid-layout">
+      <!-- Controles -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-warehouse"></i> Ações Rápidas</div>
+          <div class="toolbar">
+            <button onclick="Estoque.abrirScanner()" class="btn btn-primary">
+              <i class="fas fa-camera"></i> Scanner
+            </button>
+            <button onclick="Estoque.exportarRelatorio()" class="btn btn-success">
+              <i class="fas fa-file-excel"></i> Exportar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Estoque -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-boxes"></i> Itens em Estoque</div>
+          <div class="toolbar">
+            <input type="text" id="busca-estoque" class="form-control" placeholder="Filtrar..." 
+              onkeyup="Estoque.filtrar(this.value)">
+          </div>
+        </div>
+        <div class="card-body">
+          <table class="table" id="tabela-estoque">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Última Atualização</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dados carregados de estoque.json -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- Sidebar Desktop -->
-    <aside class="sidebar">
-      <!-- ... (mesmo conteúdo anterior) ... -->
-    </aside>
-
-    <!-- Conteúdo principal -->
-    <main class="content">
-      <!-- Header -->
-      <div class="header">
-        <h1>Gerenciamento de Estoque</h1>
-        <div class="date" id="current-date"></div>
-      </div>
-
-      <!-- Abas Otimizadas -->
-      <div class="nav-tabs-container">
-        <ul class="nav-tabs">
-          <li class="nav-tab active" data-target="listagem">
-            <i class="fas fa-list"></i>
-            <span class="tab-label">Listagem</span>
-          </li>
-          <li class="nav-tab" data-target="movimentacoes">
-            <i class="fas fa-exchange-alt"></i>
-            <span class="tab-label">Movimentações</span>
-          </li>
-          <li class="nav-tab" data-target="scanner">
-            <i class="fas fa-barcode"></i>
-            <span class="tab-label">Scanner</span>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Conteúdo Responsivo -->
-      <div class="tab-content">
-        <!-- Listagem Mobile-Friendly -->
-        <div id="content-listagem" class="tab-pane active">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <i class="fas fa-boxes"></i>
-                <span>Produtos em Estoque</span>
-              </div>
-              <div class="toolbar">
-                <div class="search-container compact">
-                  <input type="text" id="busca-produto" placeholder="Buscar...">
-                  <i class="fas fa-search"></i>
-                </div>
-                <select id="filtro-grupo" class="form-control compact">
-                  <option value="">Todos</option>
-                </select>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <!-- Tabela compacta para mobile -->
-                <table class="table compact">
-                  <thead>
-                    <tr>
-                      <th>Código</th>
-                      <th>Nome</th>
-                      <th class="mobile-hidden">Grupo</th>
-                      <th>Estoque</th>
-                      <th class="mobile-hidden">Mínimo</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody><!-- Dados via JS --></tbody>
-                </table>
-              </div>
-            </div>
+    <!-- Modal Scanner -->
+    <div id="modal-scanner" class="modal">
+      <div class="modal-content">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-camera"></i> Ajuste de Estoque</div>
+          <button type="button" class="btn-close-scanner" onclick="BarcodeScanner.parar()">&times;</button>
+        </div>
+        <div class="card-body">
+          <div id="camera-container"></div>
+          <div class="scanner-instructions">
+            <i class="fas fa-info-circle"></i>
+            Escaneie o código do produto e informe a nova quantidade
           </div>
-        </div>
-
-        <!-- Movimentações Otimizadas -->
-        <div id="content-movimentacoes" class="tab-pane">
-          <!-- ... (conteúdo anterior com tabela otimizada) ... -->
-        </div>
-
-        <!-- Scanner Mobile -->
-        <div id="content-scanner" class="tab-pane">
-          <div class="card">
-            <div class="card-body">
-              <div class="scanner-mobile">
-                <div class="scanner-guide">
-                  <div class="alert alert-info">
-                    <i class="fas fa-camera"></i> Aponte para o código
-                  </div>
-                  <div class="scanner-viewport">
-                    <video id="scanner-video-mobile"></video>
-                  </div>
-                </div>
-                <div class="scanner-actions">
-                  <input type="text" placeholder="Digite o código">
-                  <button class="btn btn-primary">
-                    <i class="fas fa-check"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div class="scanner-actions" id="scanner-actions" style="display: none;">
+            <input type="number" id="quantidade-ajuste" class="form-control" placeholder="Quantidade">
+            <button onclick="Estoque.aplicarAjuste()" class="btn btn-primary">Confirmar</button>
           </div>
         </div>
       </div>
+    </div>
+  </main>
 
-      <!-- Modal Mobile-Friendly -->
-      <div id="modal-estoque" class="modal mobile-modal">
-        <div class="modal-content">
-          <!-- ... (conteúdo anterior com formulário otimizado) ... -->
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <script>
-    // Controle de Menu Mobile
-    document.querySelector('.btn-menu').addEventListener('click', () => {
-      document.querySelector('.sidebar').classList.toggle('active');
-    });
-
-    // Adaptação Dinâmica de Tabelas
-    function adjustTable() {
-      if(window.innerWidth < 768) {
-        document.querySelectorAll('.mobile-hidden').forEach(el => el.style.display = 'none');
-      } else {
-        document.querySelectorAll('.mobile-hidden').forEach(el => el.style.display = 'table-cell');
-      }
-    }
-    window.addEventListener('resize', adjustTable);
-    adjustTable();
-  </script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/barcode-scanner.js"></script>
+  <script src="assets/js/estoque.js"></script>
 </body>
 </html>
