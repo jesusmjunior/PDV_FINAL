@@ -1,229 +1,110 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro de Produtos - ORION PDV</title>
-  <link rel="stylesheet" href="assets/css/orion-theme.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Produtos - ORION PDV</title>
+    
+    <!-- Dependências -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <link rel="stylesheet" href="assets/css/scanner.css">
 </head>
-<body>
-  <div class="wrapper">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="logo">
-        <img src="assets/img/logo.png" alt="ORION PDV">
-        <span class="logo-text">ORION PDV</span>
-      </div>
-      
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="dashboard.html" class="nav-link">
-            <i class="fas fa-tachometer-alt nav-icon"></i>
-            <span>Dashboard</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="venda.html" class="nav-link">
-            <i class="fas fa-shopping-cart nav-icon"></i>
-            <span>Registrar Venda</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="produto.html" class="nav-link active">
-            <i class="fas fa-box nav-icon"></i>
-            <span>Cadastrar Produto</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="cliente.html" class="nav-link">
-            <i class="fas fa-user nav-icon"></i>
-            <span>Cadastrar Cliente</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="relatorio.html" class="nav-link">
-            <i class="fas fa-chart-bar nav-icon"></i>
-            <span>Painel Financeiro</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="estoque.html" class="nav-link">
-            <i class="fas fa-warehouse nav-icon"></i>
-            <span>Gerenciar Estoque</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="config.html" class="nav-link">
-            <i class="fas fa-cog nav-icon"></i>
-            <span>Configurações</span>
-          </a>
-        </li>
-      </ul>
-      
-      <div class="user-info">
-        <div class="user-avatar">
-          <i class="fas fa-user"></i>
-        </div>
-        <div class="user-details">
-          <h4 class="user-name" id="user-name">Nome do Usuário</h4>
-          <p class="user-role">Administrador</p>
-        </div>
-        <button id="btn-logout" class="btn btn-sm btn-outline-primary">
-          <i class="fas fa-sign-out-alt"></i>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Conteúdo principal -->
-    <main class="content">
-      <div class="header">
+<body class="theme-dark">
+    <div class="container">
         <h1>Cadastro de Produtos</h1>
-        <div class="date" id="current-date"></div>
-      </div>
-      
-      <div class="grid-layout">
-        <!-- Lista de produtos -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="fas fa-list"></i> Produtos Cadastrados</div>
-            <div class="toolbar">
-              <div class="search-container">
-                <input type="text" id="busca-produto" class="form-control" placeholder="Buscar produto...">
-                <i class="fas fa-search"></i>
-              </div>
-              <select id="filtro-grupo" class="form-control">
-                <option value="">Todos os Grupos</option>
-              </select>
-              <button id="btn-novo-produto" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Novo
-              </button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table" id="tabela-produtos">
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Nome</th>
-                    <th>Grupo</th>
-                    <th>Preço</th>
-                    <th>Estoque</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Dados carregados via JavaScript -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
         
-        <!-- Formulário de produto -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="fas fa-box"></i> <span id="form-titulo">Novo Produto</span></div>
-          </div>
-          <div class="card-body">
-            <form id="form-produto">
-              <input type="hidden" id="produto-id">
-              
-              <div class="form-group">
-                <label for="codigo-barras" class="form-label">Código de Barras</label>
+        <!-- Formulário de Produto -->
+        <form id="form-produto">
+            <div class="form-group">
+                <label for="codigo-barras">Código de Barras</label>
                 <div class="input-group">
-                  <input type="text" id="codigo-barras" class="form-control" required>
-                  <button type="button" id="btn-gerar-codigo" class="btn btn-outline-primary" title="Gerar código">
-                    <i class="fas fa-barcode"></i>
-                  </button>
-                  <button type="button" id="btn-scanner-codigo" class="btn btn-outline-primary" title="Escanear código">
-                    <i class="fas fa-camera"></i>
-                  </button>
+                    <input type="text" 
+                           id="codigo-barras" 
+                           name="codigo_barras"
+                           class="form-control"
+                           placeholder="Escaneie ou digite o código"
+                           required>
+                    <button type="button" 
+                            id="btn-scanner-codigo" 
+                            class="btn btn-primary">
+                        <i class="fas fa-camera"></i> Escanear
+                    </button>
+                    <button type="button" 
+                            id="btn-gerar-codigo" 
+                            class="btn btn-secondary">
+                        <i class="fas fa-barcode"></i> Gerar
+                    </button>
                 </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="nome" class="form-label">Nome do Produto</label>
-                <input type="text" id="nome" class="form-control" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="grupo" class="form-label">Grupo</label>
-                <div class="input-group">
-                  <select id="grupo" class="form-control" required>
-                    <option value="">Selecione...</option>
-                  </select>
-                  <button type="button" id="btn-novo-grupo" class="btn btn-outline-primary">
-                    <i class="fas fa-plus"></i>
-                  </button>
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="preco" class="form-label">Preço de Venda (R$)</label>
-                <input type="number" id="preco" class="form-control" step="0.01" min="0.01" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="estoque" class="form-label">Estoque Atual</label>
-                <input type="number" id="estoque" class="form-control" min="0" step="1" required>
-              </div>
-              
-              <div class="form-actions">
-                <button type="button" id="btn-cancelar" class="btn btn-outline-primary">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Salvar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Adicionar Grupo/Marca -->
-      <div id="modal-adicionar" class="modal">
-        <div class="modal-content">
-          <div class="card-header">
-            <div class="card-title"><i class="fas fa-plus-circle"></i> <span id="modal-titulo">Novo Item</span></div>
-            <button type="button" class="btn-close-modal">&times;</button>
-          </div>
-          <div class="card-body">
-            <form id="form-modal">
-              <div class="form-group">
-                <label id="modal-label">Nome</label>
-                <input type="text" id="novo-item" class="form-control" required>
-              </div>
-              <div class="form-actions">
-                <button type="button" class="btn-close-modal btn btn-outline-primary">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Adicionar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Scanner -->
-      <div id="modal-scanner" class="modal">
-        <div class="modal-content">
-          <div class="card-header">
-            <div class="card-title"><i class="fas fa-camera"></i> Scanner de Código</div>
-            <button type="button" class="btn-close-scanner">&times;</button>
-          </div>
-          <div class="card-body">
-            <div id="camera-container"></div>
-            <div class="scanner-instructions">
-              <i class="fas fa-info-circle"></i>
-              Posicione o código de barras frente à câmera
             </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+            
+            <!-- Outros campos do formulário -->
+            <div class="form-group">
+                <label for="nome-produto">Nome do Produto</label>
+                <input type="text" 
+                       id="nome-produto" 
+                       class="form-control"
+                       required>
+            </div>
+            
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Salvar Produto
+            </button>
+        </form>
+    </div>
 
-  <script src="assets/js/auth.js"></script>
-  <script src="assets/js/database.js"></script>
-  <script src="assets/js/produto.js"></script>
-  <script src="assets/js/produto-barcode.js"></script>
-  <script src="assets/js/barcode-scanner.js"></script>
+    <!-- Modal do Scanner -->
+    <div id="modal-scanner" class="scanner-modal">
+        <div class="scanner-overlay">
+            <div class="scanner-container">
+                <div class="scanner-header">
+                    <h3>Scanner de Código de Barras</h3>
+                    <button class="btn-close-scanner">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="scanner-body">
+                    <div class="video-wrapper">
+                        <video id="scanner-video" class="scanner-video-element"></video>
+                        <div id="scanner-loading" class="scanner-loading">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                            </div>
+                            <div class="loading-text">Inicializando scanner...</div>
+                        </div>
+                    </div>
+
+                    <div id="scanner-status" class="scanner-status">
+                        <i class="fas fa-info-circle status-icon"></i>
+                        <span class="status-text">Pronto para escanear</span>
+                    </div>
+
+                    <div id="scanner-error" class="scanner-error">
+                        <i class="fas fa-exclamation-triangle error-icon"></i>
+                        <span class="error-message"></span>
+                    </div>
+                </div>
+
+                <div class="scanner-footer">
+                    <div class="scanner-tips">
+                        <i class="fas fa-lightbulb"></i>
+                        Dica: Posicione o código dentro da área destacada
+                    </div>
+                    <div class="scanner-actions">
+                        <button class="btn btn-secondary btn-toggle-torch">
+                            <i class="fas fa-lightbulb"></i> Lanterna
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/barcode-scanner.js"></script>
+    <script src="assets/js/produto-barcode.js"></script>
 </body>
 </html>
