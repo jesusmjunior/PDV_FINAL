@@ -1,85 +1,155 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ORION PDV - Sistema de Gestão de Vendas</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #111827;
-      font-family: Arial, sans-serif;
-      color: #fff;
-    }
-    
-    .loading {
-      text-align: center;
-    }
-    
-    .logo {
-      margin-bottom: 2rem;
-    }
-    
-    .logo img {
-      width: 150px;
-      height: auto;
-    }
-    
-    .loader {
-      width: 48px;
-      height: 48px;
-      border: 5px solid rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      border-top-color: #0B3D91;
-      margin: 0 auto 1rem;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ORION PDV</title>
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--dark-background);
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .login-logo img {
+            width: 120px;
+            margin-bottom: 1rem;
+        }
+        
+        .login-logo h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-logo p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
-  <div class="loading">
-    <div class="logo">
-      <img src="assets/img/logo.png" alt="ORION PDV">
-      <h1>ORION PDV</h1>
-      <p>Sistema de Gestão de Vendas</p>
+    <div class="login-container">
+        <div class="login-logo">
+            <img src="assets/img/logo.png" alt="Logo ORION PDV">
+            <h1>ORION PDV</h1>
+            <p>Sistema de Gestão de Vendas</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </div>
+            <div class="card-body">
+                <div id="alertMessage"></div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="usuario" class="form-label">Usuário</label>
+                        <input type="text" class="form-control" id="usuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="senha" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="senha" required>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="loader"></div>
-    <p>Carregando o sistema...</p>
-  </div>
 
-  <script src="assets/js/database.js"></script>
-  <script src="assets/js/auth.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar banco de dados, se necessário
-      const initialized = localStorage.getItem('orion_initialized');
-      
-      if (initialized !== 'true') {
-        // Inicializar com dados padrão se for a primeira vez
-        // O restante do código de inicialização deve estar no database.js
-      }
-      
-      // Verificar autenticação e redirecionar
-      setTimeout(function() {
-        if (auth.verificarAutenticacao()) {
-          window.location.href = 'dashboard.html';
-        } else {
-          window.location.href = 'login.html';
-        }
-      }, 1500); // Esperar 1.5 segundos para exibir a tela de carregamento
-    });
-  </script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar database, se necessário
+            db.inicializar();
+            
+            // Redirecionar para dashboard se já estiver autenticado
+            if (auth.verificarAutenticacao()) {
+                window.location.href = 'dashboard.html';
+            }
+            
+            // Verificar se há usuários cadastrados
+            const usuarios = db.getUsuarios();
+            const totalUsuarios = Object.keys(usuarios).length;
+            
+            // Se não houver usuários, criar o usuário "jesus" com senha "123"
+            if (totalUsuarios === 0) {
+                const novoUsuario = {
+                    username: "jesus",
+                    nome: "Jesus Martins",
+                    cargo: "Administrador",
+                    email: "jesus@orionpdv.com",
+                    perfil: "admin",
+                    senha_hash: db.hashSenha("123")
+                };
+                
+                // Inicializar objeto de usuários
+                usuarios['jesus'] = novoUsuario;
+                localStorage.setItem('orion_usuarios', JSON.stringify(usuarios));
+                console.log("Usuário padrão criado: jesus / 123");
+            }
+            
+            // Login
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const usuario = document.getElementById('usuario').value;
+                const senha = document.getElementById('senha').value;
+                
+                // Verificar se é o usuário específico "jesus" com senha "123"
+                if (usuario === "jesus" && senha === "123") {
+                    // Login direto sem verificar hash para este usuário específico
+                    const dadosSessao = {
+                        username: "jesus",
+                        nome: "Jesus Martins",
+                        perfil: "admin",
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // Salvar na sessão
+                    sessionStorage.setItem('orion_auth', JSON.stringify(dadosSessao));
+                    
+                    // Redirecionar
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+                
+                // Caso contrário, tenta o login normal
+                const resultado = auth.login(usuario, senha);
+                
+                if (resultado.sucesso) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const alertDiv = document.getElementById('alertMessage');
+                    alertDiv.innerHTML = `
+                        <div style="background-color: rgba(229, 57, 53, 0.1); border: 1px solid rgba(229, 57, 53, 0.3); color: var(--danger); padding: 0.75rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                            <i class="fas fa-exclamation-circle"></i> ${resultado.mensagem}
+                        </div>
+                    `;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
