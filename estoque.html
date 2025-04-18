@@ -1,89 +1,64 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestão de Estoque - ORION PDV</title>
-  <link rel="stylesheet" href="assets/css/orion-theme.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-  <!-- Sidebar idêntico ao do produto.html -->
+<!-- Modal do Scanner Atualizado -->
+<div id="modal-scanner" class="scanner-modal">
+    <div class="scanner-overlay">
+        <div class="scanner-container">
+            <div class="scanner-header">
+                <h3>Ajuste de Estoque via Scanner</h3>
+                <button class="btn-close-scanner">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-  <main class="content">
-    <div class="header">
-      <h1>Gestão de Estoque</h1>
-      <div class="date" id="current-date"></div>
+            <div class="scanner-body">
+                <div class="video-wrapper">
+                    <video id="scanner-video" class="scanner-video-element"></video>
+                    <div id="scanner-loading" class="scanner-loading">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        </div>
+                        <div class="loading-text">Inicializando scanner...</div>
+                    </div>
+                </div>
+
+                <div id="scanner-status" class="scanner-status">
+                    <i class="fas fa-info-circle status-icon"></i>
+                    <span class="status-text">Pronto para escanear</span>
+                </div>
+
+                <div id="scanner-error" class="scanner-error">
+                    <i class="fas fa-exclamation-triangle error-icon"></i>
+                    <span class="error-message"></span>
+                </div>
+
+                <div class="adjustment-interface" id="adjustment-interface" style="display: none;">
+                    <input type="number" 
+                           id="quantidade-ajuste" 
+                           class="form-control"
+                           placeholder="Quantidade"
+                           min="0"
+                           step="1">
+                    <div class="adjustment-actions">
+                        <button onclick="Estoque.confirmarAjuste()" class="btn btn-success">
+                            <i class="fas fa-check"></i> Confirmar
+                        </button>
+                        <button onclick="Estoque.cancelarAjuste()" class="btn btn-danger">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scanner-footer">
+                <div class="scanner-tips">
+                    <i class="fas fa-lightbulb"></i>
+                    Dica: Escaneie o código do produto e informe a nova quantidade
+                </div>
+                <div class="scanner-actions">
+                    <button class="btn btn-secondary btn-toggle-torch">
+                        <i class="fas fa-lightbulb"></i> Lanterna
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-    
-    <div class="grid-layout">
-      <!-- Controles -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title"><i class="fas fa-warehouse"></i> Ações Rápidas</div>
-          <div class="toolbar">
-            <button onclick="Estoque.abrirScanner()" class="btn btn-primary">
-              <i class="fas fa-camera"></i> Scanner
-            </button>
-            <button onclick="Estoque.exportarRelatorio()" class="btn btn-success">
-              <i class="fas fa-file-excel"></i> Exportar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Lista de Estoque -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title"><i class="fas fa-boxes"></i> Itens em Estoque</div>
-          <div class="toolbar">
-            <input type="text" id="busca-estoque" class="form-control" placeholder="Filtrar..." 
-              onkeyup="Estoque.filtrar(this.value)">
-          </div>
-        </div>
-        <div class="card-body">
-          <table class="table" id="tabela-estoque">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Produto</th>
-                <th>Quantidade</th>
-                <th>Última Atualização</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Dados carregados de estoque.json -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Scanner -->
-    <div id="modal-scanner" class="modal">
-      <div class="modal-content">
-        <div class="card-header">
-          <div class="card-title"><i class="fas fa-camera"></i> Ajuste de Estoque</div>
-          <button type="button" class="btn-close-scanner" onclick="BarcodeScanner.parar()">&times;</button>
-        </div>
-        <div class="card-body">
-          <div id="camera-container"></div>
-          <div class="scanner-instructions">
-            <i class="fas fa-info-circle"></i>
-            Escaneie o código do produto e informe a nova quantidade
-          </div>
-          <div class="scanner-actions" id="scanner-actions" style="display: none;">
-            <input type="number" id="quantidade-ajuste" class="form-control" placeholder="Quantidade">
-            <button onclick="Estoque.aplicarAjuste()" class="btn btn-primary">Confirmar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <script src="assets/js/database.js"></script>
-  <script src="assets/js/barcode-scanner.js"></script>
-  <script src="assets/js/estoque.js"></script>
-</body>
-</html>
+</div>
