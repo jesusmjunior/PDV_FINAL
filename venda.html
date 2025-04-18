@@ -93,8 +93,71 @@
 </head>
 <body>
   <div class="wrapper">
-    <!-- Sidebar (igual ao dashboard.html) -->
-    <!-- ... incluir sidebar aqui ... -->
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="assets/img/logo.png" alt="ORION PDV">
+        <span class="logo-text">ORION PDV</span>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="dashboard.html" class="nav-link">
+            <i class="fas fa-tachometer-alt nav-icon"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="venda.html" class="nav-link active">
+            <i class="fas fa-shopping-cart nav-icon"></i>
+            <span>Registrar Venda</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="produto.html" class="nav-link">
+            <i class="fas fa-box nav-icon"></i>
+            <span>Cadastrar Produto</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="cliente.html" class="nav-link">
+            <i class="fas fa-user nav-icon"></i>
+            <span>Cadastrar Cliente</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="relatorio.html" class="nav-link">
+            <i class="fas fa-chart-bar nav-icon"></i>
+            <span>Painel Financeiro</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="estoque.html" class="nav-link">
+            <i class="fas fa-warehouse nav-icon"></i>
+            <span>Gerenciar Estoque</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="config.html" class="nav-link">
+            <i class="fas fa-cog nav-icon"></i>
+            <span>Configurações</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div style="margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+          <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-right: 10px;"></i>
+          <div>
+            <div id="user-name" style="font-weight: 500;">Nome do Usuário</div>
+            <small class="text-muted">Administrador</small>
+          </div>
+        </div>
+        <button id="btn-logout" class="btn btn-outline-primary" style="width: 100%;">
+          <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+      </div>
+    </aside>
 
     <!-- Conteúdo principal -->
     <main class="content">
@@ -232,7 +295,11 @@
               <div class="form-group">
                 <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
                 <select id="forma-pagamento" class="form-control">
-                  <!-- Preenchido via JavaScript -->
+                  <option value="Dinheiro">Dinheiro</option>
+                  <option value="Cartão de Crédito">Cartão de Crédito</option>
+                  <option value="Cartão de Débito">Cartão de Débito</option>
+                  <option value="PIX">PIX</option>
+                  <option value="Transferência Bancária">Transferência Bancária</option>
                 </select>
               </div>
               
@@ -271,5 +338,54 @@
   <script src="assets/js/database.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/vendas.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar autenticação
+      if (!auth.verificarAutenticacao()) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Dados do usuário
+      const user = auth.getUsuarioAtual();
+      document.getElementById('user-name').textContent = user.nome;
+      
+      // Data atual
+      const dataAtual = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('current-date').textContent = dataAtual.toLocaleDateString('pt-BR', options);
+      
+      // Logout
+      document.getElementById('btn-logout').addEventListener('click', function() {
+        auth.fazerLogout();
+        window.location.href = 'login.html';
+      });
+      
+      // Aqui você deve adicionar o código para carregar produtos, 
+      // gerenciar o carrinho e finalizar a venda
+      // Este código depende da implementação de vendas.js
+      
+      // Alternar entre tabs
+      document.getElementById('tab-produtos').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('tab-produtos').style.color = 'var(--text-light)';
+        document.getElementById('tab-scanner').style.color = 'var(--text-muted)';
+        document.getElementById('tab-produtos').style.borderBottom = '2px solid var(--primary)';
+        document.getElementById('tab-scanner').style.borderBottom = '2px solid transparent';
+        document.getElementById('tab-conteudo-produtos').style.display = 'block';
+        document.getElementById('tab-conteudo-scanner').style.display = 'none';
+      });
+      
+      document.getElementById('tab-scanner').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('tab-scanner').style.color = 'var(--text-light)';
+        document.getElementById('tab-produtos').style.color = 'var(--text-muted)';
+        document.getElementById('tab-scanner').style.borderBottom = '2px solid var(--primary)';
+        document.getElementById('tab-produtos').style.borderBottom = '2px solid transparent';
+        document.getElementById('tab-conteudo-scanner').style.display = 'block';
+        document.getElementById('tab-conteudo-produtos').style.display = 'none';
+      });
+    });
+  </script>
 </body>
 </html>
