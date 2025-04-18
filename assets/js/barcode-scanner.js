@@ -1,15 +1,31 @@
-/**
- * ORION PDV - Scanner de Código de Barras
- * 
- * Este módulo fornece funções para:
- * - Inicializar o scanner de código de barras
- * - Ler código de barras a partir da câmera
- * - Gerar código de barras aleatório
- * 
- * Utiliza a biblioteca Quagga.js para processamento de imagem
- */
+const SCANNER_CONFIG = {
+  inputStream: {
+    name: "Live",
+    type: "LiveStream",
+    constraints: {
+      width: 640,
+      height: 480,
+      facingMode: "environment"
+    },
+  },
+  locator: {
+    patchSize: "medium",
+    halfSample: true
+  },
+  numOfWorkers: navigator.hardwareConcurrency || 4,
+  decoder: {
+    readers: [
+      "ean_reader",
+      "ean_8_reader",
+      "code_39_reader",
+      "code_128_reader",
+      "upc_reader",
+      "upc_e_reader"
+    ]
+  },
+  locate: true
+};
 
-// Namespace do scanner
 const barcodeScanner = (function() {
     
     // Estado do scanner
