@@ -3,260 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - ORION PDV</title>
+  <title>ORION PDV - Sistema de Gestão de Vendas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
-    :root {
-      --primary: #FFD700;
-      --primary-dark: #FFC400;
-      --primary-light: #FFED87;
-      --dark-bg: #121212;
-      --dark-surface: #1E1E1E;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
     body {
-      background-color: #121212;
-      background-image: linear-gradient(45deg, #121212 25%, #1d1d1d 25%, #1d1d1d 50%, #121212 50%, #121212 75%, #1d1d1d 75%, #1d1d1d 100%);
-      background-size: 20px 20px;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #111827;
+      font-family: Arial, sans-serif;
+      color: #fff;
     }
-
-    .login-container {
-      width: 100%;
-      max-width: 400px;
-      padding: 2rem;
-      background-color: rgba(25, 25, 25, 0.8);
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 215, 0, 0.2);
-    }
-
-    .login-header {
+    
+    .loading {
       text-align: center;
+    }
+    
+    .logo {
       margin-bottom: 2rem;
     }
-
-    .login-header .logo {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 1rem;
-      background-color: #FFD700;
+    
+    .logo img {
+      width: 150px;
+      height: auto;
+    }
+    
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+      border-top-color: #0B3D91;
+      margin: 0 auto 1rem;
+      animation: spin 1s linear infinite;
     }
-
-    .login-header .logo i {
-      font-size: 50px;
-      color: #121212;
-    }
-
-    .login-header h1 {
-      color: #FFD700;
-      font-size: 28px;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-
-    .login-header p {
-      color: #AAA;
-      font-size: 14px;
-      margin: 0;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .form-group label {
-      display: block;
-      color: #FFD700;
-      margin-bottom: 0.5rem;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .form-group .input-with-icon {
-      position: relative;
-    }
-
-    .form-group .input-with-icon i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #FFD700;
-      font-size: 18px;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 12px 15px 12px 45px;
-      border: 2px solid rgba(255, 215, 0, 0.3);
-      background-color: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      color: #FFF;
-      font-size: 16px;
-      transition: all 0.3s;
-    }
-
-    .form-control:focus {
-      border-color: #FFD700;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
-    }
-
-    .btn-login {
-      width: 100%;
-      padding: 12px;
-      background-color: #FFD700;
-      border: none;
-      border-radius: 8px;
-      color: #121212;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
-      margin-top: 0.5rem;
-    }
-
-    .btn-login:hover {
-      background-color: #ffc400;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(255, 215, 0, 0.3);
-    }
-
-    .btn-login:active {
-      transform: translateY(0);
-      box-shadow: 0 2px 5px rgba(255, 215, 0, 0.2);
-    }
-
-    .alert {
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      border-left: 4px solid;
-      font-size: 14px;
-    }
-
-    .alert-danger {
-      background-color: rgba(220, 53, 69, 0.1);
-      border-color: #dc3545;
-      color: #dc3545;
-    }
-
-    .version {
-      text-align: center;
-      color: #777;
-      font-size: 12px;
-      margin-top: 1.5rem;
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-header">
-      <div class="logo">
-        <i class="fas fa-star"></i>
-      </div>
+  <div class="loading">
+    <div class="logo">
+      <img src="assets/img/logo.png" alt="ORION PDV">
       <h1>ORION PDV</h1>
-      <p>Sistema Inteligente de Gestão Comercial</p>
+      <p>Sistema de Gestão de Vendas</p>
     </div>
-    
-    <div id="alertMessage"></div>
-    
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="usuario">Nome de Usuário</label>
-        <div class="input-with-icon">
-          <i class="fas fa-user"></i>
-          <input type="text" class="form-control" id="usuario" placeholder="Digite seu usuário" required>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="senha">Senha</label>
-        <div class="input-with-icon">
-          <i class="fas fa-lock"></i>
-          <input type="password" class="form-control" id="senha" placeholder="Digite sua senha" required>
-        </div>
-      </div>
-      
-      <button type="submit" class="btn-login">
-        <i class="fas fa-sign-in-alt"></i> Entrar
-      </button>
-    </form>
-    
-    <div class="version">
-      ORION PDV v1.0 &copy; 2023
-    </div>
+    <div class="loader"></div>
+    <p>Carregando o sistema...</p>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
   <script>
-    // Dados do usuário para teste (normalmente viria do banco de dados)
-    const usuarios = {
-      admin: {
-        nome: "jesus",
-        senha: "senha123",
-        perfil: "admin"
-      }
-    };
-
-    // Simulação básica de autenticação
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar banco de dados, se necessário
+      const initialized = localStorage.getItem('orion_initialized');
       
-      const usuario = document.getElementById('usuario').value;
-      const senha = document.getElementById('senha').value;
-      
-      // Verificar credenciais
-      if (usuarios[usuario] && usuarios[usuario].senha === senha) {
-        // Salvar sessão
-        sessionStorage.setItem('usuario_logado', JSON.stringify({
-          username: usuario,
-          nome: usuarios[usuario].nome,
-          perfil: usuarios[usuario].perfil
-        }));
-        
-        // Redirecionar para o dashboard
-        window.location.href = 'dashboard.html';
-      } else {
-        // Exibir mensagem de erro
-        const alertDiv = document.getElementById('alertMessage');
-        alertDiv.innerHTML = `
-          <div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i> Usuário ou senha incorretos
-          </div>
-        `;
+      if (initialized !== 'true') {
+        // Inicializar com dados padrão se for a primeira vez
+        // O restante do código de inicialização deve estar no database.js
       }
+      
+      // Verificar autenticação e redirecionar
+      setTimeout(function() {
+        if (auth.verificarAutenticacao()) {
+          window.location.href = 'dashboard.html';
+        } else {
+          window.location.href = 'login.html';
+        }
+      }, 1500); // Esperar 1.5 segundos para exibir a tela de carregamento
     });
-    
-    // Verificar se já está logado
-    window.onload = function() {
-      const usuarioLogado = sessionStorage.getItem('usuario_logado');
-      
-      if (usuarioLogado) {
-        window.location.href = 'dashboard.html';
-      }
-    };
   </script>
 </body>
 </html>
