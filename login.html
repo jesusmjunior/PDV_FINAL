@@ -1,234 +1,112 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - ORION PDV</title>
-  <link rel="stylesheet" href="assets/css/orion-theme.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <style>
-    body {
-      background-color: #121212;
-      background-image: linear-gradient(45deg, #121212 25%, #1d1d1d 25%, #1d1d1d 50%, #121212 50%, #121212 75%, #1d1d1d 75%, #1d1d1d 100%);
-      background-size: 20px 20px;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .login-container {
-      width: 100%;
-      max-width: 400px;
-      padding: 2rem;
-      background-color: rgba(25, 25, 25, 0.8);
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 215, 0, 0.2);
-    }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .login-header .logo {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 1rem;
-      background-color: #FFD700;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-    }
-
-    .login-header .logo i {
-      font-size: 50px;
-      color: #121212;
-    }
-
-    .login-header h1 {
-      color: #FFD700;
-      font-size: 28px;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-
-    .login-header p {
-      color: #AAA;
-      font-size: 14px;
-      margin: 0;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .form-group label {
-      display: block;
-      color: #FFD700;
-      margin-bottom: 0.5rem;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .form-group .input-with-icon {
-      position: relative;
-    }
-
-    .form-group .input-with-icon i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #FFD700;
-      font-size: 18px;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 12px 15px 12px 45px;
-      border: 2px solid rgba(255, 215, 0, 0.3);
-      background-color: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      color: #FFF;
-      font-size: 16px;
-      transition: all 0.3s;
-      box-sizing: border-box;
-    }
-
-    .form-control:focus {
-      border-color: #FFD700;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
-    }
-
-    .btn-login {
-      width: 100%;
-      padding: 12px;
-      background-color: #FFD700;
-      border: none;
-      border-radius: 8px;
-      color: #121212;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
-      margin-top: 0.5rem;
-    }
-
-    .btn-login:hover {
-      background-color: #ffc400;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(255, 215, 0, 0.3);
-    }
-
-    .btn-login:active {
-      transform: translateY(0);
-      box-shadow: 0 2px 5px rgba(255, 215, 0, 0.2);
-    }
-
-    .alert {
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      border-left: 4px solid;
-      font-size: 14px;
-    }
-
-    .alert-danger {
-      background-color: rgba(220, 53, 69, 0.1);
-      border-color: #dc3545;
-      color: #dc3545;
-    }
-
-    .version {
-      text-align: center;
-      color: #777;
-      font-size: 12px;
-      margin-top: 1.5rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ORION PDV</title>
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--dark-background);
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .login-logo img {
+            width: 120px;
+            margin-bottom: 1rem;
+        }
+        
+        .login-logo h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-logo p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-header">
-      <div class="logo">
-        <i class="fas fa-star"></i>
-      </div>
-      <h1>ORION PDV</h1>
-      <p>Sistema Inteligente de Gestão Comercial</p>
-    </div>
-    
-    <div id="alertMessage"></div>
-    
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="usuario">Nome de Usuário</label>
-        <div class="input-with-icon">
-          <i class="fas fa-user"></i>
-          <input type="text" class="form-control" id="usuario" placeholder="Digite seu usuário" required>
+    <div class="login-container">
+        <div class="login-logo">
+            <img src="assets/img/logo.png" alt="Logo ORION PDV">
+            <h1>ORION PDV</h1>
+            <p>Sistema de Gestão de Vendas</p>
         </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="senha">Senha</label>
-        <div class="input-with-icon">
-          <i class="fas fa-lock"></i>
-          <input type="password" class="form-control" id="senha" placeholder="Digite sua senha" required>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </div>
+            <div class="card-body">
+                <div id="alertMessage"></div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="usuario" class="form-label">Usuário</label>
+                        <input type="text" class="form-control" id="usuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="senha" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="senha" required>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-      </div>
-      
-      <button type="submit" class="btn-login">
-        <i class="fas fa-sign-in-alt"></i> Entrar
-      </button>
-    </form>
-    
-    <div class="version">
-      ORION PDV v1.0 &copy; 2023
     </div>
-  </div>
 
-  <script src="assets/js/database.js"></script>
-  <script src="assets/js/auth.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar banco de dados se necessário
-      if (typeof db !== 'undefined' && typeof db.inicializarDB === 'function') {
-        db.inicializarDB();
-      }
-      
-      // Redirecionar para dashboard se já estiver autenticado
-      if (auth.verificarAutenticacao()) {
-        window.location.href = 'dashboard.html';
-      }
-      
-      // Login
-      document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const usuario = document.getElementById('usuario').value;
-        const senha = document.getElementById('senha').value;
-        
-        const resultado = auth.login(usuario, senha);
-        
-        if (resultado.sucesso) {
-          window.location.href = 'dashboard.html';
-        } else {
-          const alertDiv = document.getElementById('alertMessage');
-          alertDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ${resultado.mensagem}</div>`;
-        }
-      });
-    });
-  </script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Redirecionar para dashboard se já estiver autenticado
+            if (auth.verificarAutenticacao()) {
+                window.location.href = 'dashboard.html';
+            }
+            
+            // Login
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const usuario = document.getElementById('usuario').value;
+                const senha = document.getElementById('senha').value;
+                
+                const resultado = auth.login(usuario, senha);
+                
+                if (resultado.sucesso) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const alertDiv = document.getElementById('alertMessage');
+                    alertDiv.innerHTML = `
+                        <div style="background-color: rgba(229, 57, 53, 0.1); border: 1px solid rgba(229, 57, 53, 0.3); color: var(--danger); padding: 0.75rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                            <i class="fas fa-exclamation-circle"></i> ${resultado.mensagem}
+                        </div>
+                    `;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
