@@ -1,0 +1,208 @@
+/* assets/css/orion-theme.css */
+:root {
+    /* Cores principais */
+    --orion-blue-dark: #0B3D91;
+    --orion-blue-medium: #1E88E5;
+    --orion-blue-light: #00B0FF;
+    --orion-black: #101010;
+    --orion-dark-gray: #2D2D2D;
+    --orion-medium-gray: #555555;
+    --orion-light-gray: #EEEEEE;
+    --orion-white: #FFFFFF;
+    
+    /* Cores de Status */
+    --orion-success: #00C853;
+    --orion-warning: #FFD600;
+    --orion-danger: #FF3D00;
+    --orion-info: #00B0FF;
+    
+    /* Fontes */
+    --orion-font-primary: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+    --orion-font-secondary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+    
+    /* Sombras */
+    --orion-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15);
+    --orion-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --orion-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    
+    /* Transições */
+    --orion-transition: all 0.3s ease;
+    
+    /* Arredondamentos */
+    --orion-radius-sm: 3px;
+    --orion-radius-md: 6px;
+    --orion-radius-lg: 12px;
+    --orion-radius-xl: 20px;
+}
+
+/* ========== BASE ========== */
+body {
+    font-family: var(--orion-font-primary);
+    margin: 0;
+    padding: 0;
+    transition: var(--orion-transition);
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--orion-font-primary);
+    font-weight: 600;
+    margin-top: 0;
+}
+
+a {
+    color: var(--orion-blue-medium);
+    text-decoration: none;
+    transition: var(--orion-transition);
+}
+
+a:hover {
+    color: var(--orion-blue-light);
+}
+
+/* ========== TEMAS ========== */
+/* Tema Escuro - Padrão */
+body.theme-dark {
+    background-color: var(--orion-black);
+    color: var(--orion-white);
+}
+
+body.theme-dark .navbar {
+    background-color: var(--orion-dark-gray);
+}
+
+body.theme-dark .sidebar {
+    background-color: var(--orion-dark-gray);
+    color: var(--orion-light-gray);
+}
+
+body.theme-dark .card {
+    background-color: var(--orion-dark-gray);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .card-header {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .table {
+    color: var(--orion-light-gray);
+}
+
+body.theme-dark .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.theme-dark .form-control,
+body.theme-dark .form-select {
+    background-color: var(--orion
+                          /* Continuação - assets/css/orion-theme.css */
+body.theme-dark .form-control,
+body.theme-dark .form-select {
+    background-color: var(--orion-black);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--orion-white);
+}
+
+body.theme-dark .modal-content {
+    background-color: var(--orion-dark-gray);
+    color: var(--orion-white);
+}
+
+/* Tema Claro - Alternativo */
+body.theme-light {
+    background-color: #f5f5f5;
+    color: var(--orion-black);
+}
+
+body.theme-light .navbar {
+    background-color: var(--orion-blue-dark);
+    color: var(--orion-white);
+}
+
+body.theme-light .sidebar {
+    background-color: var(--orion-blue-dark);
+    color: var(--orion-white);
+}
+
+body.theme-light .card {
+    background-color: var(--orion-white);
+}
+
+/* ========== COMPONENTES ========== */
+/* Navbar */
+.navbar-orion {
+    background-color: var(--orion-blue
+                          /* Completando estilos adicionais */
+@media (max-width: 768px) {
+  .wrapper {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  
+  .content {
+    width: 100%;
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .stat-card .value {
+    font-size: 1.75rem;
+  }
+}
+
+/* Transições e animações */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Estilos adicionais para notificações */
+.toast-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--dark-surface);
+  color: var(--text-light);
+  padding: 10px 15px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  z-index: 1000;
+  transition: var(--transition);
+  transform: translateY(100px);
+  opacity: 0;
+}
+
+.toast-notification.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-success {
+  border-left: 4px solid var(--success);
+}
+
+.toast-warning {
+  border-left: 4px solid var(--warning);
+}
+
+.toast-error {
+  border-left: 4px solid var(--danger);
+}
+
+.toast-info {
+  border-left: 4px solid var(--info);
+}
+                          
