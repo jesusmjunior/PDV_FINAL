@@ -1,187 +1,160 @@
-const SCANNER_CONFIG = {
-  inputStream: {
-    name: "Live",
-    type: "LiveStream",
-    constraints: {
-      width: 640,
-      height: 480,
-      facingMode: "environment"
-    },
-  },
-  locator: {
-    patchSize: "medium",
-    halfSample: true
-  },
-  numOfWorkers: navigator.hardwareConcurrency || 4,
-  decoder: {
-    readers: [
-      "ean_reader",
-      "ean_8_reader",
-      "code_39_reader",
-      "code_128_reader",
-      "upc_reader",
-      "upc_e_reader"
-    ]
-  },
-  locate: true
-};
+/**
+ * ORION PDV - Integração Avançada do Scanner de Código de Barras
+ * 
+ * Módulo responsável pela integração do scanner com cadastro de produtos:
+ * - Controle de estado do scanner
+ * - Gerenciamento de ciclo de vida
+ * - Tratamento de erros robusto
+ * - Validação de códigos
+ * - Feedback visual completo
+ */
 
-const barcodeScanner = (function() {
-    
-    // Estado do scanner
-    let ativo = false;
-    let callback = null;
-    
-    /**
-     * Inicializa o scanner de código de barras
-     * @param {string} elementId ID do elemento de vídeo
-     * @param {Function} callbackFn Função de callback para retornar o código lido
-     */
-    function inicializar(elementId, callbackFn) {
-        // Salvar callback
-        callback = callbackFn;
-        
-        // Verificar se o navegador suporta getUserMedia
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            console.error('O navegador não suporta acesso à câmera.');
-            return false;
-        }
-        
-        // Iniciar Quagga
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.getElementById(elementId),
-                constraints: {
-                    width: 640,
-                    height: 480,
-                    facingMode: "environment" // Usar câmera traseira se disponível
-                },
-            },
-            locator: {
-                patchSize: "medium",
-                halfSample: true
-            },
-            numOfWorkers: navigator.hardwareConcurrency || 4,
-            decoder: {
-                readers: [
-                    "ean_reader",
-                    "ean_8_reader",
-                    "code_39_reader",
-                    "code_128_reader",
-                    "upc_reader",
-                    "upc_e_reader"
-                ]
-            },
-            locate: true
-        }, function(err) {
-            if (err) {
-                console.error('Erro ao inicializar scanner:', err);
-                return false;
-            }
-            
-            // Scanner inicializado com sucesso
-            console.log('Scanner inicializado com sucesso');
-            ativo = true;
-            
-            // Iniciar detecção
-            Quagga.start();
-            
-            // Registrar evento de detecção de código
-            Quagga.onDetected(function(result) {
-                // Verificar resultado
-                if (result && result.codeResult && result.codeResult.code) {
-                    const codigo = result.codeResult.code;
-                    
-                    // Tocar som de sucesso
-                    const audio = new Audio('assets/audio/beep.mp3');
-                    audio.play();
-                    
-                    // Parar scanner
-                    parar();
-                    
-                    // Chamar callback
-                    if (callback && typeof callback === 'function') {
-                        callback(codigo);
-                    }
-                }
-            });
-            
-            return true;
-        });
-    }
-    
-    /**
-     * Para o scanner de código de barras
-     */
-    function parar() {
-        if (ativo) {
-            Quagga.stop();
-            ativo = false;
-        }
-    }
-    
-    /**
-     * Verifica se o scanner está ativo
-     * @returns {boolean} Verdadeiro se o scanner estiver ativo
-     */
-    function estaAtivo() {
-        return ativo;
-    }
-    
-    /**
-     * Gera um código de barras EAN-13 aleatório válido
-     * @returns {string} Código de barras EAN-13
-     */
-    function gerarCodigoBarrasAleatorio() {
-        // Gerar 12 dígitos aleatórios
-        let codigo = '';
-        for (let i = 0; i < 12; i++) {
-            codigo += Math.floor(Math.random() * 10);
-        }
-        
-        // Calcular dígito verificador
-        let soma = 0;
-        for (let i = 0; i < 12; i++) {
-            soma += parseInt(codigo[i]) * (i % 2 === 0 ? 1 : 3);
-        }
-        const verificador = (10 - (soma % 10)) % 10;
-        
-        // Adicionar dígito verificador
-        codigo += verificador;
-        
-        return codigo;
-    }
-    
-    /**
-     * Verifica se um código EAN-13 é válido
-     * @param {string} codigo Código a verificar
-     * @returns {boolean} Verdadeiro se o código for válido
-     */
-    function verificarCodigoEAN13(codigo) {
-        // Verificar tamanho
-        if (!codigo || codigo.length !== 13 || !/^\d+$/.test(codigo)) {
-            return false;
-        }
-        
-        // Verificar dígito verificador
-        let soma = 0;
-        for (let i = 0; i < 12; i++) {
-            soma += parseInt(codigo[i]) * (i % 2 === 0 ? 1 : 3);
-        }
-        const verificador = (10 - (soma % 10)) % 10;
-        
-        return parseInt(codigo[12]) === verificador;
-    }
-    
-    // Exportar funções públicas
-    return {
-        inicializar,
-        parar,
-        estaAtivo,
-        gerarCodigoBarrasAleatorio,
-        verificarCodigoEAN13
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se estamos na página correta
+    const scannerUI = {
+        btnScanner: document.getElementById('btn-scanner-codigo'),
+        btnGerarCodigo: document.getElementById('btn-gerar-codigo'),
+        codigoInput: document.getElementById('codigo-barras'),
+        modal: document.getElementById('modal-scanner'),
+        videoElement: document.getElementById('scanner-video'),
+        statusElement: document.getElementById('scanner-status'),
+        loadingElement: document.getElementById('scanner-loading'),
+        errorElement: document.getElementById('scanner-error'),
+        closeButtons: document.querySelectorAll('.btn-close-scanner')
     };
-    
-})();
+
+    if (!scannerUI.btnScanner) return;
+
+    // Estados do scanner
+    let scannerState = {
+        isActive: false,
+        isInitializing: false,
+        lastError: null
+    };
+
+    // Event Listeners
+    scannerUI.btnScanner.addEventListener('click', toggleScanner);
+    scannerUI.btnGerarCodigo.addEventListener('click', generateRandomBarcode);
+    scannerUI.closeButtons.forEach(btn => btn.addEventListener('click', closeScanner));
+    window.addEventListener('beforeunload', cleanupScanner);
+
+    // Funções principais
+    async function toggleScanner() {
+        if (scannerState.isActive) {
+            closeScanner();
+        } else {
+            await initializeScanner();
+        }
+    }
+
+    async function initializeScanner() {
+        try {
+            scannerState.isInitializing = true;
+            updateUI();
+            
+            await barcodeScanner.inicializar('scanner-video', handleBarcodeDetection);
+            
+            scannerState.isActive = true;
+            scannerState.lastError = null;
+        } catch (error) {
+            handleScannerError(error);
+        } finally {
+            scannerState.isInitializing = false;
+            updateUI();
+        }
+    }
+
+    function handleBarcodeDetection(codigo) {
+        if (barcodeScanner.verificarCodigoEAN13(codigo)) {
+            scannerUI.codigoInput.value = codigo;
+            showFeedback('Código válido detectado!', 'success');
+            closeScanner();
+        } else {
+            handleScannerError(new Error('Código EAN-13 inválido'));
+        }
+    }
+
+    function closeScanner() {
+        if (scannerState.isActive) {
+            barcodeScanner.parar();
+            scannerState.isActive = false;
+            scannerUI.modal.style.display = 'none';
+            updateUI();
+        }
+    }
+
+    // Funções auxiliares
+    function generateRandomBarcode() {
+        const codigo = barcodeScanner.gerarCodigoBarrasAleatorio();
+        scannerUI.codigoInput.value = codigo;
+        showFeedback('Código gerado com sucesso!', 'success');
+    }
+
+    function handleScannerError(error) {
+        console.error('Erro no scanner:', error);
+        scannerState.lastError = error;
+        showFeedback(`Erro: ${error.message}`, 'error');
+        closeScanner();
+    }
+
+    function updateUI() {
+        // Estado do modal
+        scannerUI.modal.style.display = scannerState.isActive ? 'flex' : 'none';
+        
+        // Estado do botão principal
+        scannerUI.btnScanner.textContent = scannerState.isActive 
+            ? 'Parar Scanner' 
+            : 'Iniciar Scanner';
+        
+        // Feedback de status
+        scannerUI.statusElement.textContent = scannerState.isInitializing
+            ? 'Inicializando scanner...'
+            : scannerState.isActive
+                ? 'Apontando para o código de barras...'
+                : 'Pronto para escanear';
+        
+        // Indicador de carregamento
+        scannerUI.loadingElement.style.display = scannerState.isInitializing 
+            ? 'block' 
+            : 'none';
+        
+        // Tratamento de erros
+        scannerUI.errorElement.textContent = scannerState.lastError?.message || '';
+        scannerUI.errorElement.style.display = scannerState.lastError ? 'block' : 'none';
+    }
+
+    function showFeedback(message, type = 'info') {
+        const colors = {
+            success: '#4CAF50',
+            error: '#f44336',
+            info: '#2196F3'
+        };
+        
+        scannerUI.statusElement.style.color = colors[type];
+        scannerUI.statusElement.textContent = message;
+        
+        // Resetar após 2 segundos
+        if (type !== 'info') {
+            setTimeout(() => {
+                scannerUI.statusElement.style.color = '';
+                updateUI();
+            }, 2000);
+        }
+    }
+
+    function cleanupScanner() {
+        if (scannerState.isActive) {
+            barcodeScanner.parar();
+        }
+    }
+
+    // Carregar código da URL se existir
+    const urlParams = new URLSearchParams(window.location.search);
+    const codigoParam = urlParams.get('codigo');
+    if (codigoParam && scannerUI.codigoInput) {
+        scannerUI.codigoInput.value = codigoParam;
+    }
+
+    // Inicialização inicial
+    updateUI();
+});
