@@ -35,6 +35,7 @@
         .login-logo h1 {
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
+            color: var(--text-light);
         }
         
         .login-logo p {
@@ -49,6 +50,7 @@
             <img src="assets/img/logo.png" alt="Logo ORION PDV">
             <h1>ORION PDV</h1>
             <p>Sistema de Gestão de Vendas</p>
+            <p>Desenvolvido por Jesus Martins & ORION I.A.</p>
         </div>
         
         <div class="card">
@@ -61,11 +63,11 @@
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="usuario" class="form-label">Usuário</label>
-                        <input type="text" class="form-control" id="usuario" required>
+                        <input type="text" class="form-control" id="usuario" value="jesus" required>
                     </div>
                     <div class="form-group">
                         <label for="senha" class="form-label">Senha</label>
-                        <input type="password" class="form-control" id="senha" required>
+                        <input type="password" class="form-control" id="senha" value="123" required>
                     </div>
                     <div style="margin-top: 1.5rem;">
                         <button type="submit" class="btn btn-primary" style="width: 100%;">
@@ -81,33 +83,14 @@
     <script src="assets/js/auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar database, se necessário
+            // Inicializar database
             db.inicializar();
+            db.verificarUsuarioPrincipal();
             
             // Redirecionar para dashboard se já estiver autenticado
             if (auth.verificarAutenticacao()) {
                 window.location.href = 'dashboard.html';
-            }
-            
-            // Verificar se há usuários cadastrados
-            const usuarios = db.getUsuarios();
-            const totalUsuarios = Object.keys(usuarios).length;
-            
-            // Se não houver usuários, criar o usuário "jesus" com senha "123"
-            if (totalUsuarios === 0) {
-                const novoUsuario = {
-                    username: "jesus",
-                    nome: "Jesus Martins",
-                    cargo: "Administrador",
-                    email: "jesus@orionpdv.com",
-                    perfil: "admin",
-                    senha_hash: db.hashSenha("123")
-                };
-                
-                // Inicializar objeto de usuários
-                usuarios['jesus'] = novoUsuario;
-                localStorage.setItem('orion_usuarios', JSON.stringify(usuarios));
-                console.log("Usuário padrão criado: jesus / 123");
+                return;
             }
             
             // Login
@@ -117,9 +100,8 @@
                 const usuario = document.getElementById('usuario').value;
                 const senha = document.getElementById('senha').value;
                 
-                // Verificar se é o usuário específico "jesus" com senha "123"
+                // Login simplificado - sempre aceita usuário jesus com senha 123
                 if (usuario === "jesus" && senha === "123") {
-                    // Login direto sem verificar hash para este usuário específico
                     const dadosSessao = {
                         username: "jesus",
                         nome: "Jesus Martins",
@@ -135,7 +117,7 @@
                     return;
                 }
                 
-                // Caso contrário, tenta o login normal
+                // Se não for o login simplificado, tenta autenticação normal
                 const resultado = auth.login(usuario, senha);
                 
                 if (resultado.sucesso) {
