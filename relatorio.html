@@ -11,8 +11,71 @@
 </head>
 <body>
   <div class="wrapper">
-    <!-- Sidebar (igual ao dashboard.html) -->
-    <!-- ... incluir sidebar aqui ... -->
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="assets/img/logo.png" alt="ORION PDV">
+        <span class="logo-text">ORION PDV</span>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="dashboard.html" class="nav-link">
+            <i class="fas fa-tachometer-alt nav-icon"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="venda.html" class="nav-link">
+            <i class="fas fa-shopping-cart nav-icon"></i>
+            <span>Registrar Venda</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="produto.html" class="nav-link">
+            <i class="fas fa-box nav-icon"></i>
+            <span>Cadastrar Produto</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="cliente.html" class="nav-link">
+            <i class="fas fa-user nav-icon"></i>
+            <span>Cadastrar Cliente</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="relatorio.html" class="nav-link active">
+            <i class="fas fa-chart-bar nav-icon"></i>
+            <span>Painel Financeiro</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="estoque.html" class="nav-link">
+            <i class="fas fa-warehouse nav-icon"></i>
+            <span>Gerenciar Estoque</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="config.html" class="nav-link">
+            <i class="fas fa-cog nav-icon"></i>
+            <span>Configurações</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div style="margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+          <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-right: 10px;"></i>
+          <div>
+            <div id="user-name" style="font-weight: 500;">Nome do Usuário</div>
+            <small class="text-muted">Administrador</small>
+          </div>
+        </div>
+        <button id="btn-logout" class="btn btn-outline-primary" style="width: 100%;">
+          <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+      </div>
+    </aside>
 
     <!-- Conteúdo principal -->
     <main class="content">
@@ -79,7 +142,11 @@
               <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
               <select id="forma-pagamento" class="form-control">
                 <option value="">Todas</option>
-                <!-- Preenchido via JavaScript -->
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+                <option value="PIX">PIX</option>
+                <option value="Transferência Bancária">Transferência Bancária</option>
               </select>
             </div>
             
@@ -163,6 +230,372 @@
 
   <script src="assets/js/database.js"></script>
   <script src="assets/js/auth.js"></script>
-  <script src="assets/js/relatorios.js"></script>
-</body>
-</html>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar autenticação
+      if (!auth.verificarAutenticacao()) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Dados do usuário
+      const user = auth.getUsuarioAtual();
+      document.getElementById('user-name').textContent = user.nome;
+      
+      // Data atual
+      const dataAtual = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('current-date').textContent = dataAtual.toLocaleDateString('pt-BR', options);
+      
+      // Carregar dados
+      carregarDados();
+      
+      // Logout
+      document.getElementById('btn-logout').addEventListener('click', function() {
+        auth.fazerLogout();
+        window.location.href = 'login.html';
+      });
+      
+      // Adicionar evento de filtro
+      document.getElementById('btn-filtrar').addEventListener('click', carregarDados);
+      
+      // Adicionar evento de exportação CSV
+      document.getElementById('btn-exportar-csv').addEventListener('click', exportarCSV);
+      
+      // Adicionar evento de geração de relatório
+      document.getElementById('btn-gerar-relatorio').addEventListener('click', gerarRelatorio);
+      
+      // Carregar dados
+      function carregarDados() {
+        const vendas = db.getVendas();
+        
+        // Aplicar filtros
+        const dataInicio = document.getElementById('data-inicio').value;
+        const dataFim = document.getElementById('data-fim').value;
+        const formaPagamento = document.getElementById('forma-pagamento').value;
+        const clienteId = document.getElementById('cliente').value;
+        
+        let vendasFiltradas = vendas;
+        
+        // Filtrar por data de início
+        if (dataInicio) {
+          vendasFiltradas = vendasFiltradas.filter(venda => {
+            const dataVenda = new Date(venda.data);
+            const dataInicioObj = new Date(dataInicio);
+            dataInicioObj.setHours(0, 0, 0, 0);
+            return dataVenda >= dataInicioObj;
+          });
+        }
+        
+        // Filtrar por data de fim
+        if (dataFim) {
+          vendasFiltradas = vendasFiltradas.filter(venda => {
+            const dataVenda = new Date(venda.data);
+            const dataFimObj = new Date(dataFim);
+            dataFimObj.setHours(23, 59, 59, 999);
+            return dataVenda <= dataFimObj;
+          });
+        }
+        
+        // Filtrar por forma de pagamento
+        if (formaPagamento) {
+          vendasFiltradas = vendasFiltradas.filter(venda => 
+            venda.forma_pagamento === formaPagamento
+          );
+        }
+        
+        // Filtrar por cliente
+        if (clienteId) {
+          vendasFiltradas = vendasFiltradas.filter(venda => 
+            venda.cliente_id === clienteId
+          );
+        }
+        
+        // Calcular métricas
+        const totalVendas = vendasFiltradas.length;
+        document.getElementById('total-vendas').textContent = totalVendas;
+        
+        const faturamentoTotal = vendasFiltradas.reduce((acc, venda) => acc + venda.total, 0);
+        document.getElementById('faturamento-total').textContent = `R$ ${faturamentoTotal.toFixed(2)}`;
+        
+        const ticketMedio = totalVendas > 0 ? faturamentoTotal / totalVendas : 0;
+        document.getElementById('ticket-medio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
+        
+        const totalDescontos = vendasFiltradas.reduce((acc, venda) => acc + (venda.desconto || 0), 0);
+        document.getElementById('total-descontos').textContent = `R$ ${totalDescontos.toFixed(2)}`;
+        
+        // Preencher tabela
+        const tbody = document.querySelector('#tabela-vendas tbody');
+        tbody.innerHTML = '';
+        
+        // Ordenar por data (mais recentes primeiro)
+        vendasFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data));
+        
+        vendasFiltradas.forEach(venda => {
+          const tr = document.createElement('tr');
+          
+          // Formatar data
+          const data = new Date(venda.data);
+          const dataFormatada = data.toLocaleDateString('pt-BR') + ' ' + 
+                                data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          
+          tr.innerHTML = `
+            <td>${venda.id}</td>
+            <td>${dataFormatada}</td>
+            <td>${venda.cliente_nome}</td>
+            <td>${venda.forma_pagamento}</td>
+            <td>R$ ${venda.total.toFixed(2)}</td>
+            <td>
+              <button class="btn btn-outline-primary btn-sm btn-view-venda" data-id="${venda.id}">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn btn-outline-danger btn-sm btn-delete-venda" data-id="${venda.id}">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          `;
+          
+          tbody.appendChild(tr);
+        });
+        
+        // Adicionar eventos aos botões
+        document.querySelectorAll('.btn-view-venda').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            visualizarVenda(id);
+          });
+        });
+        
+        document.querySelectorAll('.btn-delete-venda').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            excluirVenda(id);
+          });
+        });
+        
+        // Criar gráficos
+        criarGraficos(vendasFiltradas);
+      }
+      
+      // Carregar clientes no select
+      function carregarClientes() {
+        const clientes = db.getClientes();
+        const selectCliente = document.getElementById('cliente');
+        
+        // Limpar opções atuais
+        const optionPadrao = selectCliente.querySelector('option[value=""]');
+        selectCliente.innerHTML = '';
+        selectCliente.appendChild(optionPadrao);
+        
+        // Adicionar clientes
+        clientes.forEach(cliente => {
+          const option = document.createElement('option');
+          option.value = cliente.id;
+          option.textContent = cliente.nome;
+          selectCliente.appendChild(option);
+        });
+      }
+      
+      // Criar gráficos
+      function criarGraficos(vendas) {
+        // Dados para gráfico de vendas por dia
+        const vendasPorDia = {};
+        
+        // Agrupar por dia
+        vendas.forEach(venda => {
+          const dataVenda = venda.data.split('T')[0];
+          
+          if (!vendasPorDia[dataVenda]) {
+            vendasPorDia[dataVenda] = 0;
+          }
+          
+          vendasPorDia[dataVenda] += venda.total;
+        });
+        
+        // Ordenar datas
+        const datasOrdenadas = Object.keys(vendasPorDia).sort();
+        
+        // Criar gráfico de vendas
+        const ctxVendas = document.getElementById('chart-vendas').getContext('2d');
+        
+        // Destruir gráfico anterior se existir
+        if (window.graficoVendas) {
+          window.graficoVendas.destroy();
+        }
+        
+        window.graficoVendas = new Chart(ctxVendas, {
+          type: 'line',
+          data: {
+            labels: datasOrdenadas.map(data => {
+              const partes = data.split('-');
+              return `${partes[2]}/${partes[1]}`;
+            }),
+            datasets: [{
+              label: 'Vendas (R$)',
+              data: datasOrdenadas.map(data => vendasPorDia[data]),
+              borderColor: '#1E88E5',
+              backgroundColor: 'rgba(30, 136, 229, 0.1)',
+              tension: 0.3,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.05)'
+                }
+              },
+              x: {
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.05)'
+                }
+              }
+            }
+          }
+        });
+        
+        // Dados para gráfico de pagamentos
+        const pagamentos = {};
+        vendas.forEach(venda => {
+          if (!pagamentos[venda.forma_pagamento]) {
+            pagamentos[venda.forma_pagamento] = 0;
+          }
+          pagamentos[venda.forma_pagamento] += venda.total;
+        });
+        
+        // Cores para o gráfico
+        const cores = [
+          '#1E88E5', // Azul
+          '#43A047', // Verde
+          '#FFB300', // Amarelo
+          '#E53935', // Vermelho
+          '#8E24AA'  // Roxo
+        ];
+        
+        // Criar gráfico de pagamentos
+        const ctxPagamentos = document.getElementById('chart-pagamentos').getContext('2d');
+        
+        // Destruir gráfico anterior se existir
+        if (window.graficoPagamentos) {
+          window.graficoPagamentos.destroy();
+        }
+        
+        window.graficoPagamentos = new Chart(ctxPagamentos, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(pagamentos),
+            datasets: [{
+              data: Object.values(pagamentos),
+              backgroundColor: cores.slice(0, Object.keys(pagamentos).length),
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right'
+              }
+            },
+            cutout: '70%'
+          }
+        });
+      }
+      
+      // Visualizar detalhes da venda
+      function visualizarVenda(id) {
+        // Implementar visualização de detalhes
+        alert('Função de visualização em desenvolvimento');
+      }
+      
+      // Excluir venda
+      function excluirVenda(id) {
+        if (confirm('Tem certeza que deseja excluir esta venda?')) {
+          // Implementar exclusão
+          alert('Função de exclusão em desenvolvimento');
+          
+          // Recarregar dados
+          carregarDados();
+        }
+      }
+      
+      // Exportar para CSV
+      function exportarCSV() {
+        const vendas = db.getVendas();
+        
+        // Aplicar os mesmos filtros que a tabela
+        const dataInicio = document.getElementById('data-inicio').value;
+        const dataFim = document.getElementById('data-fim').value;
+        const formaPagamento = document.getElementById('forma-pagamento').value;
+        const clienteId = document.getElementById('cliente').value;
+        
+        let vendasFiltradas = vendas;
+        
+        // Aplicar filtros
+        if (dataInicio) {
+          vendasFiltradas = vendasFiltradas.filter(venda => {
+            const dataVenda = new Date(venda.data);
+            const dataInicioObj = new Date(dataInicio);
+            dataInicioObj.setHours(0, 0, 0, 0);
+            return dataVenda >= dataInicioObj;
+          });
+        }
+        
+        if (dataFim) {
+          vendasFiltradas = vendasFiltradas.filter(venda => {
+            const dataVenda = new Date(venda.data);
+            const dataFimObj = new Date(dataFim);
+            dataFimObj.setHours(23, 59, 59, 999);
+            return dataVenda <= dataFimObj;
+          });
+        }
+        
+        if (formaPagamento) {
+          vendasFiltradas = vendasFiltradas.filter(venda => 
+            venda.forma_pagamento === formaPagamento
+          );
+        }
+        
+        if (clienteId) {
+          vendasFiltradas = vendasFiltradas.filter(venda => 
+            venda.cliente_id === clienteId
+          );
+        }
+        
+        // Transformar para formato de tabela
+        const dados = vendasFiltradas.map(venda => ({
+          ID: venda.id,
+          Data: new Date(venda.data).toLocaleString('pt-BR'),
+          Cliente: venda.cliente_nome,
+          'Forma de Pagamento': venda.forma_pagamento,
+          Subtotal: venda.subtotal.toFixed(2),
+          Desconto: (venda.desconto || 0).toFixed(2),
+          Total: venda.total.toFixed(2),
+          Itens: venda.itens.length
+        }));
+        
+        // Exportar para CSV
+        const nomeArquivo = `vendas_${new Date().toISOString().split('T')[0]}.csv`;
+        db.exportarCSV(dados, nomeArquivo);
+      }
+      
+      // Gerar relatório HTML
+      function gerarRelatorio() {
+        // Implementar geração de relatório
+        alert('Função de geração de relatório em desenvolvimento');
+      }
+      
+      // Inicializar página
+      carregarClientes();
+    });
+  </script>
