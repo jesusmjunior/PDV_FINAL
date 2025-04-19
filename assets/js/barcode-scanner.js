@@ -1,160 +1,84 @@
 /**
- * ORION PDV - Integração Avançada do Scanner de Código de Barras
- * 
- * Módulo responsável pela integração do scanner com cadastro de produtos:
- * - Controle de estado do scanner
- * - Gerenciamento de ciclo de vida
- * - Tratamento de erros robusto
- * - Validação de códigos
- * - Feedback visual completo
+ * ORION PDV - Scanner de Código de Barras com QuaggaJS
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Verificar se estamos na página correta
-    const scannerUI = {
-        btnScanner: document.getElementById('btn-scanner-codigo'),
-        btnGerarCodigo: document.getElementById('btn-gerar-codigo'),
-        codigoInput: document.getElementById('codigo-barras'),
-        modal: document.getElementById('modal-scanner'),
-        videoElement: document.getElementById('scanner-video'),
-        statusElement: document.getElementById('scanner-status'),
-        loadingElement: document.getElementById('scanner-loading'),
-        errorElement: document.getElementById('scanner-error'),
-        closeButtons: document.querySelectorAll('.btn-close-scanner')
-    };
+const barcodeScanner = {
+    scannerInstance: null,
+    torchEnabled: false,
+    
+    inicializar: function(videoElementId, callback) {
+        return new Promise((resolve, reject) => {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.getElementById(videoElementId),
+                    constraints: {
+                        facingMode: "environment",
+                        width: { min: 640 },
+                        height: { min: 480 }
+                    }
+                },
+                decoder: {
+                    readers: ["ean_reader"]
+                },
+                locate: true
+            }, err => {
+                if (err) return reject(err);
+                
+                Quagga.start();
+                this.scannerInstance = Quagga;
+                
+                Quagga.onDetected(data => {
+                    if (data.codeResult) {
+                        callback(data.codeResult.code);
+                    }
+                });
+                
+                resolve();
+            });
+        });
+    },
 
-    if (!scannerUI.btnScanner) return;
-
-    // Estados do scanner
-    let scannerState = {
-        isActive: false,
-        isInitializing: false,
-        lastError: null
-    };
-
-    // Event Listeners
-    scannerUI.btnScanner.addEventListener('click', toggleScanner);
-    scannerUI.btnGerarCodigo.addEventListener('click', generateRandomBarcode);
-    scannerUI.closeButtons.forEach(btn => btn.addEventListener('click', closeScanner));
-    window.addEventListener('beforeunload', cleanupScanner);
-
-    // Funções principais
-    async function toggleScanner() {
-        if (scannerState.isActive) {
-            closeScanner();
-        } else {
-            await initializeScanner();
+    parar: function() {
+        if (this.scannerInstance) {
+            this.scannerInstance.stop();
+            this.scannerInstance = null;
         }
-    }
+    },
 
-    async function initializeScanner() {
-        try {
-            scannerState.isInitializing = true;
-            updateUI();
-            
-            await barcodeScanner.inicializar('scanner-video', handleBarcodeDetection);
-            
-            scannerState.isActive = true;
-            scannerState.lastError = null;
-        } catch (error) {
-            handleScannerError(error);
-        } finally {
-            scannerState.isInitializing = false;
-            updateUI();
+    controleLanterna: function(estado) {
+        return new Promise((resolve) => {
+            if (this.scannerInstance) {
+                const track = this.scannerInstance.inputStream.getVideoTrack();
+                track.applyConstraints({ advanced: [{ torch: estado }] });
+                resolve();
+            }
+        });
+    },
+
+    verificarCodigoEAN13: function(codigo) {
+        if (!codigo || codigo.length !== 13 || !/^\d+$/.test(codigo)) return false;
+        
+        let soma = 0;
+        for (let i = 0; i < 12; i++) {
+            soma += parseInt(codigo[i]) * (i % 2 === 0 ? 1 : 3);
         }
-    }
+        const digitoVerificador = (10 - (soma % 10)) % 10;
+        return parseInt(codigo[12]) === digitoVerificador;
+    },
 
-    function handleBarcodeDetection(codigo) {
-        if (barcodeScanner.verificarCodigoEAN13(codigo)) {
-            scannerUI.codigoInput.value = codigo;
-            showFeedback('Código válido detectado!', 'success');
-            closeScanner();
-        } else {
-            handleScannerError(new Error('Código EAN-13 inválido'));
+    gerarCodigoBarrasAleatorio: function() {
+        let codigo = '789'; // Prefixo brasileiro
+        for (let i = 0; i < 9; i++) {
+            codigo += Math.floor(Math.random() * 10);
         }
-    }
-
-    function closeScanner() {
-        if (scannerState.isActive) {
-            barcodeScanner.parar();
-            scannerState.isActive = false;
-            scannerUI.modal.style.display = 'none';
-            updateUI();
+        
+        let soma = 0;
+        for (let i = 0; i < 12; i++) {
+            soma += parseInt(codigo[i]) * (i % 2 === 0 ? 1 : 3);
         }
+        codigo += (10 - (soma % 10)) % 10;
+        return codigo;
     }
-
-    // Funções auxiliares
-    function generateRandomBarcode() {
-        const codigo = barcodeScanner.gerarCodigoBarrasAleatorio();
-        scannerUI.codigoInput.value = codigo;
-        showFeedback('Código gerado com sucesso!', 'success');
-    }
-
-    function handleScannerError(error) {
-        console.error('Erro no scanner:', error);
-        scannerState.lastError = error;
-        showFeedback(`Erro: ${error.message}`, 'error');
-        closeScanner();
-    }
-
-    function updateUI() {
-        // Estado do modal
-        scannerUI.modal.style.display = scannerState.isActive ? 'flex' : 'none';
-        
-        // Estado do botão principal
-        scannerUI.btnScanner.textContent = scannerState.isActive 
-            ? 'Parar Scanner' 
-            : 'Iniciar Scanner';
-        
-        // Feedback de status
-        scannerUI.statusElement.textContent = scannerState.isInitializing
-            ? 'Inicializando scanner...'
-            : scannerState.isActive
-                ? 'Apontando para o código de barras...'
-                : 'Pronto para escanear';
-        
-        // Indicador de carregamento
-        scannerUI.loadingElement.style.display = scannerState.isInitializing 
-            ? 'block' 
-            : 'none';
-        
-        // Tratamento de erros
-        scannerUI.errorElement.textContent = scannerState.lastError?.message || '';
-        scannerUI.errorElement.style.display = scannerState.lastError ? 'block' : 'none';
-    }
-
-    function showFeedback(message, type = 'info') {
-        const colors = {
-            success: '#4CAF50',
-            error: '#f44336',
-            info: '#2196F3'
-        };
-        
-        scannerUI.statusElement.style.color = colors[type];
-        scannerUI.statusElement.textContent = message;
-        
-        // Resetar após 2 segundos
-        if (type !== 'info') {
-            setTimeout(() => {
-                scannerUI.statusElement.style.color = '';
-                updateUI();
-            }, 2000);
-        }
-    }
-
-    function cleanupScanner() {
-        if (scannerState.isActive) {
-            barcodeScanner.parar();
-        }
-    }
-
-    // Carregar código da URL se existir
-    const urlParams = new URLSearchParams(window.location.search);
-    const codigoParam = urlParams.get('codigo');
-    if (codigoParam && scannerUI.codigoInput) {
-        scannerUI.codigoInput.value = codigoParam;
-    }
-
-    // Inicialização inicial
-    updateUI();
-});
+};
