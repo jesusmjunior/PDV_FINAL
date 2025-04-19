@@ -1,697 +1,84 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORION PDV - Produtos</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
-    <link rel="stylesheet" href="assets/css/orion-theme.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/scanner.css">
-    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
-</head>
-<body>
-    <!-- Container Principal -->
-    <div class="app-container">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <img src="assets/img/logo-small.png" alt="ORION PDV">
-                    <span>ORION PDV</span>
-                </div>
-                <button id="sidebar-collapse" class="sidebar-toggle d-none d-md-block">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
-            
-            <div class="sidebar-menu">
-                <a href="dashboard.html" class="menu-item">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="venda.html" class="menu-item">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>Vendas PDV</span>
-                </a>
-                <a href="produto.html" class="menu-item active">
-                    <i class="fas fa-box"></i>
-                    <span>Produtos</span>
-                </a>
-                <a href="estoque.html" class="menu-item">
-                    <i class="fas fa-warehouse"></i>
-                    <span>Estoque</span>
-                </a>
-                <a href="cliente.html" class="menu-item">
-                    <i class="fas fa-users"></i>
-                    <span>Clientes</span>
-                </a>
-                <a href="relatorio.html" class="menu-item">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Relatórios</span>
-                </a>
-                <a href="config.html" class="menu-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Configurações</span>
-                </a>
-            </div>
-            
-            <div class="sidebar-footer">
-                <div class="user-menu" id="user-menu">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-info">
-                        <div class="user-name" id="user-name">Carregando...</div>
-                        <div class="user-role" id="user-role">Carregando...</div>
-                    </div>
-                </div>
-                <button id="btn-logout" class="sidebar-toggle">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Conteúdo Principal -->
-        <div class="main-content">
-            <div class="topbar">
-                <div class="topbar-title">
-                    <h1>Gestão de Produtos</h1>
-                </div>
-                <div class="topbar-actions">
-                    <div id="current-date" class="d-none d-md-block">Carregando data...</div>
-                </div>
-            </div>
-            
-            <div class="page-content">
-                <div class="filters-container">
-                    <div class="search-container">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="busca-produto" class="form-control search-input" placeholder="Buscar produto...">
-                    </div>
-                    
-                    <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
-                        <option value="">Todos os Grupos</option>
-                        <!-- Grupos serão carregados dinamicamente -->
-                    </select>
-                    
-                    <button id="btn-novo-produto" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Novo Produto
-                    </button>
-                </div>
+/**
+ * ORION PDV - Scanner de Código de Barras com QuaggaJS
+ */
+
+const barcodeScanner = {
+    scannerInstance: null,
+    torchEnabled: false,
+    
+    inicializar: function(videoElementId, callback) {
+        return new Promise((resolve, reject) => {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.getElementById(videoElementId),
+                    constraints: {
+                        facingMode: "environment",
+                        width: { min: 640 },
+                        height: { min: 480 }
+                    }
+                },
+                decoder: {
+                    readers: ["ean_reader"]
+                },
+                locate: true
+            }, err => {
+                if (err) return reject(err);
                 
-                <div class="row" style="display: grid; grid-template-columns: 1fr 450px; gap: 1.5rem;">
-                    <!-- Lista de Produtos -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-boxes"></i> Produtos Cadastrados
-                            </div>
-                            <div>
-                                <button id="btn-exportar" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-file-export"></i> Exportar
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table" id="tabela-produtos">
-                                    <thead>
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Nome</th>
-                                            <th>Grupo</th>
-                                            <th>Preço</th>
-                                            <th>Estoque</th>
-                                            <th>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="6" class="text-center text-muted py-3">
-                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando produtos...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Formulário de Produto -->
-                    <div class="card" id="card-formulario">
-                        <div class="card-header">
-                            <div class="card-title" id="form-titulo">Novo Produto</div>
-                        </div>
-                        <div class="card-body">
-                            <form id="form-produto">
-                                <input type="hidden" id="produto-id">
-                                
-                                <div class="form-group">
-                                    <label for="codigo-barras" class="form-label">Código de Barras</label>
-                                    <div class="d-flex gap-2">
-                                        <input type="text" id="codigo-barras" class="form-control" placeholder="Código EAN-13">
-                                        <button type="button" id="btn-scanner-codigo" class="btn btn-outline-primary" title="Escanear código">
-                                            <i class="fas fa-camera"></i>
-                                        </button>
-                                        <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary" title="Gerar código">
-                                            <i class="fas fa-barcode"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="nome" class="form-label">Nome do Produto</label>
-                                    <input type="text" id="nome" class="form-control" placeholder="Nome do produto" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="grupo" class="form-label">Grupo</label>
-                                    <select id="grupo" class="form-control">
-                                        <!-- Grupos serão carregados dinamicamente -->
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="preco" class="form-label">Preço (R$)</label>
-                                    <input type="text" id="preco" class="form-control campo-moeda" placeholder="0,00" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="estoque" class="form-label">Estoque</label>
-                                    <input type="number" id="estoque" class="form-control" placeholder="0" min="0" value="0">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="descricao" class="form-label">Descrição</label>
-                                    <textarea id="descricao" class="form-control" rows="3" placeholder="Descrição do produto"></textarea>
-                                </div>
-                                
-                                <div class="form-group mb-0 d-flex justify-between">
-                                    <button type="button" id="btn-cancelar" class="btn btn-outline-primary">
-                                        <i class="fas fa-times"></i> Cancelar
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Salvar Produto
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal Scanner -->
-    <div id="modal-scanner">
-        <div class="scanner-container">
-            <div class="scanner-header">
-                <div class="scanner-title">Scanner de Código de Barras</div>
-                <button class="btn-close-scanner" style="background: none; border: none; color: white; font-size: 1.5rem;">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <video id="scanner-video" autoplay></video>
-            
-            <div class="scanner-overlay">
-                <div class="scanner-frame">
-                    <div class="scanner-line"></div>
-                </div>
+                Quagga.start();
+                this.scannerInstance = Quagga;
                 
-                <div class="scanner-controls">
-                    <button class="btn btn-light btn-toggle-torch" title="Ativar/Desativar lanterna">
-                        <i class="fas fa-lightbulb"></i>
-                    </button>
-                    
-                    <button class="btn-close-scanner btn btn-danger">
-                        <i class="fas fa-times"></i> Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="scanner-footer">
-            <div id="scanner-status">
-                <div class="loading"></div>
-                <span class="status-text">Preparando câmera...</span>
-            </div>
-            
-            <div id="scanner-error" style="display: none; background-color: rgba(229, 57, 53, 0.1); border: 1px solid rgba(229, 57, 53, 0.3); color: var(--danger); border-radius: var(--border-radius); padding: 1rem;">
-                <i class="fas fa-exclamation-circle"></i>
-                <span class="error-message">Erro ao inicializar scanner</span>
-            </div>
-            
-            <div id="scanner-loading" style="text-align: center; padding: 1rem;">
-                <div class="loading"></div>
-                <p style="margin-top: 0.5rem; color: white;">Inicializando scanner...</p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Áudio de feedback -->
-    <audio id="beep-success" class="audio-feedback">
-        <source src="assets/sounds/beep-success.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="beep-error" class="audio-feedback">
-        <source src="assets/sounds/beep-error.mp3" type="audio/mpeg">
-    </audio>
-    
-    <!-- Notificações -->
-    <div class="toast-container" id="toast-container"></div>
-    
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <script src="assets/js/database.js"></script>
-    <script src="assets/js/db-fix.js"></script>
-    <script src="assets/js/auth.js"></script>
-    <script src="assets/js/core.js"></script>
-    <script src="assets/js/barcode-scanner.js"></script>
-    <script src="assets/js/produto-barcode.js"></script>
-    <script src="assets/js/produto.js"></script>
-    <script src="assets/js/integration.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Verificar autenticação
-            if (!auth.verificarAutenticacao()) {
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            // Dados do usuário
-            const user = auth.getUsuarioAtual();
-            document.getElementById('user-name').textContent = user.nome;
-            document.getElementById('user-role').textContent = user.perfil === 'admin' ? 'Administrador' : user.perfil === 'supervisor' ? 'Supervisor' : 'Vendedor';
-            
-            // Data atual
-            const dataAtual = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('current-date').textContent = dataAtual.toLocaleDateString('pt-BR', options);
-            
-            // Elementos DOM
-            const formProduto = document.getElementById('form-produto');
-            const formTitulo = document.getElementById('form-titulo');
-            const produtoIdInput = document.getElementById('produto-id');
-            const codigoBarrasInput = document.getElementById('codigo-barras');
-            const nomeInput = document.getElementById('nome');
-            const grupoSelect = document.getElementById('grupo');
-            const precoInput = document.getElementById('preco');
-            const estoqueInput = document.getElementById('estoque');
-            const descricaoInput = document.getElementById('descricao');
-            const btnNovoProduto = document.getElementById('btn-novo-produto');
-            const btnCancelar = document.getElementById('btn-cancelar');
-            const btnExportar = document.getElementById('btn-exportar');
-            const filtroGrupoSelect = document.getElementById('filtro-grupo');
-            const buscaProdutoInput = document.getElementById('busca-produto');
-            
-            // Inicialização
-            let modoEdicao = false;
-            carregarGrupos();
-            carregarTabela();
-            formatarCampos();
-            
-            // Event Listeners
-            formProduto.addEventListener('submit', salvarProduto);
-            btnNovoProduto.addEventListener('click', novoProduto);
-            btnCancelar.addEventListener('click', cancelarFormulario);
-            btnExportar.addEventListener('click', exportarProdutos);
-            filtroGrupoSelect.addEventListener('change', carregarTabela);
-            buscaProdutoInput.addEventListener('input', carregarTabela);
-            
-            // Logout
-            document.getElementById('btn-logout').addEventListener('click', function() {
-                auth.fazerLogout();
-                window.location.href = 'index.html';
+                Quagga.onDetected(data => {
+                    if (data.codeResult) {
+                        callback(data.codeResult.code);
+                    }
+                });
+                
+                resolve();
             });
-            
-            // Verificar código de barras na URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const codigoParam = urlParams.get('codigo');
-            if (codigoParam && codigoBarrasInput) {
-                codigoBarrasInput.value = codigoParam;
-            }
-            
-            // Funções
-            function formatarCampos() {
-                // Formatar campo de preço como moeda
-                precoInput.addEventListener('input', function(e) {
-                    let valor = e.target.value.replace(/\D/g, '');
-                    valor = (parseFloat(valor) / 100).toFixed(2);
-                    e.target.value = valor.replace('.', ',');
-                });
-            }
-            
-            function carregarGrupos() {
-                // Obter grupos de produtos
-                let grupos = [];
-                
-                // Verificar se há método específico no db
-                if (typeof db.getGruposProdutos === 'function') {
-                    grupos = db.getGruposProdutos();
-                } else {
-                    // Extrair grupos dos produtos
-                    const produtos = db.getProdutos();
-                    const gruposSet = new Set();
-                    
-                    Object.values(produtos).forEach(produto => {
-                        if (produto.grupo) {
-                            gruposSet.add(produto.grupo);
-                        }
-                    });
-                    
-                    grupos = [...gruposSet].sort();
-                }
-                
-                // Preencher selects
-                grupoSelect.innerHTML = '<option value="">Selecione um grupo</option>';
-                filtroGrupoSelect.innerHTML = '<option value="">Todos os Grupos</option>';
-                
-                grupos.forEach(grupo => {
-                    const optionForm = document.createElement('option');
-                    optionForm.value = grupo;
-                    optionForm.textContent = grupo;
-                    grupoSelect.appendChild(optionForm);
-                    
-                    const optionFiltro = document.createElement('option');
-                    optionFiltro.value = grupo;
-                    optionFiltro.textContent = grupo;
-                    filtroGrupoSelect.appendChild(optionFiltro);
-                });
-            }
-            
-            function carregarTabela() {
-                // Obter produtos
-                const produtos = db.getProdutos();
-                
-                // Filtros
-                const termoBusca = buscaProdutoInput.value.toLowerCase();
-                const grupoFiltro = filtroGrupoSelect.value;
-                
-                // Converter para array e filtrar
-                const produtosArray = Object.values(produtos);
-                
-                const produtosFiltrados = produtosArray.filter(produto => {
-                    // Filtro de busca
-                    const matchBusca = termoBusca === '' || 
-                        produto.nome.toLowerCase().includes(termoBusca) || 
-                        (produto.codigo_barras && produto.codigo_barras.toLowerCase().includes(termoBusca)) ||
-                        (produto.descricao && produto.descricao.toLowerCase().includes(termoBusca));
-                    
-                    // Filtro de grupo
-                    const matchGrupo = grupoFiltro === '' || produto.grupo === grupoFiltro;
-                    
-                    return matchBusca && matchGrupo;
-                });
-                
-                // Ordenar por nome
-                produtosFiltrados.sort((a, b) => a.nome.localeCompare(b.nome));
-                
-                // Gerar HTML da tabela
-                const tbody = document.querySelector('#tabela-produtos tbody');
-                
-                if (produtosFiltrados.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-3">
-                                <i class="fas fa-box-open fa-2x mb-3"></i>
-                                <p>Nenhum produto encontrado</p>
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-                
-                let html = '';
-                
-                produtosFiltrados.forEach(produto => {
-                    html += `
-                        <tr>
-                            <td>${produto.codigo_barras || 'N/A'}</td>
-                            <td>${produto.nome}</td>
-                            <td>${produto.grupo || 'Sem grupo'}</td>
-                            <td>R$ ${produto.preco.toFixed(2)}</td>
-                            <td>${produto.estoque}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${produto.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger btn-excluir" data-id="${produto.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-                tbody.innerHTML = html;
-                
-                // Adicionar eventos aos botões
-                document.querySelectorAll('.btn-editar').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        editarProduto(id);
-                    });
-                });
-                
-                document.querySelectorAll('.btn-excluir').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        excluirProduto(id);
-                    });
-                });
-            }
-            
-            function novoProduto() {
-                // Limpar formulário
-                formProduto.reset();
-                produtoIdInput.value = '';
-                
-                // Configurar modo
-                modoEdicao = false;
-                formTitulo.textContent = 'Novo Produto';
-                
-                // Foco no primeiro campo
-                codigoBarrasInput.focus();
-            }
-            
-            function editarProduto(id) {
-                const produto = db.getProduto(id);
-                
-                if (produto) {
-                    // Preencher formulário
-                    produtoIdInput.value = produto.id;
-                    codigoBarrasInput.value = produto.codigo_barras || '';
-                    nomeInput.value = produto.nome;
-                    grupoSelect.value = produto.grupo || '';
-                    precoInput.value = produto.preco.toFixed(2).replace('.', ',');
-                    estoqueInput.value = produto.estoque || 0;
-                    descricaoInput.value = produto.descricao || '';
-                    
-                    // Configurar modo
-                    modoEdicao = true;
-                    formTitulo.textContent = 'Editar Produto';
-                    
-                    // Scroll até o formulário em dispositivos móveis
-                    if (window.innerWidth < 768) {
-                        document.getElementById('card-formulario').scrollIntoView({ behavior: 'smooth' });
-                    }
-                }
-            }
-            
-            function excluirProduto(id) {
-                const produto = db.getProduto(id);
-                
-                if (produto) {
-                    // Verificar se o produto possui vendas
-                    const vendas = db.getVendas();
-                    const produtoTemVendas = vendas.some(venda => {
-                        return venda.itens.some(item => item.produto_id === id);
-                    });
-                    
-                    if (produtoTemVendas) {
-                        exibirMensagem('Não é possível excluir um produto que possui vendas registradas', 'error');
-                        return;
-                    }
-                    
-                    // Confirmar exclusão
-                    if (confirm(`Deseja realmente excluir o produto "${produto.nome}"?`)) {
-                        try {
-                            db.deletarProduto(id);
-                            carregarTabela();
-                            exibirMensagem('Produto excluído com sucesso', 'success');
-                        } catch (erro) {
-                            exibirMensagem('Erro ao excluir produto: ' + erro, 'error');
-                        }
-                    }
-                }
-            }
-            
-            function salvarProduto(e) {
-                e.preventDefault();
-                
-                // Validar dados
-                if (!nomeInput.value.trim()) {
-                    exibirMensagem('O nome do produto é obrigatório', 'error');
-                    nomeInput.focus();
-                    return;
-                }
-                
-                if (!precoInput.value) {
-                    exibirMensagem('O preço é obrigatório', 'error');
-                    precoInput.focus();
-                    return;
-                }
-                
-                try {
-                    // Preparar objeto produto
-                    const preco = parseFloat(precoInput.value.replace(',', '.'));
-                    
-                    if (isNaN(preco) || preco < 0) {
-                        exibirMensagem('Preço inválido', 'error');
-                        precoInput.focus();
-                        return;
-                    }
-                    
-                    const estoque = parseInt(estoqueInput.value) || 0;
-                    
-                    const produto = {
-                        id: produtoIdInput.value || Date.now().toString(),
-                        codigo_barras: codigoBarrasInput.value.trim(),
-                        nome: nomeInput.value.trim(),
-                        grupo: grupoSelect.value,
-                        preco: preco,
-                        estoque: estoque,
-                        descricao: descricaoInput.value.trim()
-                    };
-                    
-                    // Validar código de barras
-                    if (produto.codigo_barras) {
-                        // Verificar se é um código EAN-13 válido
-                        if (!validarCodigoBarras(produto.codigo_barras)) {
-                            if (!confirm('O código de barras informado não parece ser um EAN-13 válido. Deseja continuar mesmo assim?')) {
-                                return;
-                            }
-                        }
-                        
-                        // Verificar se já existe outro produto com esse código
-                        const produtos = db.getProdutos();
-                        const produtoExistente = Object.values(produtos).find(p => 
-                            p.codigo_barras === produto.codigo_barras && p.id !== produto.id
-                        );
-                        
-                        if (produtoExistente) {
-                            exibirMensagem(`O código de barras ${produto.codigo_barras} já está associado ao produto "${produtoExistente.nome}"`, 'error');
-                            return;
-                        }
-                    }
-                    
-                    // Salvar produto
-                    db.salvarProduto(produto);
-                    
-                    // Recarregar dados
-                    carregarTabela();
-                    carregarGrupos();
-                    
-                    // Limpar formulário
-                    formProduto.reset();
-                    produtoIdInput.value = '';
-                    
-                    // Resetar modo
-                    modoEdicao = false;
-                    formTitulo.textContent = 'Novo Produto';
-                    
-                    // Mensagem de sucesso
-                    exibirMensagem('Produto salvo com sucesso', 'success');
-                } catch (erro) {
-                    exibirMensagem('Erro ao salvar produto: ' + erro, 'error');
-                }
-            }
-            
-            function cancelarFormulario() {
-                // Limpar formulário
-                formProduto.reset();
-                produtoIdInput.value = '';
-                
-                // Resetar modo
-                modoEdicao = false;
-                formTitulo.textContent = 'Novo Produto';
-            }
-            
-            function exportarProdutos() {
-                try {
-                    // Obter produtos
-                    const produtos = db.getProdutos();
-                    
-                    // Converter para formato CSV
-                    const produtosArray = Object.values(produtos).map(produto => ({
-                        Codigo: produto.codigo_barras || '',
-                        Nome: produto.nome,
-                        Grupo: produto.grupo || '',
-                        Preco: produto.preco.toFixed(2),
-                        Estoque: produto.estoque || 0,
-                        Descricao: produto.descricao || ''
-                    }));
-                    
-                    // Exportar usando função do banco de dados
-                    db.exportarCSV(produtosArray, 'produtos.csv');
-                    
-                    exibirMensagem('Produtos exportados com sucesso', 'success');
-                } catch (erro) {
-                    exibirMensagem('Erro ao exportar produtos: ' + erro, 'error');
-                }
-            }
-            
-            function validarCodigoBarras(codigo) {
-                // Validação simples de EAN-13
-                if (!codigo || codigo.length !== 13 || !/^\d+$/.test(codigo)) {
-                    return false;
-                }
-                
-                // Verificar dígito verificador
-                let soma = 0;
-                for (let i = 0; i < 12; i++) {
-                    soma += parseInt(codigo[i]) * (i % 2 === 0 ? 1 : 3);
-                }
-                
-                const digitoVerificador = (10 - (soma % 10)) % 10;
-                
-                return parseInt(codigo[12]) === digitoVerificador;
-            }
-            
-            // Função para exibir mensagens de notificação
-            function exibirMensagem(mensagem, tipo) {
-                const toastContainer = document.getElementById('toast-container');
-                
-                const toast = document.createElement('div');
-                toast.className = `toast-notification toast-${tipo}`;
-                
-                toast.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'warning' ? 'exclamation-circle' : tipo === 'info' ? 'info-circle' : 'times-circle'}"></i>
-                        <span>${mensagem}</span>
-                    </div>
-                `;
-                
-                toastContainer.appendChild(toast);
-                
-                // Exibir com animação
-                setTimeout(() => {
-                    toast.classList.add('show');
-                }, 10);
-                
-                // Remover após 3 segundos
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => {
-                        toastContainer.removeChild(toast);
-                    }, 300);
-                }, 3000);
+        });
+    },
+
+    parar: function() {
+        if (this.scannerInstance) {
+            this.scannerInstance.stop();
+            this.scannerInstance = null;
+        }
+    },
+
+    controleLanterna: function(estado) {
+        return new Promise((resolve) => {
+            if (this.scannerInstance) {
+                const track = this.scannerInstance.inputStream.getVideoTrack();
+                track.applyConstraints({ advanced: [{ torch: estado }] });
+                resolve();
             }
         });
-    </script>
-</body>
-</html>
+    },
+
+    verificarCodigoEAN13: function(codigo) {
+        if (!codigo || codigo.length !== 13 || !/^\d+$/.test(codigo)) return false;
+        
+        let soma = 0;
+        for (let i = 0; i < 12; i++) {
+            soma += parseInt(codigo[i]) * (i % 2 === 0 ? 1 : 3);
+        }
+        const digitoVerificador = (10 - (soma % 10)) % 10;
+        return parseInt(codigo[12]) === digitoVerificador;
+    },
+
+    gerarCodigoBarrasAleatorio: function() {
+        let codigo = '789'; // Prefixo brasileiro
+        for (let i = 0; i < 9; i++) {
+            codigo += Math.floor(Math.random() * 10);
+        }
+        
+        let soma = 0;
+        for (let i = 0; i < 12; i++) {
+            soma += parseInt(codigo[i]) * (i % 2 === 0 ? 1 : 3);
+        }
+        codigo += (10 - (soma % 10)) % 10;
+        return codigo;
+    }
+};
