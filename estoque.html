@@ -1,64 +1,644 @@
-<!-- Modal do Scanner Atualizado -->
-<div id="modal-scanner" class="scanner-modal">
-    <div class="scanner-overlay">
-        <div class="scanner-container">
-            <div class="scanner-header">
-                <h3>Ajuste de Estoque via Scanner</h3>
-                <button class="btn-close-scanner">
-                    <i class="fas fa-times"></i>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION PDV - Estoque</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/scanner.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Container Principal -->
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="assets/img/logo-small.png" alt="ORION PDV">
+                    <span>ORION PDV</span>
+                </div>
+                <button id="sidebar-collapse" class="sidebar-toggle d-none d-md-block">
+                    <i class="fas fa-bars"></i>
                 </button>
             </div>
-
-            <div class="scanner-body">
-                <div class="video-wrapper">
-                    <video id="scanner-video" class="scanner-video-element"></video>
-                    <div id="scanner-loading" class="scanner-loading">
-                        <div class="loading-spinner">
-                            <i class="fas fa-spinner fa-spin fa-2x"></i>
-                        </div>
-                        <div class="loading-text">Inicializando scanner...</div>
+            
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="venda.html" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Vendas PDV</span>
+                </a>
+                <a href="produto.html" class="menu-item">
+                    <i class="fas fa-box"></i>
+                    <span>Produtos</span>
+                </a>
+                <a href="estoque.html" class="menu-item active">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Estoque</span>
+                </a>
+                <a href="cliente.html" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Clientes</span>
+                </a>
+                <a href="relatorio.html" class="menu-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="config.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-menu" id="user-menu">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name">Carregando...</div>
+                        <div class="user-role" id="user-role">Carregando...</div>
                     </div>
                 </div>
-
-                <div id="scanner-status" class="scanner-status">
-                    <i class="fas fa-info-circle status-icon"></i>
-                    <span class="status-text">Pronto para escanear</span>
+                <button id="btn-logout" class="sidebar-toggle">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <div class="topbar">
+                <div class="topbar-title">
+                    <h1>Controle de Estoque</h1>
                 </div>
-
-                <div id="scanner-error" class="scanner-error">
-                    <i class="fas fa-exclamation-triangle error-icon"></i>
-                    <span class="error-message"></span>
-                </div>
-
-                <div class="adjustment-interface" id="adjustment-interface" style="display: none;">
-                    <input type="number" 
-                           id="quantidade-ajuste" 
-                           class="form-control"
-                           placeholder="Quantidade"
-                           min="0"
-                           step="1">
-                    <div class="adjustment-actions">
-                        <button onclick="Estoque.confirmarAjuste()" class="btn btn-success">
-                            <i class="fas fa-check"></i> Confirmar
-                        </button>
-                        <button onclick="Estoque.cancelarAjuste()" class="btn btn-danger">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                    </div>
+                <div class="topbar-actions">
+                    <div id="current-date" class="d-none d-md-block">Carregando data...</div>
                 </div>
             </div>
-
-            <div class="scanner-footer">
-                <div class="scanner-tips">
-                    <i class="fas fa-lightbulb"></i>
-                    Dica: Escaneie o código do produto e informe a nova quantidade
+            
+            <div class="page-content">
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div id="tab-estoque" class="tab active">Visão Geral</div>
+                    <div id="tab-movimentacoes" class="tab">Movimentações</div>
+                    <div id="tab-ajustes" class="tab">Ajuste de Estoque</div>
                 </div>
-                <div class="scanner-actions">
-                    <button class="btn btn-secondary btn-toggle-torch">
-                        <i class="fas fa-lightbulb"></i> Lanterna
-                    </button>
+                
+                <!-- Conteúdo da aba Estoque -->
+                <div id="content-estoque" class="tab-content active">
+                    <div class="filters-container">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="busca-estoque" class="form-control search-input" placeholder="Buscar produto...">
+                        </div>
+                        
+                        <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
+                            <option value="">Todos os Grupos</option>
+                        </select>
+                        
+                        <select id="filtro-status" class="form-control" style="max-width: 200px;">
+                            <option value="">Todos os Status</option>
+                            <option value="esgotado">Esgotado</option>
+                            <option value="baixo">Estoque Baixo</option>
+                            <option value="normal">Estoque Normal</option>
+                        </select>
+                        
+                        <button id="btn-exportar" class="btn btn-outline-primary">
+                            <i class="fas fa-file-export"></i> Exportar
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table" id="tabela-estoque">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Produto</th>
+                                            <th>Grupo</th>
+                                            <th>Estoque Atual</th>
+                                            <th>Status</th>
+                                            <th>Última Atualização</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-3">
+                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando produtos...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conteúdo da aba Movimentações -->
+                <div id="content-movimentacoes" class="tab-content">
+                    <div class="filters-container">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="busca-movimentacao" class="form-control search-input" placeholder="Buscar produto...">
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <div>
+                                <label for="data-inicio" class="form-label">De</label>
+                                <input type="date" id="data-inicio" class="form-control">
+                            </div>
+                            <div>
+                                <label for="data-fim" class="form-label">Até</label>
+                                <input type="date" id="data-fim" class="form-control">
+                            </div>
+                        </div>
+                        
+                        <select id="filtro-tipo" class="form-control" style="max-width: 200px;">
+                            <option value="">Todos os Tipos</option>
+                            <option value="entrada">Entrada</option>
+                            <option value="saida">Saída</option>
+                            <option value="ajuste">Ajuste</option>
+                            <option value="venda">Venda</option>
+                        </select>
+                        
+                        <button id="btn-filtrar" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table" id="tabela-movimentacoes">
+                                    <thead>
+                                        <tr>
+                                            <th>Data/Hora</th>
+                                            <th>Produto</th>
+                                            <th>Tipo</th>
+                                            <th>Quantidade</th>
+                                            <th>Estoque Anterior</th>
+                                            <th>Estoque Atual</th>
+                                            <th>Usuário</th>
+                                            <th>Observação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted py-3">
+                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando movimentações...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conteúdo da aba Ajustes -->
+                <div id="content-ajustes" class="tab-content">
+                    <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <!-- Scanner de Código de Barras -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Scanner de Código de Barras</div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex gap-2 mb-3">
+                                    <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
+                                    <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="d-flex justify-between">
+                                    <button type="button" id="btn-scanner-estoque" class="btn btn-outline-primary">
+                                        <i class="fas fa-camera"></i> Abrir Scanner
+                                    </button>
+                                    <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary">
+                                        <i class="fas fa-barcode"></i> Gerar Código
+                                    </button>
+                                </div>
+                                
+                                <div id="resultado-scanner" class="mt-3"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulário de Ajuste -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Ajuste de Estoque</div>
+                            </div>
+                            <div class="card-body">
+                                <form id="form-ajuste">
+                                    <input type="hidden" id="produto-id">
+                                    
+                                    <div class="alert alert-info mb-3">
+                                        <i class="fas fa-info-circle"></i> Escaneie um produto ou pesquise pelo código para ajustar seu estoque.
+                                    </div>
+                                    
+                                    <div id="dados-produto" style="display: none;">
+                                        <div class="form-group">
+                                            <label for="nome-produto" class="form-label">Produto</label>
+                                            <input type="text" id="nome-produto" class="form-control" readonly>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="estoque-atual" class="form-label">Estoque Atual</label>
+                                            <input type="text" id="estoque-atual" class="form-control" readonly>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="tipo-ajuste" class="form-label">Tipo de Ajuste</label>
+                                            <select id="tipo-ajuste" class="form-control">
+                                                <option value="entrada">Entrada de Estoque</option>
+                                                <option value="saida">Saída de Estoque</option>
+                                                <option value="ajuste">Correção de Estoque</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="quantidade-ajuste" class="form-label">Quantidade</label>
+                                            <input type="number" id="quantidade-ajuste" class="form-control" min="1" step="1" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="observacao-ajuste" class="form-label">Observação</label>
+                                            <textarea id="observacao-ajuste" class="form-control" rows="2" placeholder="Motivo do ajuste..."></textarea>
+                                        </div>
+                                        
+                                        <div class="form-group mb-0">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-save"></i> Registrar Ajuste
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    
+    <!-- Modal Scanner -->
+    <div id="modal-scanner">
+        <div class="scanner-container">
+            <div class="scanner-header">
+                <div class="scanner-title">Scanner de Código de Barras</div>
+                <button class="btn-close-scanner" style="background: none; border: none; color: white; font-size: 1.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <video id="scanner-video" autoplay></video>
+            
+            <div class="scanner-overlay">
+                <div class="scanner-frame">
+                    <div class="scanner-line"></div>
+                </div>
+                
+                <div class="scanner-controls">
+                    <button class="btn btn-light btn-toggle-torch" title="Ativar/Desativar lanterna">
+                        <i class="fas fa-lightbulb"></i>
+                    </button>
+                    
+                    <button class="btn-close-scanner btn btn-danger">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="scanner-footer">
+            <div id="scanner-status">
+                <div class="loading"></div>
+                <span class="status-text">Preparando câmera...</span>
+            </div>
+            
+            <div id="scanner-error" style="display: none; background-color: rgba(229, 57, 53, 0.1); border: 1px solid rgba(229, 57, 53, 0.3); color: var(--danger); border-radius: var(--border-radius); padding: 1rem;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="error-message">Erro ao inicializar scanner</span>
+            </div>
+            
+            <div id="scanner-loading" style="text-align: center; padding: 1rem;">
+                <div class="loading"></div>
+                <p style="margin-top: 0.5rem; color: white;">Inicializando scanner...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Detalhes -->
+    <div id="modal-detalhes" class="modal">
+        <div class="modal-content" style="width: 700px; max-width: 90%;">
+            <div class="modal-header">
+                <div class="modal-title">Detalhes do Produto</div>
+                <button class="modal-close btn-close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <h4 class="mb-3">Informações do Produto</h4>
+                        <div class="mb-2"><strong>Nome:</strong> <span id="detalhe-nome"></span></div>
+                        <div class="mb-2"><strong>Código:</strong> <span id="detalhe-codigo"></span></div>
+                        <div class="mb-2"><strong>Grupo:</strong> <span id="detalhe-grupo"></span></div>
+                        <div class="mb-2"><strong>Preço:</strong> <span id="detalhe-preco"></span></div>
+                        <div class="mb-2"><strong>Estoque Atual:</strong> <span id="detalhe-estoque"></span></div>
+                        <div class="mb-2"><strong>Última Atualização:</strong> <span id="detalhe-atualizacao"></span></div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="mb-3">Últimas Movimentações</h4>
+                        <div id="ultimas-movimentacoes">
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-spinner fa-spin"></i> Carregando movimentações...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary btn-close-modal">Fechar</button>
+                <button id="btn-editar-produto" class="btn btn-outline-primary">
+                    <i class="fas fa-edit"></i> Editar Produto
+                </button>
+                <button id="btn-ajustar-estoque" class="btn btn-primary">
+                    <i class="fas fa-warehouse"></i> Ajustar Estoque
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Áudio de feedback -->
+    <audio id="beep-success" class="audio-feedback">
+        <source src="assets/sounds/beep-success.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="beep-error" class="audio-feedback">
+        <source src="assets/sounds/beep-error.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Notificações -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/db-fix.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/core.js"></script>
+    <script src="assets/js/barcode-scanner.js"></script>
+    <script src="assets/js/integration.js"></script>
+    <script src="assets/js/estoque.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar autenticação
+            if (!auth.verificarAutenticacao()) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Dados do usuário
+            const user = auth.getUsuarioAtual();
+            document.getElementById('user-name').textContent = user.nome;
+            document.getElementById('user-role').textContent = user.perfil === 'admin' ? 'Administrador' : user.perfil === 'supervisor' ? 'Supervisor' : 'Vendedor';
+            
+            // Data atual
+            const dataAtual = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = dataAtual.toLocaleDateString('pt-BR', options);
+            
+            // Elementos DOM - Tabs
+            const tabEstoque = document.getElementById('tab-estoque');
+            const tabMovimentacoes = document.getElementById('tab-movimentacoes');
+            const tabAjustes = document.getElementById('tab-ajustes');
+            
+            const contentEstoque = document.getElementById('content-estoque');
+            const contentMovimentacoes = document.getElementById('content-movimentacoes');
+            const contentAjustes = document.getElementById('content-ajustes');
+            
+            // Elementos DOM - Filtros
+            const buscaEstoqueInput = document.getElementById('busca-estoque');
+            const filtroGrupoSelect = document.getElementById('filtro-grupo');
+            const filtroStatusSelect = document.getElementById('filtro-status');
+            const btnExportar = document.getElementById('btn-exportar');
+            
+            // Elementos DOM - Movimentações
+            const buscaMovimentacaoInput = document.getElementById('busca-movimentacao');
+            const dataInicioInput = document.getElementById('data-inicio');
+            const dataFimInput = document.getElementById('data-fim');
+            const filtroTipoSelect = document.getElementById('filtro-tipo');
+            const btnFiltrar = document.getElementById('btn-filtrar');
+            
+            // Elementos DOM - Ajustes
+            const codigoBarrasInput = document.getElementById('codigo-barras');
+            const btnBuscarCodigo = document.getElementById('btn-buscar-codigo');
+            const resultadoScanner = document.getElementById('resultado-scanner');
+            const btnScannerEstoque = document.getElementById('btn-scanner-estoque');
+            const btnGerarCodigo = document.getElementById('btn-gerar-codigo');
+            
+            // Elementos DOM - Formulário de Ajuste
+            const formAjuste = document.getElementById('form-ajuste');
+            const produtoIdInput = document.getElementById('produto-id');
+            const nomeProdutoInput = document.getElementById('nome-produto');
+            const estoqueAtualInput = document.getElementById('estoque-atual');
+            const tipoAjusteSelect = document.getElementById('tipo-ajuste');
+            const quantidadeAjusteInput = document.getElementById('quantidade-ajuste');
+            const observacaoAjusteInput = document.getElementById('observacao-ajuste');
+            const dadosProdutoDiv = document.getElementById('dados-produto');
+            
+            // Elementos DOM - Modal de Detalhes
+            const modalDetalhes = document.getElementById('modal-detalhes');
+            const btnCloseModal = document.querySelectorAll('.btn-close-modal');
+            const btnEditarProduto = document.getElementById('btn-editar-produto');
+            const btnAjustarEstoque = document.getElementById('btn-ajustar-estoque');
+            
+            // Tabelas
+            const tabelaEstoque = document.getElementById('tabela-estoque');
+            const tabelaMovimentacoes = document.getElementById('tabela-movimentacoes');
+            
+            // Inicialização
+            inicializarDatas();
+            carregarGrupos();
+            carregarTabelaEstoque();
+            
+            // Event Listeners - Tabs
+            tabEstoque.addEventListener('click', function() {
+                ativarAba('estoque');
+            });
+            
+            tabMovimentacoes.addEventListener('click', function() {
+                ativarAba('movimentacoes');
+                carregarMovimentacoes();
+            });
+            
+            tabAjustes.addEventListener('click', function() {
+                ativarAba('ajustes');
+            });
+            
+            // Event Listeners - Filtros
+            buscaEstoqueInput.addEventListener('input', carregarTabelaEstoque);
+            filtroGrupoSelect.addEventListener('change', carregarTabelaEstoque);
+            filtroStatusSelect.addEventListener('change', carregarTabelaEstoque);
+            btnExportar.addEventListener('click', exportarEstoque);
+            
+            // Event Listeners - Movimentações
+            btnFiltrar.addEventListener('click', carregarMovimentacoes);
+            
+            // Event Listeners - Ajustes
+            btnBuscarCodigo.addEventListener('click', function() {
+                const codigo = codigoBarrasInput.value.trim();
+                
+                if (codigo) {
+                    buscarProdutoPorCodigo(codigo);
+                } else {
+                    resultadoScanner.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> Por favor, digite um código de barras válido.
+                        </div>
+                    `;
+                }
+            });
+            
+            // Evento para buscar produto ao pressionar Enter
+            codigoBarrasInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const codigo = this.value.trim();
+                    
+                    if (codigo) {
+                        buscarProdutoPorCodigo(codigo);
+                    }
+                }
+            });
+            
+            // Event Listeners para Scanner
+            btnScannerEstoque.addEventListener('click', function() {
+                try {
+                    // Verificar se temos acesso à função de scanner
+                    if (typeof window.barcodeSystem !== 'undefined') {
+                        // Abrir o modal do scanner
+                        document.getElementById('modal-scanner').style.display = 'flex';
+                        
+                        // Iniciar o scanner
+                        window.barcodeSystem.startScanner('scanner-video', function(code) {
+                            // Reproduzir som de sucesso
+                            const beepSuccess = document.getElementById('beep-success');
+                            beepSuccess.play();
+                            
+                            // Fechar scanner
+                            document.getElementById('modal-scanner').style.display = 'none';
+                            window.barcodeSystem.stopScanner();
+                            
+                            // Preencher campo e buscar produto
+                            codigoBarrasInput.value = code;
+                            buscarProdutoPorCodigo(code);
+                        });
+                    } else {
+                        // Fallback para scanner nativo se disponível
+                        if (typeof barcodeScanner !== 'undefined') {
+                            document.getElementById('modal-scanner').style.display = 'flex';
+                            
+                            barcodeScanner.inicializar('scanner-video', function(code) {
+                                document.getElementById('modal-scanner').style.display = 'none';
+                                barcodeScanner.parar();
+                                
+                                codigoBarrasInput.value = code;
+                                buscarProdutoPorCodigo(code);
+                            });
+                        } else {
+                            throw new Error('Scanner de código de barras não disponível');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao inicializar scanner:', error);
+                    exibirMensagem('Erro ao inicializar scanner: ' + error.message, 'error');
+                }
+            });
+            
+            btnGerarCodigo.addEventListener('click', function() {
+                // Gerar código de barras aleatório
+                let codigo;
+                
+                if (typeof window.barcodeSystem !== 'undefined' && typeof window.barcodeSystem.generateEAN13 === 'function') {
+                    codigo = window.barcodeSystem.generateEAN13();
+                } else if (typeof gerarCodigoBarras === 'function') {
+                    codigo = gerarCodigoBarras();
+                } else {
+                    // Implementação fallback
+                    codigo = '789' + Math.floor(Math.random() * 10000000000).toString().padStart(10, '0');
+                }
+                
+                codigoBarrasInput.value = codigo;
+                exibirMensagem('Código de barras gerado', 'success');
+            });
+            
+            // Fechar scanner
+            document.querySelectorAll('.btn-close-scanner').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('modal-scanner').style.display = 'none';
+                    
+                    // Parar scanner de acordo com a implementação disponível
+                    if (typeof window.barcodeSystem !== 'undefined') {
+                        window.barcodeSystem.stopScanner();
+                    } else if (typeof barcodeScanner !== 'undefined') {
+                        barcodeScanner.parar();
+                    }
+                });
+            });
+            
+            // Formulário de Ajuste
+            formAjuste.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Verificar se há um produto selecionado
+                if (!produtoIdInput.value) {
+                    exibirMensagem('Selecione um produto para ajustar o estoque', 'error');
+                    return;
+                }
+                
+                // Verificar quantidade
+                const quantidade = parseInt(quantidadeAjusteInput.value);
+                
+                if (isNaN(quantidade) || quantidade <= 0) {
+                    exibirMensagem('Informe uma quantidade válida', 'error');
+                    return;
+                }
+                
+                // Obter produto
+                const produtoId = produtoIdInput.value;
+                const produto = db.getProduto(produtoId);
+                
+                if (!produto) {
+                    exibirMensagem('Produto não encontrado', 'error');
+                    return;
+                }
+                
+                // Verificar tipo de ajuste
+                const tipoAjuste = tipoAjusteSelect.value;
+                const estoqueAnterior = produto.estoque || 0;
+                let novoEstoque = estoqueAnterior;
+                
+                if (tipoAjuste === 'entrada') {
+                    novoEstoque += quantidade;
+                } else if (tipoAjuste === 'saida') {
+                    if (quantidade > estoqueAnterior) {
+                        exibirMensagem('Quantidade de saída maior que o estoque disponível', 'error');
+                        return;
+                    }
+                    novoEstoque -= quantidade;
+                } else if (tipoAjuste === 'ajuste') {
+                    novoEstoque = quantidade;
+                }
+                
