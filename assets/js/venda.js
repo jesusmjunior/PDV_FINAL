@@ -1216,4 +1216,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }, duracao);
     }
 });
-                                   
