@@ -6,857 +6,14 @@
     <title>ORION PDV - Sistema de Caixa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
-    <style>
-        :root {
-            /* Cores */
-            --primary: #0B3D91;
-            --primary-light: #1E88E5;
-            --secondary: #1E88E5;
-            --success: #43A047;
-            --warning: #FFB300;
-            --danger: #E53935;
-            --info: #2196F3;
-            --dark: #1E1E1E;
-            --dark-surface: #252526;
-            --surface: #2D2D30;
-            --surface-light: #3E3E42;
-            --border-color: #3E3E42;
-            --text-light: #FFFFFF;
-            --text-muted: #9E9E9E;
-            
-            /* Espaçamento */
-            --spacing-xs: 0.25rem;
-            --spacing-sm: 0.5rem;
-            --spacing-md: 1rem;
-            --spacing-lg: 1.5rem;
-            --spacing-xl: 2rem;
-            
-            /* Bordas */
-            --border-radius: 0.375rem;
-            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--dark);
-            color: var(--text-light);
-            line-height: 1.5;
-        }
-        
-        /* Layout Principal */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        /* Sidebar */
-        .sidebar {
-            width: 240px;
-            background-color: var(--dark-surface);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-        }
-        
-        .sidebar-header {
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            font-weight: 600;
-            font-size: 1.25rem;
-        }
-        
-        .logo img {
-            width: 32px;
-            height: 32px;
-        }
-        
-        .sidebar-menu {
-            flex: 1;
-            padding: var(--spacing-md) 0;
-            overflow-y: auto;
-        }
-        
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: var(--spacing-md);
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-        
-        .menu-item i {
-            width: 24px;
-            margin-right: var(--spacing-md);
-            text-align: center;
-        }
-        
-        .menu-item:hover {
-            background-color: var(--surface-light);
-            color: var(--text-light);
-        }
-        
-        .menu-item.active {
-            background-color: var(--primary);
-            color: var(--text-light);
-        }
-        
-        .sidebar-footer {
-            padding: var(--spacing-md);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-        }
-        
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-light);
-        }
-        
-        .user-info {
-            max-width: 150px;
-        }
-        
-        .user-name {
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .user-role {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        
-        /* Conteúdo Principal */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        .topbar {
-            padding: var(--spacing-md);
-            background-color: var(--dark-surface);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .topbar-title h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-        
-        .page-content {
-            flex: 1;
-            padding: var(--spacing-lg);
-            overflow-y: auto;
-        }
-        
-        /* PDV Layout */
-        .pdv-container {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: var(--spacing-lg);
-            height: 100%;
-        }
-        
-        .produtos-container {
-            display: flex;
-            flex-direction: column;
-            background-color: var(--dark-surface);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-        }
-        
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .tab {
-            padding: var(--spacing-md);
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: all 0.2s ease;
-        }
-        
-        .tab.active {
-            color: var(--text-light);
-            border-bottom: 2px solid var(--primary);
-        }
-        
-        .tab:hover {
-            color: var(--text-light);
-        }
-        
-        .tab-content {
-            padding: var(--spacing-md);
-            flex: 1;
-            overflow-y: auto;
-        }
-        
-        /* Filtros */
-        .filters-container {
-            display: flex;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-md);
-        }
-        
-        .search-container {
-            position: relative;
-            flex: 1;
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: var(--spacing-sm);
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) calc(var(--spacing-md) + 16px);
-            background-color: var(--surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            color: var(--text-light);
-        }
-        
-        /* Grid de Produtos */
-        .produtos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: var(--spacing-md);
-        }
-        
-        .produto-card {
-            background-color: var(--surface);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-md);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .produto-card:hover {
-            background-color: var(--surface-light);
-            transform: translateY(-2px);
-        }
-        
-        .produto-img {
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .produto-img img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        .produto-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .produto-nome {
-            font-weight: 500;
-            margin-bottom: var(--spacing-xs);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .produto-preco {
-            font-weight: 600;
-            color: var(--primary-light);
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .produto-estoque {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        
-        /* Scanner */
-        .card {
-            background-color: var(--surface);
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-        
-        .card-header {
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .card-title {
-            font-weight: 600;
-        }
-        
-        .card-body {
-            padding: var(--spacing-md);
-        }
-        
-        /* Carrinho */
-        .carrinho-container {
-            display: flex;
-            flex-direction: column;
-            background-color: var(--dark-surface);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-        }
-        
-        .carrinho-header {
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .carrinho-vazio {
-            padding: var(--spacing-xl);
-            text-align: center;
-            color: var(--text-muted);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-        }
-        
-        .carrinho-vazio i {
-            font-size: 2.5rem;
-            margin-bottom: var(--spacing-md);
-        }
-        
-        .carrinho-itens {
-            flex: 1;
-            overflow-y: auto;
-            padding: var(--spacing-md);
-        }
-        
-        .carrinho-item {
-            display: flex;
-            gap: var(--spacing-md);
-            padding: var(--spacing-md) 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .carrinho-img {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .carrinho-img img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        .carrinho-info {
-            flex: 1;
-        }
-        
-        .carrinho-nome {
-            font-weight: 500;
-            margin-bottom: var(--spacing-xs);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .carrinho-detalhes {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.875rem;
-            color: var(--text-muted);
-        }
-        
-        .qtd-input {
-            width: 40px;
-            padding: 0.25rem;
-            text-align: center;
-            background-color: var(--surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            color: var(--text-light);
-        }
-        
-        .btn-remove {
-            background: none;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            padding: 0 var(--spacing-sm);
-        }
-        
-        .carrinho-footer {
-            padding: var(--spacing-md);
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .carrinho-totais {
-            margin-bottom: var(--spacing-md);
-        }
-        
-        .totais-linha {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .totais-total {
-            font-weight: 600;
-            font-size: 1.125rem;
-            margin-top: var(--spacing-sm);
-            padding-top: var(--spacing-sm);
-            border-top: 1px solid var(--border-color);
-        }
-        
-        /* Formulários */
-        .form-group {
-            margin-bottom: var(--spacing-md);
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: var(--spacing-xs);
-            color: var(--text-muted);
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: var(--spacing-sm);
-            background-color: var(--surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            color: var(--text-light);
-        }
-        
-        /* Botões */
-        .btn {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-radius: var(--border-radius);
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            border: none;
-        }
-        
-        .btn i {
-            margin-right: var(--spacing-xs);
-        }
-        
-        .btn-primary {
-            background-color: var(--primary);
-            color: var(--text-light);
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--primary-light);
-        }
-        
-        .btn-outline-primary {
-            background-color: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-        }
-        
-        .btn-outline-primary:hover {
-            background-color: var(--primary);
-            color: var(--text-light);
-        }
-        
-        .btn-outline-secondary {
-            background-color: transparent;
-            border: 1px solid var(--secondary);
-            color: var(--secondary);
-        }
-        
-        .btn-outline-secondary:hover {
-            background-color: var(--secondary);
-            color: var(--text-light);
-        }
-        
-        .btn-danger {
-            background-color: var(--danger);
-            color: var(--text-light);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        /* Scanner Modal */
-        #modal-scanner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-        }
-        
-        .scanner-container {
-            flex: 1;
-            position: relative;
-        }
-        
-        .scanner-header {
-            padding: var(--spacing-md);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .scanner-title {
-            font-weight: 600;
-            font-size: 1.125rem;
-        }
-        
-        #scanner-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background-color: #000;
-        }
-        
-        .scanner-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .scanner-frame {
-            width: 250px;
-            height: 250px;
-            border: 2px solid var(--primary);
-            border-radius: var(--border-radius);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .scanner-line {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 50%;
-            height: 2px;
-            background-color: var(--primary);
-            transform: translateY(-50%);
-            animation: scanner 2s infinite linear;
-        }
-        
-        @keyframes scanner {
-            0%, 100% {
-                top: 10%;
-            }
-            50% {
-                top: 90%;
-            }
-        }
-        
-        .scanner-controls {
-            position: absolute;
-            bottom: var(--spacing-lg);
-            display: flex;
-            gap: var(--spacing-md);
-        }
-        
-        .scanner-footer {
-            padding: var(--spacing-md);
-            background-color: var(--dark-surface);
-        }
-        
-        #scanner-status {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-        }
-        
-        .loading {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            border-top-color: var(--primary);
-            animation: spin 1s infinite linear;
-        }
-        
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        
-        /* Recibo Modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .modal.show {
-            opacity: 1;
-        }
-        
-        .modal-content {
-            background-color: var(--dark-surface);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .modal-header {
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-weight: 600;
-            font-size: 1.125rem;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.25rem;
-            cursor: pointer;
-        }
-        
-        .modal-body {
-            padding: var(--spacing-md);
-            overflow-y: auto;
-            flex: 1;
-        }
-        
-        .modal-footer {
-            padding: var(--spacing-md);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: var(--spacing-sm);
-        }
-        
-        .recibo {
-            background-color: white;
-            color: black;
-            padding: var(--spacing-md);
-            border-radius: var(--border-radius);
-        }
-        
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            bottom: var(--spacing-md);
-            right: var(--spacing-md);
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
-            z-index: 2000;
-        }
-        
-        .toast-notification {
-            background-color: var(--dark-surface);
-            border-left: 4px solid var(--info);
-            padding: var(--spacing-md);
-            border-radius: var(--border-radius);
-            min-width: 300px;
-            max-width: 400px;
-            box-shadow: var(--box-shadow);
-            transform: translateX(100%);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-        
-        .toast-notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        
-        .toast-success {
-            border-left-color: var(--success);
-        }
-        
-        .toast-error {
-            border-left-color: var(--danger);
-        }
-        
-        .toast-warning {
-            border-left-color: var(--warning);
-        }
-        
-        /* Utilitários */
-        .d-flex {
-            display: flex;
-        }
-        
-        .align-items-center {
-            align-items: center;
-        }
-        
-        .justify-between {
-            justify-content: space-between;
-        }
-        
-        .gap-2 {
-            gap: var(--spacing-sm);
-        }
-        
-        .gap-3 {
-            gap: var(--spacing-md);
-        }
-        
-        .mb-0 {
-            margin-bottom: 0;
-        }
-        
-        .mb-1 {
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .mb-3 {
-            margin-bottom: var(--spacing-md);
-        }
-        
-        .mt-3 {
-            margin-top: var(--spacing-md);
-        }
-        
-        .w-100 {
-            width: 100%;
-        }
-        
-        .text-center {
-            text-align: center;
-        }
-        
-        .text-right {
-            text-align: right;
-        }
-        
-        .text-muted {
-            color: var(--text-muted);
-        }
-        
-        .text-primary {
-            color: var(--primary-light);
-        }
-        
-        .d-none {
-            display: none;
-        }
-        
-        .d-md-block {
-            display: none;
-        }
-        
-        @media (min-width: 768px) {
-            .d-md-block {
-                display: block;
-            }
-        }
-        
-        /* Responsividade */
-        @media (max-width: 991px) {
-            .pdv-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-            }
-        }
-        
-        @media (max-width: 767px) {
-            .sidebar {
-                width: 60px;
-            }
-            
-            .logo span, .menu-item span, .user-info {
-                display: none;
-            }
-            
-            .main-content {
-                width: calc(100% - 60px);
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/scanner.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+    
+    <!-- Efeitos sonoros -->
+    <audio id="beep-success" src="assets/audio/success.mp3" preload="auto"></audio>
+    <audio id="beep-error" src="assets/audio/error.mp3" preload="auto"></audio>
 </head>
 <body>
     <!-- Container Principal -->
@@ -865,108 +22,329 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMEIzRDkxIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDY0YzEwNi4xIDAgMTkyIDg1LjkgMTkyIDE5MnMtODUuOSAxOTItMTkyIDE5MlM2NCAzNjIuMSA2NCAyNTYgMTQ5LjkgNjQgMjU2IDY0em0wIDMySEM0OC4xIDk2IDk2IDE0OC4xIDk2IDI1NnM1Mi4xIDE2MCAxNjAgMTYwIDE2MC01Mi4xIDE2MC0xNjBTMzYzLjkgOTYgMjU2IDk2eiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNDAgMTUyaDMydjIwOGgtMzJ6bS05NiA5NmgxOTJ2MzJIMTQ0eiIvPjwvc3ZnPg==" alt="ORION PDV">
+                    <img src="assets/img/logo-small.png" alt="ORION PDV">
                     <span>ORION PDV</span>
                 </div>
-                <button id="sidebar-collapse" class="sidebar-toggle d-none d-md-block">
+                <button id="toggle-sidebar" class="toggle-sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
             
-            <div class="sidebar-menu">
-                <a href="#" class="menu-item">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#" class="menu-item active">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>Vendas PDV</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-box"></i>
-                    <span>Produtos</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-warehouse"></i>
-                    <span>Estoque</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-users"></i>
-                    <span>Clientes</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Relatórios</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Configurações</span>
-                </a>
+            <div class="sidebar-content">
+                <ul class="sidebar-menu">
+                    <li>
+                        <a href="dashboard.html">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="venda.html">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>PDV</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="produto.html">
+                            <i class="fas fa-box"></i>
+                            <span>Produtos</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="estoque.html">
+                            <i class="fas fa-warehouse"></i>
+                            <span>Estoque</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="cliente.html">
+                            <i class="fas fa-users"></i>
+                            <span>Clientes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="relatorio.html">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Relatórios</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="config.html">
+                            <i class="fas fa-cog"></i>
+                            <span>Configurações</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
             
             <div class="sidebar-footer">
-                <div class="user-menu" id="user-menu">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-info">
-                        <div class="user-name" id="user-name">Operador</div>
-                        <div class="user-role" id="user-role">Vendedor</div>
+                <div class="user-info">
+                    <img src="assets/img/user.png" alt="User">
+                    <div>
+                        <div id="user-name">Usuário</div>
+                        <div id="user-role" class="text-muted">Cargo</div>
                     </div>
                 </div>
-                <button id="btn-logout" class="sidebar-toggle">
+                <button id="btn-logout" class="btn-logout">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </div>
         
-        <!-- Conteúdo Principal -->
-        <div class="main-content">
-            <div class="topbar">
-                <div class="topbar-title">
-                    <h1>PDV - Ponto de Venda</h1>
+        <!-- Conteúdo -->
+        <div class="content">
+            <div class="content-header">
+                <div>
+                    <h1>Sistema de Caixa</h1>
+                    <p id="current-date" class="text-muted">Data</p>
                 </div>
-                <div class="topbar-actions">
-                    <div id="current-date" class="d-none d-md-block">Carregando data...</div>
+                
+                <div class="header-actions">
+                    <div class="tab-nav">
+                        <button id="tab-produtos" class="tab active">
+                            <i class="fas fa-list"></i> Produtos
+                        </button>
+                        <button id="tab-scanner" class="tab">
+                            <i class="fas fa-barcode"></i> Scanner
+                        </button>
+                    </div>
                 </div>
             </div>
             
-            <div class="page-content" style="padding: 0; overflow: hidden;">
+            <div class="content-body">
                 <div class="pdv-container">
-                    <!-- Área de Produtos -->
-                    <div class="produtos-container">
-                        <!-- Abas -->
-                        <div class="tabs">
-                            <div id="tab-produtos" class="tab active">Produtos</div>
-                            <div id="tab-scanner" class="tab">Scanner de Código</div>
-                        </div>
-                        
-                        <!-- Conteúdo de Produtos -->
-                        <div id="tab-conteudo-produtos" class="tab-content active">
-                            <!-- Filtros e busca -->
-                            <div class="filters-container">
-                                <div class="search-container">
-                                    <i class="fas fa-search search-icon"></i>
-                                    <input type="text" id="busca-produto" class="form-control search-input" placeholder="Buscar produto...">
+                    <!-- Painel Esquerdo (Produtos/Scanner) -->
+                    <div class="left-panel">
+                        <!-- Conteúdo Produtos -->
+                        <div id="tab-conteudo-produtos" class="tab-content">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="filtros-container">
+                                        <div class="form-group">
+                                            <label for="filtro-grupo">Grupo</label>
+                                            <select id="filtro-grupo" class="form-control">
+                                                <option value="">Todos os grupos</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group flex-grow">
+                                            <label for="busca-produto">Busca</label>
+                                            <div class="search-input">
+                                                <i class="fas fa-search"></i>
+                                                <input type="text" id="busca-produto" class="form-control" placeholder="Nome ou código...">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                
-                                <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
-                                    <option value="">Todos os Grupos</option>
-                                </select>
                             </div>
                             
-                            <!-- Grid de produtos -->
-                            <div id="lista-produtos" class="produtos-grid"></div>
+                            <div class="produtos-grid" id="lista-produtos">
+                                <!-- Produtos serão carregados dinamicamente -->
+                            </div>
                         </div>
                         
-                        <!-- Conteúdo do Scanner -->
+                        <!-- Conteúdo Scanner -->
                         <div id="tab-conteudo-scanner" class="tab-content" style="display: none;">
                             <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title">Scanner de Código de Barras</div>
-                                </div>
                                 <div class="card-body">
-                                    <div class="d-flex gap-2 mb-3">
-                                        <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
-                                        <button type="button" id="btn-bus
-                                            
+                                    <div class="row">
+                                        <div class="col-lg-8">
+                                            <div class="form-group">
+                                                <label for="codigo-barras">Código de Barras</label>
+                                                <div class="input-group">
+                                                    <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
+                                                    <button id="btn-buscar-codigo" class="btn btn-primary">
+                                                        <i class="fas fa-search"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="scanner-buttons">
+                                                <button id="btn-scanner-codigo" class="btn btn-primary mb-2">
+                                                    <i class="fas fa-camera"></i> Escanear
+                                                </button>
+                                                <button id="btn-gerar-codigo" class="btn btn-outline-primary">
+                                                    <i class="fas fa-barcode"></i> Gerar Código
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="resultado-scanner" class="mt-3">
+                                        <!-- Resultado da busca por código -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Painel Direito (Carrinho) -->
+                    <div class="right-panel">
+                        <div class="card carrinho-card">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fas fa-shopping-cart"></i> Carrinho
+                                </div>
+                                <button id="btn-limpar-carrinho" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i> Limpar
+                                </button>
+                            </div>
+                            
+                            <div class="card-body carrinho-body">
+                                <div id="carrinho-vazio" class="text-center py-5">
+                                    <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--border-color); margin-bottom: 1rem;"></i>
+                                    <p>Seu carrinho está vazio</p>
+                                    <p class="text-muted">Adicione produtos para iniciar a venda</p>
+                                </div>
+                                
+                                <div id="carrinho-itens" class="carrinho-itens">
+                                    <!-- Itens do carrinho serão carregados dinamicamente -->
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <div class="totais">
+                                    <div class="row">
+                                        <div class="col">Subtotal:</div>
+                                        <div id="subtotal" class="col text-right">R$ 0,00</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col">Desconto (%):</div>
+                                        <div class="col text-right">
+                                            <input type="number" id="desconto" class="form-control-sm text-right" value="0" min="0" max="100" step="1" style="width: 60px;">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col">Valor Desconto:</div>
+                                        <div id="valor-desconto" class="col text-right">R$ 0,00</div>
+                                    </div>
+                                    <div class="row total-row">
+                                        <div class="col">Total:</div>
+                                        <div id="total" class="col text-right">R$ 0,00</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="finalizar-container">
+                                    <div class="form-group">
+                                        <label for="cliente">Cliente</label>
+                                        <select id="cliente" class="form-control">
+                                            <!-- Clientes serão carregados dinamicamente -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="forma-pagamento">Forma de Pagamento</label>
+                                        <select id="forma-pagamento" class="form-control">
+                                            <option value="dinheiro">Dinheiro</option>
+                                            <option value="cartao_credito">Cartão de Crédito</option>
+                                            <option value="cartao_debito">Cartão de Débito</option>
+                                            <option value="pix">PIX</option>
+                                            <option value="boleto">Boleto</option>
+                                            <option value="transferencia">Transferência</option>
+                                            <option value="cheque">Cheque</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="observacao">Observação</label>
+                                        <textarea id="observacao" class="form-control" rows="2"></textarea>
+                                    </div>
+                                    
+                                    <button id="btn-finalizar" class="btn btn-success btn-lg btn-block" disabled>
+                                        <i class="fas fa-check-circle"></i> Finalizar Venda
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Scanner -->
+    <div id="modal-scanner" class="modal-scanner">
+        <div class="scanner-container">
+            <div class="scanner-header">
+                <div class="scanner-title">
+                    <i class="fas fa-barcode"></i> Escaneie o Código de Barras
+                </div>
+                <button class="btn-close-scanner">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="scanner-body">
+                <div class="video-container">
+                    <video id="scanner-video" autoplay playsinline></video>
+                    <div class="scanner-frame">
+                        <div class="scanner-line"></div>
+                    </div>
+                    <div class="scanner-pulse"></div>
+                </div>
+                
+                <div class="scanner-controls">
+                    <button class="btn-toggle-torch">
+                        <i class="fas fa-lightbulb"></i>
+                    </button>
+                    <button class="btn-close-scanner">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+                
+                <div id="scanner-status" class="scanner-status">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="status-text">Posicione o código de barras na área de leitura</span>
+                </div>
+                
+                <div id="scanner-error" style="display: none;" class="mt-3 p-3 bg-danger text-white rounded">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span class="error-message"></span>
+                </div>
+            </div>
+            
+            <div id="scanner-loading" style="display: none;">
+                <div class="loading"></div>
+                <p>Inicializando câmera...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Recibo -->
+    <div id="modal-recibo" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Comprovante de Venda</h3>
+                <button class="btn-close-recibo">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="recibo-conteudo" class="recibo-conteudo">
+                    <!-- Conteúdo do recibo será carregado dinamicamente -->
+                </div>
+                
+                <div class="recibo-acoes mt-4">
+                    <button id="btn-imprimir" class="btn btn-primary">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <button id="btn-nova-venda" class="btn btn-success">
+                        <i class="fas fa-shopping-cart"></i> Nova Venda
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Container de notificações -->
+    <div id="toast-container"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/barcode-scanner.js"></script>
+    <script src="assets/js/venda.js"></script>
+</body>
+</html>
