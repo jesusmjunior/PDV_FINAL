@@ -4,6 +4,8 @@
  */
 
 const db = {
+    VERSION: '1.0.0',
+    
     /**
      * Inicializa o banco de dados com valores padrão se for a primeira vez
      */
@@ -16,17 +18,17 @@ const db = {
         console.log('Inicializando banco de dados...');
         
         // Versão
-        localStorage.setItem('orion_version', '1.0.0');
+        localStorage.setItem('orion_version', this.VERSION);
         
         // Usuários
         const usuarioPadrao = {
-            'jesus': {
-                username: 'jesus',
-                nome: 'Jesus Martins',
+            'admin': {
+                username: 'admin',
+                nome: 'Administrador',
                 cargo: 'Administrador',
-                email: 'jesus@orionpdv.com',
+                email: 'admin@orionpdv.com',
                 perfil: 'admin',
-                senha_hash: this.hashSenha('123')  // Senha padrão
+                senha_hash: this.hashSenha('admin123')  // Senha padrão
             }
         };
         
@@ -52,11 +54,16 @@ const db = {
         localStorage.setItem('orion_produtos', '{}');
         localStorage.setItem('orion_vendas', '[]');
         localStorage.setItem('orion_carrinho', '[]');
+        localStorage.setItem('orion_grupos_produtos', '[]');
         
         // Configurações padrão
         const configPadrao = {
             nome_empresa: "ORION PDV",
             slogan: "Sistema de Gestão de Vendas",
+            cnpj: "",
+            endereco: "",
+            cidade: "",
+            telefone: "",
             tema: "dark",
             cor_primaria: "#0B3D91",
             cor_secundaria: "#1E88E5"
@@ -75,21 +82,21 @@ const db = {
     verificarUsuarioPrincipal: function() {
         const usuarios = this.getUsuarios();
         
-        // Verificar se usuário "jesus" existe
-        if (!usuarios['jesus']) {
+        // Verificar se usuário administrador existe
+        if (Object.keys(usuarios).length === 0) {
             // Criar usuário padrão
-            usuarios['jesus'] = {
-                username: 'jesus',
-                nome: 'Jesus Martins',
+            usuarios['admin'] = {
+                username: 'admin',
+                nome: 'Administrador',
                 cargo: 'Administrador',
-                email: 'jesus@orionpdv.com',
+                email: 'admin@orionpdv.com',
                 perfil: 'admin',
-                senha_hash: this.hashSenha('123')
+                senha_hash: this.hashSenha('admin123')
             };
             
             // Salvar usuários
             localStorage.setItem('orion_usuarios', JSON.stringify(usuarios));
-            console.log('Usuário principal "jesus" criado com sucesso');
+            console.log('Usuário principal "admin" criado com sucesso');
         }
     },
     
@@ -139,6 +146,7 @@ const db = {
         if (!cliente.id) {
             // Novo cliente
             cliente.id = Date.now().toString();
+            cliente.data_cadastro = new Date().toISOString();
             clientes.push(cliente);
         } else {
             // Atualizar cliente existente
@@ -179,6 +187,14 @@ const db = {
     },
     
     /**
+     * Obtém um produto pelo código de barras
+     */
+    getProdutoPorCodigo: function(codigo) {
+        const produtos = this.getProdutos();
+        return Object.values(produtos).find(produto => produto.codigo_barras === codigo);
+    },
+    
+    /**
      * Salva um produto
      */
     salvarProduto: function(produto) {
@@ -206,6 +222,94 @@ const db = {
     },
     
     /**
+     * Obtém os grupos de produtos
+     */
+    getGruposProdutos: function() {
+        return JSON.parse(localStorage.getItem('orion_grupos_produtos') || '[]');
+    },
+    
+    /**
+     * Salva um grupo de produtos
+     */
+    salvarGrupoProdutos: function(grupo) {
+        const grupos = this.getGruposProdutos();
+        if (!grupos.includes(grupo)) {
+            grupos.push(grupo);
+            grupos.sort();  // Ordenar alfabeticamente
+            localStorage.setItem('orion_grupos_produtos', JSON.stringify(grupos));
+        }
+    },
+    
+    /**
+     * Obtém o carrinho de compras
+     */
+    getCarrinho: function() {
+        return JSON.parse(localStorage.getItem('orion_carrinho') || '[]');
+    },
+    
+    /**
+     * Adiciona um item ao carrinho
+     */
+    adicionarItemCarrinho: function(item) {
+        const carrinho = this.getCarrinho();
+        
+        // Verificar se o produto já está no carrinho
+        const index = carrinho.findIndex(i => i.produto_id === item.produto_id);
+        
+        if (index !== -1) {
+            // Atualizar quantidade
+            carrinho[index].quantidade += item.quantidade;
+            carrinho[index].subtotal = carrinho[index].preco * carrinho[index].quantidade;
+        } else {
+            // Adicionar novo item
+            carrinho.push(item);
+        }
+        
+        localStorage.setItem('orion_carrinho', JSON.stringify(carrinho));
+        return true;
+    },
+    
+    /**
+     * Remove um item do carrinho
+     */
+    removerItemCarrinho: function(produtoId) {
+        const carrinho = this.getCarrinho();
+        const index = carrinho.findIndex(item => item.produto_id === produtoId);
+        
+        if (index !== -1) {
+            carrinho.splice(index, 1);
+            localStorage.setItem('orion_carrinho', JSON.stringify(carrinho));
+            return true;
+        }
+        
+        return false;
+    },
+    
+    /**
+     * Atualiza a quantidade de um item no carrinho
+     */
+    atualizarQuantidadeCarrinho: function(produtoId, quantidade) {
+        const carrinho = this.getCarrinho();
+        const index = carrinho.findIndex(item => item.produto_id === produtoId);
+        
+        if (index !== -1) {
+            carrinho[index].quantidade = quantidade;
+            carrinho[index].subtotal = carrinho[index].preco * quantidade;
+            localStorage.setItem('orion_carrinho', JSON.stringify(carrinho));
+            return true;
+        }
+        
+        return false;
+    },
+    
+    /**
+     * Limpa o carrinho
+     */
+    limparCarrinho: function() {
+        localStorage.setItem('orion_carrinho', '[]');
+    },
+    
+    /**
      * Obtém as vendas
      */
     getVendas: function() {
@@ -221,9 +325,9 @@ const db = {
     },
     
     /**
-     * Salva uma venda
+     * Registra uma venda
      */
-    salvarVenda: function(venda) {
+    registrarVenda: function(venda) {
         const vendas = this.getVendas();
         
         if (!venda.id) {
@@ -231,31 +335,43 @@ const db = {
             venda.id = Date.now().toString();
         }
         
-        // Verificar se é nova ou atualização
-        const index = vendas.findIndex(v => v.id === venda.id);
-        
-        if (index !== -1) {
-            // Atualizar venda existente
-            vendas[index] = venda;
-        } else {
-            // Adicionar nova venda
-            vendas.push(venda);
-        }
-        
+        vendas.push(venda);
         localStorage.setItem('orion_vendas', JSON.stringify(vendas));
         
-        return venda;
+        // Após registrar a venda, atualizamos o estoque
+        this.atualizarEstoqueAposVenda(venda);
+        
+        // Limpar carrinho
+        this.limparCarrinho();
+        
+        return venda.id;
     },
     
     /**
-     * Atualiza o estoque de um produto
+     * Alias para registrarVenda para manter compatibilidade
      */
-    atualizarEstoqueProduto: function(id, quantidade) {
+    salvarVenda: function(venda) {
+        return this.registrarVenda(venda);
+    },
+    
+    /**
+     * Atualiza o estoque após uma venda
+     */
+    atualizarEstoqueAposVenda: function(venda) {
         const produtos = this.getProdutos();
-        if (produtos[id]) {
-            produtos[id].estoque += quantidade;
-            localStorage.setItem('orion_produtos', JSON.stringify(produtos));
-        }
+        
+        venda.itens.forEach(item => {
+            if (produtos[item.produto_id]) {
+                produtos[item.produto_id].estoque -= item.quantidade;
+                
+                // Garantir que o estoque não fique negativo
+                if (produtos[item.produto_id].estoque < 0) {
+                    produtos[item.produto_id].estoque = 0;
+                }
+            }
+        });
+        
+        localStorage.setItem('orion_produtos', JSON.stringify(produtos));
     },
     
     /**
@@ -282,6 +398,7 @@ const db = {
             clientes: JSON.parse(localStorage.getItem('orion_clientes') || '[]'),
             produtos: JSON.parse(localStorage.getItem('orion_produtos') || '{}'),
             vendas: JSON.parse(localStorage.getItem('orion_vendas') || '[]'),
+            grupos_produtos: JSON.parse(localStorage.getItem('orion_grupos_produtos') || '[]'),
             config: JSON.parse(localStorage.getItem('orion_config') || '{}'),
             timestamp: new Date().toISOString()
         };
@@ -322,6 +439,7 @@ const db = {
             localStorage.setItem('orion_clientes', JSON.stringify(backup.clientes));
             localStorage.setItem('orion_produtos', JSON.stringify(backup.produtos));
             localStorage.setItem('orion_vendas', JSON.stringify(backup.vendas));
+            localStorage.setItem('orion_grupos_produtos', JSON.stringify(backup.grupos_produtos || []));
             localStorage.setItem('orion_config', JSON.stringify(backup.config));
             localStorage.setItem('orion_initialized', 'true');
             
@@ -373,6 +491,13 @@ const db = {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+    },
+    
+    /**
+     * Gera um ID único
+     */
+    generateId: function() {
+        return Date.now().toString();
     }
 };
 
