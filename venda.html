@@ -2,15 +2,218 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDV - ORION Sistema de Vendas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ORION PDV - Sistema de Vendas Mobile</title>
     
     <!-- Folhas de estilo -->
     <link rel="stylesheet" href="assets/css/orion-theme.css">
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/scanner.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
+    
+    <style>
+        /* Estilos específicos para mobile */
+        body {
+            overscroll-behavior: none;
+            touch-action: manipulation;
+        }
+        
+        /* Scanner em tela cheia para mobile */
+        #modal-scanner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .scanner-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scanner-header {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .scanner-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .scanner-controls {
+            position: absolute;
+            bottom: 2rem;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 10;
+        }
+        
+        .scanner-controls button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(30, 136, 229, 0.8);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .scanner-controls button.active {
+            background-color: rgba(255, 125, 0, 0.8);
+        }
+        
+        #scanner-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: black;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .scanner-frame {
+            width: 70%;
+            max-width: 280px;
+            height: 200px;
+            border: 2px solid var(--primary-light);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 2px;
+            background-color: var(--primary-light);
+            transform: translateY(-50%);
+            animation: scanner 2s infinite linear;
+        }
+        
+        @keyframes scanner {
+            0%, 100% {
+                top: 10%;
+            }
+            50% {
+                top: 90%;
+            }
+        }
+        
+        .scanner-footer {
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #scanner-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+        }
+        
+        /* Adaptações para telas menores */
+        @media (max-width: 576px) {
+            .pdv-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto;
+            }
+            
+            .produtos-container, .carrinho-container {
+                max-height: none;
+            }
+            
+            .carrinho-container {
+                max-height: 40vh;
+            }
+            
+            .produtos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .produto-img {
+                height: 80px;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                height: 100%;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .sidebar-toggle {
+                display: block;
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 1001;
+                background-color: var(--primary);
+                color: white;
+                border-radius: 50%;
+                width: 48px;
+                height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            
+            .menu-backdrop {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+            
+            .menu-backdrop.open {
+                display: block;
+            }
+            
+            .topbar {
+                padding-left: 70px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Sons de feedback -->
@@ -21,9 +224,15 @@
         <source src="assets/sounds/beep-error.mp3" type="audio/mpeg">
     </audio>
 
+    <div class="menu-backdrop" id="menu-backdrop"></div>
+
+    <button class="sidebar-toggle" id="sidebar-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <img src="assets/img/logo.png" alt="ORION">
@@ -86,7 +295,7 @@
         <main class="main-content">
             <header class="topbar">
                 <div class="topbar-title">
-                    <h1>PDV - Ponto de Vendas</h1>
+                    <h1>PDV Mobile</h1>
                 </div>
                 <div class="topbar-actions">
                     <div id="current-date">Carregando data...</div>
@@ -95,8 +304,9 @@
 
             <div class="page-content">
                 <div class="pdv-container">
-                    <!-- Produtos -->
+                    <!-- Área de Produtos -->
                     <div class="produtos-container">
+                        <!-- Abas -->
                         <div class="tabs">
                             <div class="tab active" id="tab-produtos">
                                 <i class="fas fa-th-large"></i> Produtos
@@ -106,207 +316,315 @@
                             </div>
                         </div>
 
+                        <!-- Conteúdo de Produtos -->
                         <div id="tab-conteudo-produtos" class="tab-content active">
+                            <!-- Filtros e busca -->
                             <div class="filters-container">
                                 <div class="search-container">
                                     <i class="fas fa-search search-icon"></i>
                                     <input type="text" id="busca-produto" class="form-control search-input" placeholder="Buscar produto...">
                                 </div>
+                                
                                 <select id="filtro-grupo" class="form-control">
                                     <option value="">Todos os grupos</option>
                                 </select>
                             </div>
-
+                            
+                            <!-- Grid de produtos -->
                             <div id="lista-produtos" class="produtos-grid">
-                                <!-- Produtos serão carregados aqui dinamicamente -->
+                                <!-- Produtos carregados dinamicamente -->
                                 <div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--text-muted);">
                                     <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                                     <p>Carregando produtos...</p>
                                 </div>
                             </div>
                         </div>
-
-                        <div id="tab-conteudo-scanner" class="tab-content">
+                        
+                        <!-- Conteúdo do Scanner -->
+                        <div id="tab-conteudo-scanner" class="tab-content" style="display: none;">
                             <div class="card mb-3">
+                                <div class="card-header">
+                                    <div class="card-title">Código de Barras</div>
+                                </div>
                                 <div class="card-body">
-                                    <div class="d-flex gap-2 align-center">
-                                        <input type="text" id="codigo-barras" class="form-control" placeholder="Código de barras">
-                                        <button id="btn-buscar-codigo" class="btn btn-primary">
+                                    <div class="d-flex gap-2 mb-3">
+                                        <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
+                                        <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
                                             <i class="fas fa-search"></i>
                                         </button>
-                                        <button id="btn-scanner-codigo" class="btn btn-outline-primary">
-                                            <i class="fas fa-camera"></i>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button type="button" id="btn-scanner-codigo" class="btn btn-primary w-100">
+                                            <i class="fas fa-camera"></i> Abrir Scanner da Câmera
                                         </button>
-                                        <button id="btn-gerar-codigo" class="btn btn-outline-primary">
-                                            <i class="fas fa-random"></i>
+                                        <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary">
+                                            <i class="fas fa-magic"></i>
                                         </button>
+                                    </div>
+                                    
+                                    <div id="resultado-scanner" class="mt-3">
+                                        <!-- Resultado da busca aqui -->
                                     </div>
                                 </div>
                             </div>
-
-                            <div id="resultado-scanner">
-                                <!-- Resultado do scanner será exibido aqui -->
-                            </div>
                         </div>
                     </div>
-
-                    <!-- Carrinho -->
+                    
+                    <!-- Área do Carrinho -->
                     <div class="carrinho-container">
                         <div class="carrinho-header">
-                            <h3>Carrinho</h3>
+                            <h3 class="mb-0">Carrinho de Compras</h3>
                         </div>
-
+                        
+                        <!-- Mensagem de carrinho vazio -->
                         <div id="carrinho-vazio" class="carrinho-vazio">
                             <i class="fas fa-shopping-cart"></i>
-                            <p>Carrinho vazio</p>
-                            <p>Escaneie ou selecione os produtos para adicionar ao carrinho</p>
+                            <p>Seu carrinho está vazio</p>
+                            <p class="text-muted">Adicione produtos para iniciar uma venda</p>
                         </div>
-
+                        
+                        <!-- Lista de itens -->
                         <div id="carrinho-itens" class="carrinho-itens">
-                            <!-- Itens do carrinho serão carregados aqui -->
+                            <!-- Itens carregados dinamicamente -->
                         </div>
-
+                        
+                        <!-- Rodapé do carrinho -->
                         <div class="carrinho-footer">
+                            <div class="d-flex justify-between mb-3">
+                                <button id="btn-limpar-carrinho" class="btn btn-outline-secondary">
+                                    <i class="fas fa-trash"></i> Limpar
+                                </button>
+                            </div>
+                            
                             <div class="carrinho-totais">
                                 <div class="totais-linha">
                                     <span>Subtotal:</span>
                                     <span id="subtotal">R$ 0,00</span>
                                 </div>
                                 <div class="totais-linha">
-                                    <span>Desconto (%):</span>
-                                    <div class="d-flex gap-2 align-center">
-                                        <input type="number" id="desconto" class="form-control" value="0" min="0" max="100" step="1" style="width: 70px;">
-                                        <span id="valor-desconto">R$ 0,00</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span>Desconto:</span>
+                                        <input type="number" id="desconto" class="form-control" value="0" min="0" max="100" style="width: 60px;"> <span>%</span>
                                     </div>
+                                    <span id="valor-desconto">R$ 0,00</span>
                                 </div>
                                 <div class="totais-linha totais-total">
                                     <span>Total:</span>
                                     <span id="total">R$ 0,00</span>
                                 </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="cliente">Cliente</label>
+                            
+                            <div class="form-group mb-3">
+                                <label class="form-label">Cliente</label>
                                 <select id="cliente" class="form-control">
-                                    <!-- Clientes serão carregados aqui -->
+                                    <!-- Clientes carregados dinamicamente -->
                                 </select>
                             </div>
-
-                            <div class="form-group">
-                                <label for="forma-pagamento">Forma de Pagamento</label>
+                            
+                            <div class="form-group mb-3">
+                                <label class="form-label">Forma de Pagamento</label>
                                 <select id="forma-pagamento" class="form-control">
                                     <option value="dinheiro">Dinheiro</option>
                                     <option value="cartao_credito">Cartão de Crédito</option>
                                     <option value="cartao_debito">Cartão de Débito</option>
                                     <option value="pix">PIX</option>
-                                    <option value="transferencia">Transferência</option>
+                                    <option value="boleto">Boleto Bancário</option>
+                                    <option value="transferencia">Transferência Bancária</option>
                                 </select>
                             </div>
-
-                            <div class="form-group">
-                                <label for="observacao">Observação</label>
+                            
+                            <div class="form-group mb-3">
+                                <label class="form-label">Observação</label>
                                 <textarea id="observacao" class="form-control" rows="2"></textarea>
                             </div>
-
-                            <div class="d-flex gap-2">
-                                <button id="btn-limpar-carrinho" class="btn btn-outline-primary">
-                                    <i class="fas fa-trash"></i> Limpar
-                                </button>
-                                <button id="btn-finalizar" class="btn btn-primary w-100" disabled>
-                                    <i class="fas fa-check"></i> Finalizar Venda
-                                </button>
-                            </div>
+                            
+                            <button type="button" id="btn-finalizar" class="btn btn-primary w-100" disabled>
+                                <i class="fas fa-check-circle"></i> Finalizar Venda
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-
-    <!-- Modal de Scanner -->
-    <div id="modal-scanner" class="modal">
-        <div class="modal-content" style="width: 100%; max-width: 600px;">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-barcode"></i> Scanner de Código de Barras
-                </div>
-                <button class="modal-close btn-close-scanner">
-                    <i class="fas fa-times"></i>
-                </button>
+    
+    <!-- Modal do Scanner (Adaptado para Mobile) -->
+    <div id="modal-scanner">
+        <div class="scanner-header">
+            <div class="scanner-title">Scanner de Código de Barras</div>
+            <button class="btn btn-close-scanner" style="background: none; border: none; color: white; font-size: 1.5rem;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="scanner-container">
+            <div id="scanner-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; z-index: 2;">
+                <div class="loading" style="width: 50px; height: 50px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s infinite linear; margin: 0 auto;"></div>
+                <p style="margin-top: 1rem;">Inicializando câmera...</p>
             </div>
-            <div class="modal-body">
-                <div class="scanner-container">
-                    <video id="scanner-video" class="scanner-video" playsinline></video>
-                    <div class="scanner-overlay">
-                        <div class="scanner-guides"></div>
-                        <div class="scanner-controls">
-                            <button class="btn btn-sm btn-primary btn-toggle-torch">
-                                <i class="fas fa-lightbulb"></i> Lanterna
-                            </button>
-                        </div>
-                        <div id="scanner-status" class="scanner-status">
-                            <div class="loading"></div>
-                            <span class="status-text">Inicializando scanner...</span>
-                        </div>
-                    </div>
-                </div>
-                <div id="scanner-error" style="display: none; margin-top: 1rem;">
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span class="error-message">Erro ao inicializar scanner</span>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button class="btn btn-primary btn-close-scanner">
-                            <i class="fas fa-arrow-left"></i> Voltar
-                        </button>
-                    </div>
-                </div>
-                <div id="scanner-loading" style="display: none; text-align: center; padding: 2rem 0;">
-                    <div class="loading" style="width: 3rem; height: 3rem; margin-bottom: 1rem;"></div>
-                    <p>Inicializando câmera...</p>
+            
+            <video id="scanner-video" playsinline autoplay></video>
+            
+            <div class="scanner-overlay">
+                <div class="scanner-frame">
+                    <div class="scanner-line"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline-primary btn-close-scanner">
-                    <i class="fas fa-times"></i> Cancelar
+            
+            <div class="scanner-controls">
+                <button class="btn-toggle-torch">
+                    <i class="fas fa-lightbulb"></i>
                 </button>
             </div>
         </div>
+        
+        <div class="scanner-footer">
+            <div id="scanner-status" class="info">
+                <i class="fas fa-info-circle"></i>
+                <span class="status-text">Aponte a câmera para o código de barras</span>
+            </div>
+            
+            <div id="scanner-error" style="display: none; color: #E53935; margin-top: 0.5rem;">
+                <p><i class="fas fa-exclamation-triangle"></i> <span class="error-message">Erro ao inicializar o scanner</span></p>
+            </div>
+        </div>
     </div>
-
+    
     <!-- Modal de Recibo -->
     <div id="modal-recibo" class="modal">
-        <div class="modal-content" style="width: 100%; max-width: 500px;">
+        <div class="modal-content" style="width: 100%; max-width: 400px;">
             <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-receipt"></i> Recibo de Venda
-                </div>
+                <h3 class="modal-title">Recibo de Venda</h3>
                 <button class="modal-close btn-close-recibo">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <div id="recibo-conteudo" class="recibo"></div>
+                <div id="recibo-conteudo" class="recibo">
+                    <!-- Conteúdo do recibo aqui -->
+                </div>
             </div>
             <div class="modal-footer">
-                <button id="btn-nova-venda" class="btn btn-outline-primary">
-                    <i class="fas fa-cart-plus"></i> Nova Venda
+                <button class="btn btn-outline-secondary btn-close-recibo">
+                    <i class="fas fa-times"></i> Fechar
                 </button>
                 <button id="btn-imprimir" class="btn btn-primary">
                     <i class="fas fa-print"></i> Imprimir
                 </button>
+                <button id="btn-nova-venda" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nova Venda
+                </button>
             </div>
         </div>
     </div>
-
+    
+    <!-- Container de notificações -->
+    <div id="toast-container" class="toast-container"></div>
+    
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/core.js"></script>
     <script src="assets/js/database.js"></script>
     <script src="assets/js/barcode-scanner.js"></script>
     <script src="assets/js/barcode-helper.js"></script>
     <script src="assets/js/pdv-integration.js"></script>
-    <script src="assets/js/venda.js"></script>
-    <script src="assets/js/audio-system.js"></script>
+    <script src="assets/js/pdv-data.js"></script>
+    
+    <!-- Script para sidebar mobile -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Controle de sidebar para mobile
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const menuBackdrop = document.getElementById('menu-backdrop');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+                menuBackdrop.classList.toggle('open');
+            });
+            
+            menuBackdrop.addEventListener('click', function() {
+                sidebar.classList.remove('open');
+                menuBackdrop.classList.remove('open');
+            });
+            
+            // Fechar menu quando um item for clicado
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    sidebar.classList.remove('open');
+                    menuBackdrop.classList.remove('open');
+                });
+            });
+            
+            // Adaptações para scanner em dispositivos móveis
+            function checkMobile() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            }
+            
+            // Configurações específicas para dispositivos móveis
+            if (checkMobile()) {
+                // Ajustar configurações do scanner para melhor desempenho em mobile
+                if (typeof barcodeScanner !== 'undefined' && barcodeScanner.quaggaConfig) {
+                    // Otimizar configurações para dispositivos móveis
+                    barcodeScanner.quaggaConfig.inputStream.constraints.facingMode = "environment";
+                    barcodeScanner.quaggaConfig.frequency = 5; // Reduzir frequência para economizar bateria
+                    barcodeScanner.quaggaConfig.locator.halfSample = true; // Melhorar performance
+                }
+                
+                // Configurar orientação para landscape ao abrir scanner (quando possível)
+                const btnScannerCodigo = document.getElementById('btn-scanner-codigo');
+                if (btnScannerCodigo) {
+                    btnScannerCodigo.addEventListener('click', function() {
+                        // Solicitar tela cheia se disponível
+                        const elem = document.documentElement;
+                        if (elem.requestFullscreen) {
+                            elem.requestFullscreen();
+                        } else if (elem.webkitRequestFullscreen) { /* Safari */
+                            elem.webkitRequestFullscreen();
+                        } else if (elem.msRequestFullscreen) { /* IE11 */
+                            elem.msRequestFullscreen();
+                        }
+                        
+                        // Solicitar orientação landscape se disponível
+                        if (screen.orientation && screen.orientation.lock) {
+                            screen.orientation.lock('landscape').catch(function(error) {
+                                console.log('Erro ao bloquear orientação:', error);
+                            });
+                        }
+                    });
+                }
+                
+                // Restaurar orientação ao fechar scanner
+                const btnCloseScanner = document.querySelectorAll('.btn-close-scanner');
+                btnCloseScanner.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Sair da tela cheia
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        } else if (document.webkitExitFullscreen) { /* Safari */
+                            document.webkitExitFullscreen();
+                        } else if (document.msExitFullscreen) { /* IE11 */
+                            document.msExitFullscreen();
+                        }
+                        
+                        // Liberar orientação
+                        if (screen.orientation && screen.orientation.unlock) {
+                            screen.orientation.unlock();
+                        }
+                    });
+                });
+                
+                // Configurações adicionais para melhorar a experiência mobile
+                document.addEventListener('touchmove', function(e) {
+                    if (document.getElementById('modal-scanner').style.display === 'flex') {
+                        e.preventDefault(); // Prevenir scroll durante escaneamento
+                    }
+                }, { passive: false });
+            }
+        });
+    </script>
 </body>
 </html>
