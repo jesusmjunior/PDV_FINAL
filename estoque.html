@@ -640,4 +640,764 @@
                     novoEstoque -= quantidade;
                 } else if (tipoAjuste === 'ajuste') {
                     novoEstoque = quantidade;
+                }} else if (tipoAjuste === 'ajuste') {
+                    novoEstoque = quantidade;
                 }
+                
+                // Registrar movimentação
+                const observacao = observacaoAjusteInput.value.trim();
+                const user = auth.getUsuarioAtual();
+                
+                const movimentacao = {
+                    id: generateUUID(),
+                    produtoId: produtoId,
+                    tipo: tipoAjuste,
+                    quantidade: quantidade,
+                    estoqueAnterior: estoqueAnterior,
+                    estoqueAtual: novoEstoque,
+                    data: new Date().toISOString(),
+                    usuarioId: user.id,
+                    observacao: observacao || (tipoAjuste === 'entrada' ? 'Entrada de estoque' : 
+                                              tipoAjuste === 'saida' ? 'Saída de estoque' : 
+                                              'Correção de estoque')
+                };
+                
+                // Atualizar estoque do produto
+                produto.estoque = novoEstoque;
+                produto.ultimaAtualizacao = new Date().toISOString();
+                
+                // Salvar alterações
+                db.salvarProduto(produto);
+                db.adicionarMovimentacaoEstoque(movimentacao);
+                
+                // Feedback e reset do formulário
+                exibirMensagem(`Estoque ${tipoAjuste === 'entrada' ? 'aumentado' : 
+                                         tipoAjuste === 'saida' ? 'reduzido' : 
+                                         'ajustado'} com sucesso`, 'success');
+                
+                // Beep de sucesso
+                const beepSuccess = document.getElementById('beep-success');
+                beepSuccess.play();
+                
+                // Atualizar exibição
+                carregarTabelaEstoque();
+                limparFormularioAjuste();
+                
+                // Se estiver na tab de movimentações, recarregar
+                if (document.getElementById('content-movimentacoes').classList.contains('active')) {
+                    carregarMovimentacoes();
+                }
+            });
+            
+            // Event Listeners - Modal de Detalhes
+            btnCloseModal.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    modalDetalhes.style.display = 'none';
+                });
+            });
+            
+            btnEditarProduto.addEventListener('click', function() {
+                const produtoId = this.dataset.produtoId;
+                
+                if (produtoId) {
+                    // Redirecionar para a página de edição do produto
+                    window.location.href = `produto.html?id=${produtoId}&modo=editar`;
+                }
+            });
+            
+            btnAjustarEstoque.addEventListener('click', function() {
+                const produtoId = this.dataset.produtoId;
+                
+                if (produtoId) {
+                    // Fechar modal
+                    modalDetalhes.style.display = 'none';
+                    
+                    // Ir para a aba de ajustes
+                    ativarAba('ajustes');
+                    
+                    // Carregar produto no formulário de ajuste
+                    buscarProdutoPorId(produtoId);
+                }
+            });
+            
+            // Logout
+            document.getElementById('btn-logout').addEventListener('click', function() {
+                auth.logout();
+                window.location.href = 'index.html';
+            });
+            
+            // Funções
+            function ativarAba(aba) {
+                // Desativar todas as abas
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // Ativar aba selecionada
+                if (aba === 'estoque') {
+                    tabEstoque.classList.add('active');
+                    contentEstoque.classList.add('active');
+                    carregarTabelaEstoque();
+                } else if (aba === 'movimentacoes') {
+                    tabMovimentacoes.classList.add('active');
+                    contentMovimentacoes.classList.add('active');
+                } else if (aba === 'ajustes') {
+                    tabAjustes.classList.add('active');
+                    contentAjustes.classList.add('active');
+                }
+            }
+            
+            function carregarGrupos() {
+                // Obter grupos de produtos
+                const grupos = db.getGruposProdutos();
+                
+                // Limpar select
+                filtroGrupoSelect.innerHTML = '<option value="">Todos os Grupos</option>';
+                
+                // Adicionar opções
+                grupos.forEach(grupo => {
+                    const option = document.createElement('option');
+                    option.value = grupo.id;
+                    option.textContent = grupo.nome;
+                    filtroGrupoSelect.appendChild(option);
+                });
+            }
+            
+            function carregarTabelaEstoque() {
+                // Obter valores dos filtros
+                const busca = buscaEstoqueInput.value.trim().toLowerCase();
+                const grupoId = filtroGrupoSelect.value;
+                const status = filtroStatusSelect.value;
+                
+                // Obter produtos
+                let produtos = db.getProdutos();
+                
+                // Aplicar filtros
+                if (busca) {
+                    produtos = produtos.filter(p => 
+                        p.nome.toLowerCase().includes(busca) || 
+                        p.codigo.toLowerCase().includes(busca)
+                    );
+                }
+                
+                if (grupoId) {
+                    produtos = produtos.filter(p => p.grupoId === grupoId);
+                }
+                
+                if (status) {
+                    produtos = produtos.filter(p => {
+                        const estoque = p.estoque || 0;
+                        const minimo = p.estoqueMinimo || 0;
+                        
+                        if (status === 'esgotado') {
+                            return estoque === 0;
+                        } else if (status === 'baixo') {
+                            return estoque > 0 && estoque <= minimo;
+                        } else if (status === 'normal') {
+                            return estoque > minimo;
+                        }
+                        
+                        return true;
+                    });
+                }
+                
+                // Ordenar por nome
+                produtos.sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                // Limpar tabela
+                tabelaEstoque.querySelector('tbody').innerHTML = '';
+                
+                // Verificar se há produtos
+                if (produtos.length === 0) {
+                    tabelaEstoque.querySelector('tbody').innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">
+                                Nenhum produto encontrado.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // Preencher tabela
+                produtos.forEach(produto => {
+                    const grupo = db.getGrupoProduto(produto.grupoId);
+                    const estoque = produto.estoque || 0;
+                    const estoqueMinimo = produto.estoqueMinimo || 0;
+                    
+                    // Determinar status
+                    let statusLabel, statusClass;
+                    
+                    if (estoque === 0) {
+                        statusLabel = 'Esgotado';
+                        statusClass = 'bg-danger';
+                    } else if (estoque <= estoqueMinimo) {
+                        statusLabel = 'Estoque Baixo';
+                        statusClass = 'bg-warning';
+                    } else {
+                        statusLabel = 'Normal';
+                        statusClass = 'bg-success';
+                    }
+                    
+                    // Formatar data
+                    const dataAtualizacao = produto.ultimaAtualizacao ? 
+                        new Date(produto.ultimaAtualizacao).toLocaleString('pt-BR') : 
+                        'Nunca atualizado';
+                    
+                    // Criar linha
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${produto.codigo}</td>
+                        <td>${produto.nome}</td>
+                        <td>${grupo ? grupo.nome : 'Sem grupo'}</td>
+                        <td>${estoque}</td>
+                        <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+                        <td>${dataAtualizacao}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-detalhes" data-id="${produto.id}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary btn-ajuste" data-id="${produto.id}">
+                                <i class="fas fa-warehouse"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    tabelaEstoque.querySelector('tbody').appendChild(tr);
+                });
+                
+                // Adicionar eventos aos botões
+                document.querySelectorAll('.btn-detalhes').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const produtoId = this.dataset.id;
+                        abrirModalDetalhes(produtoId);
+                    });
+                });
+                
+                document.querySelectorAll('.btn-ajuste').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const produtoId = this.dataset.id;
+                        ativarAba('ajustes');
+                        buscarProdutoPorId(produtoId);
+                    });
+                });
+            }
+            
+            function carregarMovimentacoes() {
+                // Obter valores dos filtros
+                const busca = buscaMovimentacaoInput.value.trim().toLowerCase();
+                const dataInicio = dataInicioInput.value ? new Date(dataInicioInput.value + 'T00:00:00') : null;
+                const dataFim = dataFimInput.value ? new Date(dataFimInput.value + 'T23:59:59') : null;
+                const tipo = filtroTipoSelect.value;
+                
+                // Obter movimentações
+                let movimentacoes = db.getMovimentacoesEstoque();
+                
+                // Aplicar filtros
+                if (busca || dataInicio || dataFim || tipo) {
+                    movimentacoes = movimentacoes.filter(m => {
+                        // Filtro de busca (nome do produto)
+                        if (busca) {
+                            const produto = db.getProduto(m.produtoId);
+                            if (!produto || !produto.nome.toLowerCase().includes(busca)) {
+                                return false;
+                            }
+                        }
+                        
+                        // Filtro de data
+                        const dataMovimentacao = new Date(m.data);
+                        
+                        if (dataInicio && dataMovimentacao < dataInicio) {
+                            return false;
+                        }
+                        
+                        if (dataFim && dataMovimentacao > dataFim) {
+                            return false;
+                        }
+                        
+                        // Filtro de tipo
+                        if (tipo && m.tipo !== tipo) {
+                            return false;
+                        }
+                        
+                        return true;
+                    });
+                }
+                
+                // Ordenar por data (mais recente primeiro)
+                movimentacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
+                
+                // Limpar tabela
+                tabelaMovimentacoes.querySelector('tbody').innerHTML = '';
+                
+                // Verificar se há movimentações
+                if (movimentacoes.length === 0) {
+                    tabelaMovimentacoes.querySelector('tbody').innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-3">
+                                Nenhuma movimentação encontrada.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // Preencher tabela
+                movimentacoes.forEach(mov => {
+                    const produto = db.getProduto(mov.produtoId);
+                    const usuario = db.getUsuario(mov.usuarioId);
+                    
+                    // Tipo de movimentação
+                    let tipoLabel, tipoClass;
+                    
+                    if (mov.tipo === 'entrada') {
+                        tipoLabel = 'Entrada';
+                        tipoClass = 'text-success';
+                    } else if (mov.tipo === 'saida') {
+                        tipoLabel = 'Saída';
+                        tipoClass = 'text-danger';
+                    } else if (mov.tipo === 'ajuste') {
+                        tipoLabel = 'Ajuste';
+                        tipoClass = 'text-warning';
+                    } else if (mov.tipo === 'venda') {
+                        tipoLabel = 'Venda';
+                        tipoClass = 'text-primary';
+                    } else {
+                        tipoLabel = mov.tipo;
+                        tipoClass = '';
+                    }
+                    
+                    // Formatar data
+                    const dataFormatada = new Date(mov.data).toLocaleString('pt-BR');
+                    
+                    // Criar linha
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dataFormatada}</td>
+                        <td>${produto ? produto.nome : 'Produto não encontrado'}</td>
+                        <td><span class="${tipoClass}">${tipoLabel}</span></td>
+                        <td>${mov.quantidade}</td>
+                        <td>${mov.estoqueAnterior}</td>
+                        <td>${mov.estoqueAtual}</td>
+                        <td>${usuario ? usuario.nome : 'Usuário não encontrado'}</td>
+                        <td>${mov.observacao || '-'}</td>
+                    `;
+                    
+                    tabelaMovimentacoes.querySelector('tbody').appendChild(tr);
+                });
+            }
+            
+            function buscarProdutoPorCodigo(codigo) {
+                // Buscar produto pelo código
+                const produto = db.getProdutoPorCodigo(codigo);
+                
+                if (produto) {
+                    // Produto encontrado
+                    resultadoScanner.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Produto encontrado: <strong>${produto.nome}</strong>
+                        </div>
+                    `;
+                    
+                    // Preencher formulário
+                    produtoIdInput.value = produto.id;
+                    nomeProdutoInput.value = produto.nome;
+                    estoqueAtualInput.value = produto.estoque || 0;
+                    
+                    // Mostrar formulário
+                    dadosProdutoDiv.style.display = 'block';
+                    
+                    // Som de sucesso
+                    const beepSuccess = document.getElementById('beep-success');
+                    beepSuccess.play();
+                } else {
+                    // Produto não encontrado
+                    resultadoScanner.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> Nenhum produto encontrado com o código <strong>${codigo}</strong>.
+                        </div>
+                    `;
+                    
+                    // Limpar formulário
+                    limparFormularioAjuste();
+                    
+                    // Som de erro
+                    const beepError = document.getElementById('beep-error');
+                    beepError.play();
+                }
+            }
+            
+            function buscarProdutoPorId(id) {
+                // Buscar produto por ID
+                const produto = db.getProduto(id);
+                
+                if (produto) {
+                    // Produto encontrado
+                    codigoBarrasInput.value = produto.codigo;
+                    
+                    resultadoScanner.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Produto carregado: <strong>${produto.nome}</strong>
+                        </div>
+                    `;
+                    
+                    // Preencher formulário
+                    produtoIdInput.value = produto.id;
+                    nomeProdutoInput.value = produto.nome;
+                    estoqueAtualInput.value = produto.estoque || 0;
+                    
+                    // Mostrar formulário
+                    dadosProdutoDiv.style.display = 'block';
+                }
+            }
+            
+            function limparFormularioAjuste() {
+                produtoIdInput.value = '';
+                nomeProdutoInput.value = '';
+                estoqueAtualInput.value = '';
+                quantidadeAjusteInput.value = '';
+                observacaoAjusteInput.value = '';
+                dadosProdutoDiv.style.display = 'none';
+            }
+            
+            function abrirModalDetalhes(produtoId) {
+                const produto = db.getProduto(produtoId);
+                
+                if (!produto) {
+                    exibirMensagem('Produto não encontrado', 'error');
+                    return;
+                }
+                
+                // Preencher dados do produto
+                document.getElementById('detalhe-nome').textContent = produto.nome;
+                document.getElementById('detalhe-codigo').textContent = produto.codigo;
+                
+                const grupo = db.getGrupoProduto(produto.grupoId);
+                document.getElementById('detalhe-grupo').textContent = grupo ? grupo.nome : 'Sem grupo';
+                
+                document.getElementById('detalhe-preco').textContent = formatarMoeda(produto.preco || 0);
+                document.getElementById('detalhe-estoque').textContent = produto.estoque || 0;
+                
+                const dataAtualizacao = produto.ultimaAtualizacao ? 
+                    new Date(produto.ultimaAtualizacao).toLocaleString('pt-BR') : 
+                    'Nunca atualizado';
+                document.getElementById('detalhe-atualizacao').textContent = dataAtualizacao;
+                
+                // Carregar últimas movimentações
+                carregarUltimasMovimentacoes(produtoId);
+                
+                // Configurar botões
+                btnEditarProduto.dataset.produtoId = produtoId;
+                btnAjustarEstoque.dataset.produtoId = produtoId;
+                
+                // Abrir modal
+                modalDetalhes.style.display = 'flex';
+            }
+            
+            function carregarUltimasMovimentacoes(produtoId) {
+                const ultimas = document.getElementById('ultimas-movimentacoes');
+                
+                // Obter movimentações do produto
+                let movimentacoes = db.getMovimentacoesEstoque()
+                    .filter(m => m.produtoId === produtoId)
+                    .sort((a, b) => new Date(b.data) - new Date(a.data))
+                    .slice(0, 5); // Últimas 5 movimentações
+                
+                // Verificar se há movimentações
+                if (movimentacoes.length === 0) {
+                    ultimas.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Nenhuma movimentação registrada para este produto.
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Criar lista de movimentações
+                let html = '<div class="list-group">';
+                
+                movimentacoes.forEach(mov => {
+                    const data = new Date(mov.data).toLocaleString('pt-BR');
+                    const usuario = db.getUsuario(mov.usuarioId);
+                    const nomeUsuario = usuario ? usuario.nome : 'Usuário não encontrado';
+                    
+                    // Tipo de movimentação
+                    let tipoLabel, tipoClass, icone;
+                    
+                    if (mov.tipo === 'entrada') {
+                        tipoLabel = 'Entrada';
+                        tipoClass = 'text-success';
+                        icone = 'arrow-up';
+                    } else if (mov.tipo === 'saida') {
+                        tipoLabel = 'Saída';
+                        tipoClass = 'text-danger';
+                        icone = 'arrow-down';
+                    } else if (mov.tipo === 'ajuste') {
+                        tipoLabel = 'Ajuste';
+                        tipoClass = 'text-warning';
+                        icone = 'sync';
+                    } else if (mov.tipo === 'venda') {
+                        tipoLabel = 'Venda';
+                        tipoClass = 'text-primary';
+                        icone = 'shopping-cart';
+                    } else {
+                        tipoLabel = mov.tipo;
+                        tipoClass = '';
+                        icone = 'exchange-alt';
+                    }
+                    
+                    html += `
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between mb-1">
+                                <h6 class="mb-0 ${tipoClass}">
+                                    <i class="fas fa-${icone}"></i> ${tipoLabel}
+                                </h6>
+                                <small>${data}</small>
+                            </div>
+                            <p class="mb-1">
+                                Quantidade: ${mov.quantidade} | Anterior: ${mov.estoqueAnterior} | Atual: ${mov.estoqueAtual}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">${nomeUsuario}</small>
+                                <small class="text-muted">${mov.observacao || '-'}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                ultimas.innerHTML = html;
+            }
+            
+            function exportarEstoque() {
+                // Obter produtos com filtros aplicados
+                const busca = buscaEstoqueInput.value.trim().toLowerCase();
+                const grupoId = filtroGrupoSelect.value;
+                const status = filtroStatusSelect.value;
+                
+                // Obter produtos
+                let produtos = db.getProdutos();
+                
+                // Aplicar filtros
+                if (busca) {
+                    produtos = produtos.filter(p => 
+                        p.nome.toLowerCase().includes(busca) || 
+                        p.codigo.toLowerCase().includes(busca)
+                    );
+                }
+                
+                if (grupoId) {
+                    produtos = produtos.filter(p => p.grupoId === grupoId);
+                }
+                
+                if (status) {
+                    produtos = produtos.filter(p => {
+                        const estoque = p.estoque || 0;
+                        const minimo = p.estoqueMinimo || 0;
+                        
+                        if (status === 'esgotado') {
+                            return estoque === 0;
+                        } else if (status === 'baixo') {
+                            return estoque > 0 && estoque <= minimo;
+                        } else if (status === 'normal') {
+                            return estoque > minimo;
+                        }
+                        
+                        return true;
+                    });
+                }
+                
+                // Verificar se há produtos
+                if (produtos.length === 0) {
+                    exibirMensagem('Nenhum produto para exportar', 'error');
+                    return;
+                }
+                
+                // Preparar dados para exportação
+                const data = [];
+                
+                // Cabeçalho
+                data.push(['Código', 'Produto', 'Grupo', 'Estoque Atual', 'Estoque Mínimo', 'Status', 'Última Atualização']);
+                
+                // Dados
+                produtos.forEach(produto => {
+                    const grupo = db.getGrupoProduto(produto.grupoId);
+                    const estoque = produto.estoque || 0;
+                    const estoqueMinimo = produto.estoqueMinimo || 0;
+                    
+                    // Determinar status
+                    let status;
+                    
+                    if (estoque === 0) {
+                        status = 'Esgotado';
+                    } else if (estoque <= estoqueMinimo) {
+                        status = 'Estoque Baixo';
+                    } else {
+                        status = 'Normal';
+                    }
+                    
+                    // Formatar data
+                    const dataAtualizacao = produto.ultimaAtualizacao ? 
+                        new Date(produto.ultimaAtualizacao).toLocaleString('pt-BR') : 
+                        'Nunca atualizado';
+                    
+                    // Adicionar linha
+                    data.push([
+                        produto.codigo,
+                        produto.nome,
+                        grupo ? grupo.nome : 'Sem grupo',
+                        estoque.toString(),
+                        estoqueMinimo.toString(),
+                        status,
+                        dataAtualizacao
+                    ]);
+                });
+                
+                // Gerar CSV
+                let csv = '';
+                data.forEach(row => {
+                    csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+                });
+                
+                // Criar blob e link para download
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `estoque_${formatarDataArquivo(new Date())}.csv`);
+                link.style.display = 'none';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                exibirMensagem('Relatório de estoque exportado com sucesso', 'success');
+            }
+            
+            function inicializarDatas() {
+                // Data atual para o campo até
+                const hoje = new Date();
+                const dataFim = formatarData(hoje);
+                dataFimInput.value = dataFim;
+                
+                // Data de 30 dias atrás para o campo de
+                const dataInicio = new Date();
+                dataInicio.setDate(dataInicio.getDate() - 30);
+                dataInicioInput.value = formatarData(dataInicio);
+            }
+            
+            function formatarData(data) {
+                const ano = data.getFullYear();
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const dia = String(data.getDate()).padStart(2, '0');
+                
+                return `${ano}-${mes}-${dia}`;
+            }
+            
+            function formatarDataArquivo(data) {
+                const ano = data.getFullYear();
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const dia = String(data.getDate()).padStart(2, '0');
+                const hora = String(data.getHours()).padStart(2, '0');
+                const minuto = String(data.getMinutes()).padStart(2, '0');
+                
+                return `${ano}${mes}${dia}_${hora}${minuto}`;
+            }
+            
+            function formatarMoeda(valor) {
+                return new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(valor);
+            }
+            
+            function exibirMensagem(mensagem, tipo) {
+                const toastContainer = document.getElementById('toast-container');
+                
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${tipo}`;
+                
+                let icone = 'info-circle';
+                if (tipo === 'success') {
+                    icone = 'check-circle';
+                } else if (tipo === 'error') {
+                    icone = 'exclamation-circle';
+                } else if (tipo === 'warning') {
+                    icone = 'exclamation-triangle';
+                }
+                
+                toast.innerHTML = `
+                    <div class="toast-icon">
+                        <i class="fas fa-${icone}"></i>
+                    </div>
+                    <div class="toast-content">
+                        <div class="toast-message">${mensagem}</div>
+                    </div>
+                    <button class="toast-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                // Adicionar ao container
+                toastContainer.appendChild(toast);
+                
+                // Exibir toast
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                // Adicionar evento para fechar
+                toast.querySelector('.toast-close').addEventListener('click', () => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                });
+                
+                // Fechar automaticamente após 5 segundos
+                setTimeout(() => {
+                    if (toast && toast.parentNode) {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            if (toast && toast.parentNode) {
+                                toast.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            }
+            
+            // Função auxiliar para gerar UUID
+            function generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+            
+            // Função auxiliar para gerar código de barras
+            function gerarCodigoBarras() {
+                // Geração padrão EAN-13
+                let codigo = '789'; // Prefixo Brasil
+                
+                // Gerar 9 dígitos aleatórios
+                for (let i = 0; i < 9; i++) {
+                    codigo += Math.floor(Math.random() * 10);
+                }
+                
+                // Calcular dígito verificador
+                let soma = 0;
+                for (let i = 0; i < 12; i++) {
+                    soma += parseInt(codigo[i]) * (i % 2 === 0 ? 1 : 3);
+                }
+                
+                const digitoVerificador = (10 - (soma % 10)) % 10;
+                
+                // Retornar código completo
+                return codigo + digitoVerificador;
+            }
+        });
+    </script>
+</body>
+</html>
