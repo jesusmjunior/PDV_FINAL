@@ -182,3 +182,73 @@
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
+/* Estados da Câmera */
+.camera-active #scanner-video {
+  filter: brightness(1.1);
+  border: 2px solid var(--success);
+}
+
+.camera-error #scanner-video {
+  border: 2px solid var(--danger);
+  opacity: 0.5;
+}
+
+.camera-inactive #scanner-video {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+/* Overlay de Status da Câmera */
+.camera-status-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+}
+
+/* Indicador de Atividade em Tempo Real */
+.scanner-pulse {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: var(--danger);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+  top: 1rem;
+  right: 1rem;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+#scanner-status.info {
+  color: var(--info); /* Corrige declaração incompleta */
+}
+
+.scanner-status i {
+  margin-right: 8px;
+}
+
+#scanner-video::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0) 30%,
+    rgba(0, 0, 0, 0) 70%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+}
