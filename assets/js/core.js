@@ -110,18 +110,27 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {number} duracao Duração em milissegundos
      */
     function criarToast(mensagem, tipo = 'info', duracao = 3000) {
+        // Criar container se não existir
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        
         // Criar toast
         const toast = document.createElement('div');
         toast.className = `toast-notification toast-${tipo}`;
         toast.innerHTML = `
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'warning' ? 'exclamation-circle' : tipo === 'info' ? 'info-circle' : 'times-circle'}"></i>
+                <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'warning' ? 'exclamation-triangle' : tipo === 'info' ? 'info-circle' : 'exclamation-circle'}"></i>
                 <span>${mensagem}</span>
             </div>
         `;
         
         // Adicionar ao DOM
-        document.body.appendChild(toast);
+        toastContainer.appendChild(toast);
         
         // Exibir com animação
         setTimeout(() => {
@@ -132,7 +141,11 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => {
-                document.body.removeChild(toast);
+                try {
+                    toastContainer.removeChild(toast);
+                } catch (e) {
+                    // Toast já pode ter sido removido
+                }
             }, 300);
         }, duracao);
     }
@@ -161,15 +174,17 @@ document.addEventListener('DOMContentLoaded', function() {
         modalEl.style.justifyContent = 'center';
         modalEl.style.alignItems = 'center';
         modalEl.style.zIndex = '1000';
+        modalEl.style.opacity = '0';
+        modalEl.style.transition = 'opacity 0.3s ease';
         
         // Conteúdo do modal
         modalEl.innerHTML = `
-            <div class="modal-content" style="background-color: var(--dark-surface); width: 400px; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
-                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3>${titulo || 'Confirmação'}</h3>
+            <div class="modal-content" style="background-color: var(--surface); width: 400px; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border-color);">
+                    <h3 style="margin: 0; font-size: 1.25rem;">${titulo || 'Confirmação'}</h3>
                     <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
-                <div class="card-body">
+                <div class="modal-body" style="padding: 1rem;">
                     <p>${mensagem || 'Tem certeza que deseja prosseguir?'}</p>
                     
                     <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
@@ -338,14 +353,9 @@ document.addEventListener('DOMContentLoaded', function() {
         let resultado = '';
         let indiceTexto = 0;
         
-        for (let i = 0; i < mascara.length; i++) {
-            if (indiceTexto >= texto.length) {
-                break;
-            }
-            
+        for (let i = 0; i < mascara.length && indiceTexto < texto.length; i++) {
             if (mascara[i] === '#') {
-                resultado += texto[indiceTexto];
-                indiceTexto++;
+                resultado += texto[indiceTexto++];
             } else {
                 resultado += mascara[i];
             }
@@ -382,6 +392,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatarCEP(cep) {
         cep = cep.replace(/[^\d]/g, '');
         return aplicarMascara(cep, '#####-###');
+    }
+    
+    /**
+     * Formata um telefone
+     * @param {string} telefone Telefone a ser formatado
+     * @returns {string} Telefone formatado ((##) #####-#### ou (##) ####-####)
+     */
+    function formatarTelefone(telefone) {
+        telefone = telefone.replace(/[^\d]/g, '');
+        
+        if (telefone.length === 11) {
+            return aplicarMascara(telefone, '(##) #####-####');
+        } else if (telefone.length === 10) {
+            return aplicarMascara(telefone, '(##) ####-####');
+        }
+        
+        return telefone;
     }
     
     /**
@@ -503,12 +530,50 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
+     * Inicializa máscaras para campos comuns
+     */
+    function inicializarMascaras() {
+        // CPF
+        document.querySelectorAll('.mask-cpf').forEach(el => {
+            el.addEventListener('input', function(e) {
+                const valor = e.target.value.replace(/\D/g, '');
+                e.target.value = formatarCPF(valor);
+            });
+        });
+        
+        // CNPJ
+        document.querySelectorAll('.mask-cnpj').forEach(el => {
+            el.addEventListener('input', function(e) {
+                const valor = e.target.value.replace(/\D/g, '');
+                e.target.value = formatarCNPJ(valor);
+            });
+        });
+        
+        // CEP
+        document.querySelectorAll('.mask-cep').forEach(el => {
+            el.addEventListener('input', function(e) {
+                const valor = e.target.value.replace(/\D/g, '');
+                e.target.value = formatarCEP(valor);
+            });
+        });
+        
+        // Telefone
+        document.querySelectorAll('.mask-telefone').forEach(el => {
+            el.addEventListener('input', function(e) {
+                const valor = e.target.value.replace(/\D/g, '');
+                e.target.value = formatarTelefone(valor);
+            });
+        });
+    }
+    
+    /**
      * Inicializa todos os componentes necessários
      */
     function inicializarComponentes() {
         inicializarTooltips();
         inicializarDatePickers();
         inicializarCamposMoeda();
+        inicializarMascaras();
     }
     
     // Exportar funções para uso global
@@ -516,14 +581,15 @@ document.addEventListener('DOMContentLoaded', function() {
         formatarMoeda,
         formatarData,
         formatarDataHora,
-        gerarCodigo,
-        criarToast,
-        confirmar,
-        validarCPF,
-        validarCNPJ,
         formatarCPF,
         formatarCNPJ,
         formatarCEP,
+        formatarTelefone,
+        validarCPF,
+        validarCNPJ,
+        gerarCodigo,
+        criarToast,
+        confirmar,
         debounce,
         throttle,
         ajax,
