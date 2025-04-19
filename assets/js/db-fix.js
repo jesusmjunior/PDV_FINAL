@@ -1,124 +1,325 @@
 /**
- * ORION PDV - Sistema de Gestão de Vendas (Versão 3.0)
- * Banco de dados com suporte a imagens, fuzzy search e importação/exportação massiva
+ * ORION PDV - Camada de Compatibilidade de Banco de Dados
+ * 
+ * Este arquivo resolve conflitos entre implementações de banco de dados
+ * e garante compatibilidade com versões anteriores, adicionando métodos
+ * que possam estar faltando.
  */
 
-const db = {
-    VERSION: '3.0',
+// Verificar se o db já existe no escopo global
+if (typeof db === 'undefined') {
+    console.error('Erro: Objeto db não encontrado. Certifique-se de carregar database.js primeiro.');
+} else {
+    console.log('Inicializando camada de compatibilidade de banco de dados...');
     
-    // Inicialização do banco de dados
-    inicializar: function() {
-        if (!localStorage.getItem('orion_initialized')) {
-            console.log('Inicializando novo banco de dados...');
-            this._criarEstruturaInicial();
-            localStorage.setItem('orion_initialized', 'true');
-        }
-    },
-
-    _criarEstruturaInicial: function() {
-        const estruturaPadrao = {
-            usuarios: {
-                'admin': {
-                    username: 'admin',
-                    senha_hash: this.hashSenha('admin123'),
-                    perfil: 'administrador'
+    // Garantir que métodos essenciais estejam disponíveis
+    
+    // Método para carregar grupos de produtos
+    if (typeof db.getGruposProdutos !== 'function') {
+        db.getGruposProdutos = function() {
+            return JSON.parse(localStorage.getItem('orion_grupos_produtos') || '[]');
+        };
+    }
+    
+    // Método para buscar produto por código de barras
+    if (typeof db.getProdutoPorCodigo !== 'function') {
+        db.getProdutoPorCodigo = function(codigo) {
+            const produtos = this.getProdutos();
+            return Object.values(produtos).find(produto => produto.codigo_barras === codigo);
+        };
+    }
+    
+    // Método para gerenciar o carrinho
+    if (typeof db.getCarrinho !== 'function') {
+        db.getCarrinho = function() {
+            return JSON.parse(localStorage.getItem('orion_carrinho') || '[]');
+        };
+    }
+    
+    if (typeof db.adicionarItemCarrinho !== 'function') {
+        db.adicionarItemCarrinho = function(item) {
+            const carrinho = this.getCarrinho();
+            
+            // Verificar se o produto já está no carrinho
+            const index = carrinho.findIndex(i => i.produto_id === item.produto_id);
+            
+            if (index !== -1) {
+                // Atualizar quantidade
+                carrinho[index].quantidade += item.quantidade;
+                carrinho[index].subtotal = carrinho[index].preco * carrinho[index].quantidade;
+            } else {
+                // Adicionar novo item
+                carrinho.push(item);
+            }
+            
+            localStorage.setItem('orion_carrinho', JSON.stringify(carrinho));
+            return true;
+        };
+    }
+    
+    if (typeof db.removerItemCarrinho !== 'function') {
+        db.removerItemCarrinho = function(produtoId) {
+            const carrinho = this.getCarrinho();
+            const index = carrinho.findIndex(item => item.produto_id === produtoId);
+            
+            if (index !== -1) {
+                carrinho.splice(index, 1);
+                localStorage.setItem('orion_carrinho', JSON.stringify(carrinho));
+                return true;
+            }
+            
+            return false;
+        };
+    }
+    
+    if (typeof db.atualizarQuantidadeCarrinho !== 'function') {
+        db.atualizarQuantidadeCarrinho = function(produtoId, quantidade) {
+            const carrinho = this.getCarrinho();
+            const index = carrinho.findIndex(item => item.produto_id === produtoId);
+            
+            if (index !== -1) {
+                carrinho[index].quantidade = quantidade;
+                carrinho[index].subtotal = carrinho[index].preco * quantidade;
+                localStorage.setItem('orion_carrinho', JSON.stringify(carrinho));
+                return true;
+            }
+            
+            return false;
+        };
+    }
+    
+    if (typeof db.limparCarrinho !== 'function') {
+        db.limparCarrinho = function() {
+            localStorage.setItem('orion_carrinho', '[]');
+        };
+    }
+    
+    // Método para registrar vendas
+    if (typeof db.registrarVenda !== 'function') {
+        db.registrarVenda = function(venda) {
+            return db.salvarVenda(venda);
+        };
+    }
+    
+    if (typeof db.salvarVenda !== 'function') {
+        db.salvarVenda = function(venda) {
+            const vendas = this.getVendas();
+            
+            if (!venda.id) {
+                // Nova venda
+                venda.id = Date.now().toString();
+            }
+            
+            vendas.push(venda);
+            localStorage.setItem('orion_vendas', JSON.stringify(vendas));
+            
+            // Atualizar estoque
+            this.atualizarEstoqueAposVenda(venda);
+            
+            // Limpar carrinho
+            this.limparCarrinho();
+            
+            return venda.id;
+        };
+    }
+    
+    // Método para atualizar estoque após venda
+    if (typeof db.atualizarEstoqueAposVenda !== 'function') {
+        db.atualizarEstoqueAposVenda = function(venda) {
+            const produtos = this.getProdutos();
+            
+            venda.itens.forEach(item => {
+                if (produtos[item.produto_id]) {
+                    produtos[item.produto_id].estoque -= item.quantidade;
+                    
+                    // Garantir que o estoque não fique negativo
+                    if (produtos[item.produto_id].estoque < 0) {
+                        produtos[item.produto_id].estoque = 0;
+                    }
                 }
-            },
-            produtos: {},
-            vendas: [],
-            config: {
-                tema: 'dark',
-                moeda: 'R$'
+            });
+            
+            localStorage.setItem('orion_produtos', JSON.stringify(produtos));
+        };
+    }
+    
+    // Método para salvar movimentações de estoque
+    if (typeof db.salvarMovimentacaoEstoque !== 'function') {
+        db.salvarMovimentacaoEstoque = function(movimentacao) {
+            const movimentacoes = this.getMovimentacoesEstoque();
+            
+            if (!movimentacao.id) {
+                movimentacao.id = this.generateId();
+            }
+            
+            if (!movimentacao.data) {
+                movimentacao.data = new Date().toISOString();
+            }
+            
+            movimentacoes.push(movimentacao);
+            localStorage.setItem('orion_movimentacoes_estoque', JSON.stringify(movimentacoes));
+            
+            return movimentacao;
+        };
+    }
+    
+    // Método para obter movimentações de estoque se não existir
+    if (typeof db.getMovimentacoesEstoque !== 'function') {
+        db.getMovimentacoesEstoque = function() {
+            return JSON.parse(localStorage.getItem('orion_movimentacoes_estoque') || '[]');
+        };
+    }
+    
+    // Método para geração de ID único
+    if (typeof db.generateId !== 'function') {
+        db.generateId = function() {
+            return Date.now().toString();
+        };
+    }
+    
+    // Método para exportar dados
+    if (typeof db.exportarDados !== 'function') {
+        db.exportarDados = function() {
+            try {
+                const dados = {
+                    versao: this.VERSION || "1.0.0",
+                    data: new Date().toISOString(),
+                    dados: {
+                        usuarios: this.getUsuarios ? this.getUsuarios() : JSON.parse(localStorage.getItem('orion_usuarios') || '{}'),
+                        produtos: this.getProdutos ? this.getProdutos() : JSON.parse(localStorage.getItem('orion_produtos') || '{}'),
+                        clientes: this.getClientes ? this.getClientes() : JSON.parse(localStorage.getItem('orion_clientes') || '[]'),
+                        vendas: this.getVendas ? this.getVendas() : JSON.parse(localStorage.getItem('orion_vendas') || '[]'),
+                        movimentacoes_estoque: this.getMovimentacoesEstoque ? this.getMovimentacoesEstoque() : JSON.parse(localStorage.getItem('orion_movimentacoes_estoque') || '[]'),
+                        grupos_produtos: this.getGruposProdutos ? this.getGruposProdutos() : JSON.parse(localStorage.getItem('orion_grupos_produtos') || '[]'),
+                        config: this.getConfig ? this.getConfig() : JSON.parse(localStorage.getItem('orion_config') || '{}')
+                    }
+                };
+                
+                return JSON.stringify(dados, null, 2);
+            } catch (erro) {
+                console.error('Erro ao exportar dados:', erro);
+                return null;
             }
         };
-        
-        localStorage.setItem('orion_data', JSON.stringify(estruturaPadrao));
-    },
-
-    // Métodos de produtos
-    salvarProduto: function(produto) {
-        const dados = JSON.parse(localStorage.getItem('orion_data'));
-        
-        if (!produto.id) {
-            produto.id = this.generateID('prod_');
-            produto.data_cadastro = new Date().toISOString();
-        }
-        
-        produto.data_atualizacao = new Date().toISOString();
-        dados.produtos[produto.id] = produto;
-        localStorage.setItem('orion_data', JSON.stringify(dados));
-        return produto;
-    },
-
-    buscarProdutoPorCodigo: function(codigo) {
-        const dados = JSON.parse(localStorage.getItem('orion_data'));
-        return Object.values(dados.produtos).find(p => 
-            p.codigo_barras === codigo || 
-            this._calcularSimilaridade(p.codigo_barras, codigo) >= 0.7
-        );
-    },
-
-    // Sistema de imagens
-    vincularImagemProduto: function(produtoId, imageBase64) {
-        const dados = JSON.parse(localStorage.getItem('orion_data'));
-        const produto = dados.produtos[produtoId];
-        
-        if (produto) {
-            produto.imagens = produto.imagens || [];
-            produto.imagens.push(imageBase64);
-            localStorage.setItem('orion_data', JSON.stringify(dados));
-        }
-    },
-
-    // Métodos avançados
-    _calcularSimilaridade: function(a, b) {
-        // Implementação do algoritmo de similaridade de Jaro-Winkler
-        let m = 0;
-        const maxOffset = Math.floor(Math.max(a.length, b.length) / 2) - 1;
-        
-        for (let i = 0; i < a.length; i++) {
-            const start = Math.max(0, i - maxOffset);
-            const end = Math.min(b.length, i + maxOffset + 1);
-            
-            if (b.substring(start, end).includes(a[i])) m++;
-        }
-        
-        const jaro = (m / a.length + m / b.length + (m - 1) / 2) / 3;
-        return jaro + (0.1 * Math.min(4, this._prefixoComum(a, b))) * (1 - jaro);
-    },
-
-    // Backup e restauração
-    exportarDadosCompletos: function() {
-        const dados = JSON.parse(localStorage.getItem('orion_data'));
-        const blob = new Blob([JSON.stringify(dados)], {type: 'application/json'});
-        return blob;
-    },
-
-    importarDadosMassivos: function(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                try {
-                    const novosDados = JSON.parse(reader.result);
-                    localStorage.setItem('orion_data', reader.result);
-                    resolve({success: true});
-                } catch (error) {
-                    reject({error: 'Formato inválido'});
-                }
-            };
-            reader.readAsText(blob);
-        });
-    },
-
-    // Utilitários
-    generateID: function(prefix = '') {
-        return prefix + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-    },
-
-    hashSenha: function(senha) {
-        return CryptoJS.SHA256(senha).toString();
     }
-};
-
-// Inicialização automática
-document.addEventListener('DOMContentLoaded', () => db.inicializar());
+    
+    // Método para importar dados
+    if (typeof db.importarDados !== 'function') {
+        db.importarDados = function(dadosJson) {
+            try {
+                const dados = JSON.parse(dadosJson);
+                
+                // Verificar formato
+                if (!dados.versao || !dados.dados) {
+                    console.error('Formato de dados inválido');
+                    return false;
+                }
+                
+                // Importar dados
+                if (dados.dados.usuarios) localStorage.setItem('orion_usuarios', JSON.stringify(dados.dados.usuarios));
+                if (dados.dados.produtos) localStorage.setItem('orion_produtos', JSON.stringify(dados.dados.produtos));
+                if (dados.dados.clientes) localStorage.setItem('orion_clientes', JSON.stringify(dados.dados.clientes));
+                if (dados.dados.vendas) localStorage.setItem('orion_vendas', JSON.stringify(dados.dados.vendas));
+                if (dados.dados.movimentacoes_estoque) localStorage.setItem('orion_movimentacoes_estoque', JSON.stringify(dados.dados.movimentacoes_estoque));
+                if (dados.dados.grupos_produtos) localStorage.setItem('orion_grupos_produtos', JSON.stringify(dados.dados.grupos_produtos));
+                if (dados.dados.config) localStorage.setItem('orion_config', JSON.stringify(dados.dados.config));
+                
+                // Atualizar versão
+                localStorage.setItem('orion_version', dados.versao || "1.0.0");
+                localStorage.setItem('orion_initialized', 'true');
+                
+                return true;
+            } catch (erro) {
+                console.error('Erro ao importar dados:', erro);
+                return false;
+            }
+        };
+    }
+    
+    // Método para gerar relatórios de vendas
+    if (typeof db.gerarRelatorioVendas !== 'function') {
+        db.gerarRelatorioVendas = function(filtros = {}) {
+            // Obter todas as vendas
+            const vendas = this.getVendas();
+            
+            // Aplicar filtros
+            let vendasFiltradas = vendas;
+            
+            // Filtrar por data
+            if (filtros.dataInicio && filtros.dataFim) {
+                const dataInicio = new Date(filtros.dataInicio);
+                dataInicio.setHours(0, 0, 0, 0);
+                
+                const dataFim = new Date(filtros.dataFim);
+                dataFim.setHours(23, 59, 59, 999);
+                
+                vendasFiltradas = vendasFiltradas.filter(venda => {
+                    const dataVenda = new Date(venda.data);
+                    return dataVenda >= dataInicio && dataVenda <= dataFim;
+                });
+            }
+            
+            // Filtrar por cliente
+            if (filtros.clienteId) {
+                vendasFiltradas = vendasFiltradas.filter(venda => venda.cliente_id === filtros.clienteId);
+            }
+            
+            // Filtrar por forma de pagamento
+            if (filtros.formaPagamento) {
+                vendasFiltradas = vendasFiltradas.filter(venda => venda.forma_pagamento_id === filtros.formaPagamento);
+            }
+            
+            // Calcular totais
+            const totalVendas = vendasFiltradas.length;
+            const valorTotal = vendasFiltradas.reduce((acc, venda) => acc + venda.total, 0);
+            const valorDesconto = vendasFiltradas.reduce((acc, venda) => acc + venda.desconto, 0);
+            const ticketMedio = totalVendas > 0 ? valorTotal / totalVendas : 0;
+            
+            // Agrupar por forma de pagamento
+            const vendasPorFormaPagamento = {};
+            vendasFiltradas.forEach(venda => {
+                if (!vendasPorFormaPagamento[venda.forma_pagamento]) {
+                    vendasPorFormaPagamento[venda.forma_pagamento] = {
+                        quantidade: 0,
+                        valor: 0
+                    };
+                }
+                
+                vendasPorFormaPagamento[venda.forma_pagamento].quantidade += 1;
+                vendasPorFormaPagamento[venda.forma_pagamento].valor += venda.total;
+            });
+            
+            // Agrupar por data
+            const vendasPorData = {};
+            vendasFiltradas.forEach(venda => {
+                // Extrair data (sem hora)
+                const dataVenda = venda.data.split('T')[0];
+                
+                if (!vendasPorData[dataVenda]) {
+                    vendasPorData[dataVenda] = 0;
+                }
+                
+                vendasPorData[dataVenda] += venda.total;
+            });
+            
+            // Retornar relatório
+            return {
+                periodo: {
+                    inicio: filtros.dataInicio || null,
+                    fim: filtros.dataFim || null
+                },
+                totais: {
+                    vendas: totalVendas,
+                    valor: valorTotal,
+                    desconto: valorDesconto,
+                    ticketMedio: ticketMedio
+                },
+                formasPagamento: vendasPorFormaPagamento,
+                vendasPorData: vendasPorData,
+                vendas: vendasFiltradas
+            };
+        };
+    }
+    
+    console.log("Camada de compatibilidade do banco de dados inicializada com sucesso!");
+}
