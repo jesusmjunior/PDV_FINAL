@@ -1,6 +1,6 @@
 /**
  * ORION PDV - Estilos para Scanner de Código de Barras
- * v1.0.0 - 2025
+ * v1.1.0 - 2025 (Corrigido)
  */
 
 #modal-scanner {
@@ -31,6 +31,7 @@
   height: auto;
   display: block;
   transform: scaleX(-1); /* Espelhar vídeo para UX melhor */
+  object-fit: cover;
 }
 
 .scanner-overlay {
@@ -143,45 +144,63 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+}
+
+#scanner-status.active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease;
 }
 
 #scanner-status.success {
   color: var(--success);
+  background-color: rgba(0, 200, 83, 0.1);
+  border: 1px solid rgba(0, 200, 83, 0.3);
 }
 
 #scanner-status.error {
   color: var(--danger);
+  background-color: rgba(229, 57, 53, 0.1);
+  border: 1px solid rgba(229, 57, 53, 0.3);
 }
 
-#scanner-status.info
-/* scanner.css */
-#scanner-video {
-    object-fit: cover;
-    transform: scaleX(-1);
+#scanner-status.info {
+  color: var(--info);
+  background-color: rgba(33, 150, 243, 0.1);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+#scanner-status.warning {
+  color: var(--warning);
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.scanner-status i {
+  margin-right: 8px;
+}
+
+.btn-toggle-torch {
+  background-color: var(--dark);
+  color: white;
+  transition: all 0.3s ease;
 }
 
 .btn-toggle-torch.active {
-    background-color: var(--warning);
-    color: black;
+  background-color: var(--warning);
+  color: black;
 }
 
-.scanner-status.active {
-    opacity: 1;
-    transform: translateY(0);
-    transition: all 0.3s ease;
-}
-
-.scanner-status {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.3s ease;
-}
-
+/* Efeito de digitalização */
 @keyframes scanning {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
+
 /* Estados da Câmera */
 .camera-active #scanner-video {
   filter: brightness(1.1);
@@ -217,7 +236,7 @@
   position: absolute;
   width: 20px;
   height: 20px;
-  background: var(--danger);
+  background: var(--primary);
   border-radius: 50%;
   animation: pulse 1.5s infinite;
   top: 1rem;
@@ -229,26 +248,19 @@
   50% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(0.8); opacity: 0.5; }
 }
-#scanner-status.info {
-  color: var(--info); /* Corrige declaração incompleta */
+
+/* Estilos para o erro */
+#scanner-error {
+  display: none;
+  background-color: rgba(229, 57, 53, 0.1);
+  border: 1px solid rgba(229, 57, 53, 0.3);
+  color: var(--danger);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  text-align: center;
 }
 
-.scanner-status i {
-  margin-right: 8px;
-}
-
-#scanner-video::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0) 30%,
-    rgba(0, 0, 0, 0) 70%,
-    rgba(0, 0, 0, 0.2) 100%
-  );
+/* Estilo para os elementos de áudio */
+.audio-feedback {
+  display: none; /* Esconde os elementos de áudio */
 }
