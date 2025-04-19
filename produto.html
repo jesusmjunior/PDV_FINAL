@@ -693,6 +693,20 @@
             }
         });
     </script>
+    <!-- Na página venda.html -->
+<script src="assets/js/database.js"></script>
+<script src="assets/js/barcode-scanner.js"></script>
+<script src="assets/js/barcode-helper.js"></script>
+<script src="assets/js/pdv-integration.js"></script>
+<script>
+    // Inicializar PDV quando o documento estiver pronto
+    document.addEventListener('DOMContentLoaded', function() {
+        PDV.iniciar({
+            ativarScanner: true,
+            videoElementId: 'scanner-video'
+        });
+    });
+</script>
     <audio id="beep-success" class="audio-feedback">
     <source src="assets/sounds/beep-success.mp3" type="audio/mpeg">
 </audio>
