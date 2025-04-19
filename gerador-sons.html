@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION PDV - Gerador de Sons</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #3f51b5;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.5rem;
+        }
+        
+        .downloads {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        a {
+            display: inline-block;
+            background-color: #3f51b5;
+            color: white;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        a:hover {
+            background-color: #303f9f;
+        }
+        
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #388e3c;
+        }
+        
+        hr {
+            margin: 1.5rem 0;
+            border: none;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .instructions {
+            background-color: #fff9c4;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Roboto Mono', monospace;
+        }
+        
+        .sound-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 1rem 0;
+        }
+        
+        .download-all {
+            background: #ff5722;
+            color: white;
+            font-weight: bold;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+            margin: 2rem 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>ORION PDV - Gerador de Sons</h1>
+    <p>Esta página gera os arquivos de som necessários para o sistema ORION PDV.</p>
+    
+    <div id="downloads" class="downloads">
+        <p>Carregando gerador de sons...</p>
+    </div>
+    
+    <div class="download-all" onclick="downloadAll()">
+        Baixar Todos os Sons
+    </div>
+    
+    <div class="instructions">
+        <h3>Instruções:</h3>
+        <ol>
+            <li>Baixe todos os arquivos clicando nos links acima ou no botão "Baixar Todos os Sons"</li>
+            <li>Crie uma pasta <code>assets/sounds/</code> no seu projeto</li>
+            <li>Mova os arquivos baixados para esta pasta</li>
+            <li>Certifique-se de incluir o arquivo <code>audio-system.js</code> no seu HTML antes de <code>produto-barcode.js</code></li>
+        </ol>
+        
+        <h3>Estrutura final necessária:</h3>
+        <pre><code>assets/
+├── css/
+│   └── scanner.css  (atualizado)
+├── js/
+│   ├── audio-system.js  (novo)
+│   ├── barcode-scanner.js
+│   └── produto-barcode.js  (atualizado)
+└── sounds/
+    ├── beep-success.wav  (novo)
+    ├── beep-error.wav  (novo)
+    ├── beep-scan.wav  (novo)
+    └── beep-alert.wav  (novo)</code></pre>
+    </div>
+
+    <script>
+        /**
+         * ORION PDV - Gerador de Sons
+         * Este script gera os arquivos de áudio necessários para o sistema
+         */
+
+        // Definição dos sons
+        const sounds = {
+            'beep-success': {
+                type: 'sine',
+                frequency: 1200,
+                duration: 0.15,
+                gain: 0.3
+            },
+            'beep-error': {
+                type: 'triangle',
+                frequency: 300,
+                duration: 0.3,
+                gain: 0.4
+            },
+            'beep-scan': {
+                type: 'sine',
+                frequency: 880,
+                duration: 0.1,
+                gain: 0.25
+            },
+            'beep-alert': {
+                type: 'square',
+                frequency: 800,
+                duration: 0.1,
+                gain: 0.2
+            }
+        };
+
+        // Função para gerar um som e baixá-lo
+        function generateSound(name, config) {
+            // Criar contexto de áudio
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Configurar taxa de amostragem e duração
+            const sampleRate = audioContext.sampleRate;
+            const duration = config.duration;
+            const numSamples = Math.floor(sampleRate * duration);
+            const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
+            
+            // Obter canal de dados
+            const channelData = buffer.getChannelData(0);
+            
+            // Gerar forma de onda baseada no tipo
+            for (let i = 0; i < numSamples; i++) {
+                const t = i / sampleRate; // tempo em segundos
+                
+                // Envelopes para evitar cliques
+                let envelope = 1;
+                const attackTime = 0.01;
+                const releaseTime = 0.05;
+                
+                if (t < attackTime) {
+                    // Attack (fade in)
+                    envelope = t / attackTime;
+                } else if (t > duration - releaseTime) {
+                    // Release (fade out)
+                    envelope = (duration - t) / releaseTime;
+                }
+                
+                // Gerar forma de onda com base no tipo
+                let sample = 0;
+                const normalizedFreq = config.frequency * t;
+                
+                switch (config.type) {
+                    case 'sine':
+                        sample = Math.sin(2 * Math.PI * normalizedFreq);
+                        break;
+                    case 'square':
+                        sample = Math.sin(2 * Math.PI * normalizedFreq) > 0 ? 1 : -1;
+                        break;
+                    case 'triangle':
+                        sample = Math.abs((normalizedFreq % 1) * 4 - 2) - 1;
+                        break;
+                    case 'sawtooth':
+                        sample = 2 * (normalizedFreq - Math.floor(0.5 + normalizedFreq));
+                        break;
+                    default:
+                        sample = Math.sin(2 * Math.PI * normalizedFreq);
+                }
+                
+                // Aplicar envelope e ganho
+                channelData[i] = sample * envelope * config.gain;
+            }
+            
+            // Criar fonte de áudio
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            
+            // Conectar ao destino
+            source.connect(audioContext.destination);
+            
+            // Retornar o buffer para download
+            return buffer;
+        }
+
+        // Função para baixar o buffer como arquivo WAV
+        function downloadWAV(buffer, filename) {
+            // Função para converter buffer em um arquivo WAV
+            function bufferToWAV(buffer) {
+                const numChannels = buffer.numberOfChannels;
+                const sampleRate = buffer.sampleRate;
+                const numSamples = buffer.length;
+                const bytesPerSample = 2; // 16 bits
+                
+                // Criar cabeçalho WAV
+                const dataSize = numChannels * numSamples * bytesPerSample;
+                const headerSize = 44;
+                const totalSize = headerSize + dataSize;
+                
+                // Criar buffer para o arquivo
+                const arrayBuffer = new ArrayBuffer(totalSize);
+                const dataView = new DataView(arrayBuffer);
+                
+                // Escrever cabeçalho WAV
+                // "RIFF" chunk
+                writeString(dataView, 0, 'RIFF');
+                dataView.setUint32(4, 36 + dataSize, true);
+                writeString(dataView, 8, 'WAVE');
+                
+                // "fmt " chunk
+                writeString(dataView, 12, 'fmt ');
+                dataView.setUint32(16, 16, true); // tamanho do chunk fmt
+                dataView.setUint16(20, 1, true); // formato PCM
+                dataView.setUint16(22, numChannels, true);
+                dataView.setUint32(24, sampleRate, true);
+                dataView.setUint32(28, sampleRate * numChannels * bytesPerSample, true); // bytes por segundo
+                dataView.setUint16(32, numChannels * bytesPerSample, true); // block align
+                dataView.setUint16(34, 8 * bytesPerSample, true); // bits por amostra
+                
+                // "data" chunk
+                writeString(dataView, 36, 'data');
+                dataView.setUint32(40, dataSize, true);
+                
+                // Escrever dados de áudio
+                let offset = 44;
+                for (let i = 0; i < numSamples; i++) {
+                    for (let channel = 0; channel < numChannels; channel++) {
+                        const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+                        const sample16bit = sample < 0 ? sample * 32768 : sample * 32767;
+                        dataView.setInt16(offset, sample16bit, true);
+                        offset += bytesPerSample;
+                    }
+                }
+                
+                return arrayBuffer;
+            }
+            
+            // Função auxiliar para escrever string no buffer
+            function writeString(dataView, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    dataView.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+            
+            // Converter buffer para WAV
+            const wav = bufferToWAV(buffer);
+            const blob = new Blob([wav], { type: 'audio/wav' });
+            
+            // Criar link de download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.innerHTML = `Baixar ${filename}`;
+            link.className = 'download-link';
+            
+            return { link, url, blob, buffer };
+        }
+
+        // Links para download
+        const downloadLinks = {};
+
+        // Função para baixar todos os arquivos
+        function downloadAll() {
+            Object.values(downloadLinks).forEach(link => {
+                link.click();
+            });
+        }
+
+        // Função principal para gerar todos os sons
+        function generateAllSounds() {
+            const downloadsContainer = document.getElementById('downloads');
+            downloadsContainer.innerHTML = '<h2>Arquivos de Som</h2>';
+            
+            // Gerar cada som
+            for (const [name, config] of Object.entries(sounds)) {
+                try {
+                    const buffer = generateSound(name, config);
+                    const { link, buffer: soundBuffer } = downloadWAV(buffer, `${name}.wav`);
+                    
+                    // Salvar referência ao link
+                    downloadLinks[name] = link;
+                    
+                    // Criar container para este som
+                    const soundContainer = document.createElement('div');
+                    soundContainer.className = 'sound-item';
+                    
+                    // Adicionar título
+                    const title = document.createElement('h3');
+                    title.innerText = name;
+                    soundContainer.appendChild(title);
+                    
+                    // Criar controles
+                    const controls = document.createElement('div');
+                    controls.className = 'controls';
+                    
+                    // Adicionar link de download
+                    controls.appendChild(link);
+                    
+                    // Adicionar botão de teste
+                    const testButton = document.createElement('button');
+                    testButton.innerHTML = `Testar som`;
+                    testButton.onclick = () => {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const source = audioContext.createBufferSource();
+                        source.buffer = soundBuffer;
+                        source.connect(audioContext.destination);
+                        source.start();
+                    };
+                    controls.appendChild(testButton);
+                    
+                    soundContainer.appendChild(controls);
+                    
+                    // Adicionar detalhes do som
+                    const details = document.createElement('p');
+                    details.innerHTML = `<small>Tipo: ${config.type}, Frequência: ${config.frequency}Hz, Duração: ${config.duration}s</small>`;
+                    soundContainer.appendChild(details);
+                    
+                    // Adicionar à página
+                    downloadsContainer.appendChild(soundContainer);
+                    
+                } catch (error) {
+                    console.error(`Erro ao gerar som ${name}:`, error);
+                    const errorMsg = document.createElement('p');
+                    errorMsg.style.color = 'red';
+                    errorMsg.innerHTML = `Erro ao gerar ${name}: ${error.message}`;
+                    downloadsContainer.appendChild(errorMsg);
+                }
+            }
+        }
+
+        // Iniciar quando a página carregar
+        window.addEventListener('load', generateAllSounds);
+    </script>
+</body>
+</html>
