@@ -118,7 +118,8 @@
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="forma-pagamento" class="form-label">Forma de Pagamento</label><div class="form-group">
+                                    <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
+                                    <div class="form-group">
                                     <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
                                     <select id="forma-pagamento" class="form-control">
                                         <option value="">Todas</option>
@@ -1234,7 +1235,230 @@
                 }
                 
                 // Atualizar gráfico de faturamento
-                const ctxFaturamento = document.getElementById('chart-produtos-faturamento').getContext('2d');
+                const ctxFaturamento = document.getElementById('chart-clientes-faturamento').getContext('2d');
+                
+                if (chartClientesFaturamento) {
+                    chartClientesFaturamento.data.labels = labelsFaturamento;
+                    chartClientesFaturamento.data.datasets[0].data = dadosFaturamento;
+                    chartClientesFaturamento.update();
+                } else {
+                    chartClientesFaturamento = new Chart(ctxFaturamento, {
+                        type: 'bar',
+                        data: {
+                            labels: labelsFaturamento,
+                            datasets: [{
+                                label: 'Faturamento (R$)',
+                                data: dadosFaturamento,
+                                backgroundColor: cores,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return 'R$ ' + value.toFixed(2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            function atualizarTabelaClientes() {
+                // Obter clientes do relatório
+                const clientes = relatorioClientes.clientes;
+                
+                // Limpar tabela
+                const tbody = tabelaClientes.querySelector('tbody');
+                
+                if (clientes.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-3">
+                                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                <p>Nenhum cliente encontrado para os filtros selecionados</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // Gerar linhas da tabela
+                let html = '';
+                
+                clientes.forEach(cliente => {
+                    // Formatar última compra
+                    let ultimaCompra = '-';
+                    if (cliente.ultimaCompra) {
+                        const data = new Date(cliente.ultimaCompra);
+                        ultimaCompra = data.toLocaleDateString('pt-BR');
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td>${cliente.nome}</td>
+                            <td>${cliente.documento || '-'}</td>
+                            <td>${cliente.cidade || '-'}</td>
+                            <td>${cliente.totalCompras}</td>
+                            <td>${ultimaCompra}</td>
+                            <td>R$ ${cliente.faturamento.toFixed(2)}</td>
+                            <td>R$ ${cliente.ticketMedio.toFixed(2)}</td>
+                            <td>${cliente.percentual.toFixed(2)}%</td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = html;
+            }
+            
+            function exportarVendas() {
+                // Verificar se há dados para exportar
+                if (!relatorioVendas || !relatorioVendas.vendas || relatorioVendas.vendas.length === 0) {
+                    exibirMensagem('Nenhum dado para exportar. Gere o relatório primeiro.', 'warning');
+                    return;
+                }
+                
+                try {
+                    // Formatar dados para exportação
+                    const dados = relatorioVendas.vendas.map(venda => {
+                        // Formatar data
+                        const data = new Date(venda.data);
+                        const dataFormatada = data.toLocaleDateString('pt-BR');
+                        const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        
+                        return {
+                            ID: venda.id,
+                            Data: dataFormatada,
+                            Hora: horaFormatada,
+                            Cliente: venda.cliente_nome,
+                            Itens: venda.itens.length,
+                            FormaPagamento: venda.forma_pagamento,
+                            Subtotal: venda.subtotal.toFixed(2),
+                            Desconto: venda.desconto.toFixed(2),
+                            Total: venda.total.toFixed(2)
+                        };
+                    });
+                    
+                    // Exportar CSV
+                    db.exportarCSV(dados, 'relatorio_vendas.csv');
+                    
+                    exibirMensagem('Relatório de vendas exportado com sucesso!', 'success');
+                } catch (erro) {
+                    console.error('Erro ao exportar vendas:', erro);
+                    exibirMensagem('Erro ao exportar vendas: ' + erro, 'error');
+                }
+            }
+            
+            function exportarProdutos() {
+                // Verificar se há dados para exportar
+                if (!relatorioProdutos || !relatorioProdutos.produtos || relatorioProdutos.produtos.length === 0) {
+                    exibirMensagem('Nenhum dado para exportar. Gere o relatório primeiro.', 'warning');
+                    return;
+                }
+                
+                try {
+                    // Formatar dados para exportação
+                    const dados = relatorioProdutos.produtos.map(produto => {
+                        return {
+                            Codigo: produto.codigo || '',
+                            Nome: produto.nome,
+                            Grupo: produto.grupo || '',
+                            Preco: produto.preco.toFixed(2),
+                            Quantidade: produto.quantidade.toString(),
+                            Faturamento: produto.faturamento.toFixed(2),
+                            Percentual: produto.percentual.toFixed(2) + '%'
+                        };
+                    });
+                    
+                    // Exportar CSV
+                    db.exportarCSV(dados, 'relatorio_produtos.csv');
+                    
+                    exibirMensagem('Relatório de produtos exportado com sucesso!', 'success');
+                } catch (erro) {
+                    console.error('Erro ao exportar produtos:', erro);
+                    exibirMensagem('Erro ao exportar produtos: ' + erro, 'error');
+                }
+            }
+            
+            function exportarClientes() {
+                // Verificar se há dados para exportar
+                if (!relatorioClientes || !relatorioClientes.clientes || relatorioClientes.clientes.length === 0) {
+                    exibirMensagem('Nenhum dado para exportar. Gere o relatório primeiro.', 'warning');
+                    return;
+                }
+                
+                try {
+                    // Formatar dados para exportação
+                    const dados = relatorioClientes.clientes.map(cliente => {
+                        // Formatar última compra
+                        let ultimaCompra = '-';
+                        if (cliente.ultimaCompra) {
+                            const data = new Date(cliente.ultimaCompra);
+                            ultimaCompra = data.toLocaleDateString('pt-BR');
+                        }
+                        
+                        return {
+                            Nome: cliente.nome,
+                            Documento: cliente.documento || '',
+                            Cidade: cliente.cidade || '',
+                            Compras: cliente.totalCompras.toString(),
+                            UltimaCompra: ultimaCompra,
+                            Faturamento: cliente.faturamento.toFixed(2),
+                            TicketMedio: cliente.ticketMedio.toFixed(2),
+                            Percentual: cliente.percentual.toFixed(2) + '%'
+                        };
+                    });
+                    
+                    // Exportar CSV
+                    db.exportarCSV(dados, 'relatorio_clientes.csv');
+                    
+                    exibirMensagem('Relatório de clientes exportado com sucesso!', 'success');
+                } catch (erro) {
+                    console.error('Erro ao exportar clientes:', erro);
+                    exibirMensagem('Erro ao exportar clientes: ' + erro, 'error');
+                }
+            }
+            
+            // Função para exibir mensagens de notificação
+            function exibirMensagem(mensagem, tipo) {
+                const toastContainer = document.getElementById('toast-container');
+                
+                const toast = document.createElement('div');
+                toast.className = `toast-notification toast-${tipo}`;
+                
+                toast.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'warning' ? 'exclamation-circle' : tipo === 'info' ? 'info-circle' : 'times-circle'}"></i>
+                        <span>${mensagem}</span>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                // Exibir com animação
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                // Remover após 3 segundos
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        toastContainer.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>document.getElementById('chart-produtos-faturamento').getContext('2d');
                 
                 if (chartProdutosFaturamento) {
                     chartProdutosFaturamento.data.labels = labelsFaturamento;
