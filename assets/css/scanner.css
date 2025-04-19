@@ -357,11 +357,6 @@
   }
 }
 
-/* Estilo para os elementos de áudio */
-.audio-feedback {
-  display: none; /* Esconde os elementos de áudio */
-}
-
 /* Responsividade */
 @media (max-width: 768px) {
   .scanner-container {
