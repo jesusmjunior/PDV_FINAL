@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORION PDV - Estoque</title>
+    <title>ORION PDV - Vendas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
     <link rel="stylesheet" href="assets/css/orion-theme.css">
@@ -31,7 +31,7 @@
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="venda.html" class="menu-item">
+                <a href="venda.html" class="menu-item active">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Vendas PDV</span>
                 </a>
@@ -39,7 +39,7 @@
                     <i class="fas fa-box"></i>
                     <span>Produtos</span>
                 </a>
-                <a href="estoque.html" class="menu-item active">
+                <a href="estoque.html" class="menu-item">
                     <i class="fas fa-warehouse"></i>
                     <span>Estoque</span>
                 </a>
@@ -77,214 +77,121 @@
         <div class="main-content">
             <div class="topbar">
                 <div class="topbar-title">
-                    <h1>Controle de Estoque</h1>
+                    <h1>PDV - Ponto de Venda</h1>
                 </div>
                 <div class="topbar-actions">
                     <div id="current-date" class="d-none d-md-block">Carregando data...</div>
                 </div>
             </div>
             
-            <div class="page-content">
-                <!-- Tabs -->
-                <div class="tabs">
-                    <div id="tab-estoque" class="tab active">Visão Geral</div>
-                    <div id="tab-movimentacoes" class="tab">Movimentações</div>
-                    <div id="tab-ajustes" class="tab">Ajuste de Estoque</div>
-                </div>
-                
-                <!-- Conteúdo da aba Estoque -->
-                <div id="content-estoque" class="tab-content active">
-                    <div class="filters-container">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="busca-estoque" class="form-control search-input" placeholder="Buscar produto...">
+            <div class="page-content" style="padding: 0; overflow: hidden;">
+                <div class="pdv-container">
+                    <!-- Área de Produtos -->
+                    <div class="produtos-container">
+                        <!-- Abas -->
+                        <div class="tabs">
+                            <div id="tab-produtos" class="tab active">Produtos</div>
+                            <div id="tab-scanner" class="tab">Scanner de Código</div>
                         </div>
                         
-                        <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Grupos</option>
-                        </select>
-                        
-                        <select id="filtro-status" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Status</option>
-                            <option value="esgotado">Esgotado</option>
-                            <option value="baixo">Estoque Baixo</option>
-                            <option value="normal">Estoque Normal</option>
-                        </select>
-                        
-                        <button id="btn-exportar" class="btn btn-outline-primary">
-                            <i class="fas fa-file-export"></i> Exportar
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table" id="tabela-estoque">
-                                    <thead>
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Produto</th>
-                                            <th>Grupo</th>
-                                            <th>Estoque Atual</th>
-                                            <th>Status</th>
-                                            <th>Última Atualização</th>
-                                            <th>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="7" class="text-center text-muted py-3">
-                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando produtos...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Conteúdo da aba Movimentações -->
-                <div id="content-movimentacoes" class="tab-content">
-                    <div class="filters-container">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="busca-movimentacao" class="form-control search-input" placeholder="Buscar produto...">
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <div>
-                                <label for="data-inicio" class="form-label">De</label>
-                                <input type="date" id="data-inicio" class="form-control">
-                            </div>
-                            <div>
-                                <label for="data-fim" class="form-label">Até</label>
-                                <input type="date" id="data-fim" class="form-control">
-                            </div>
-                        </div>
-                        
-                        <select id="filtro-tipo" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Tipos</option>
-                            <option value="entrada">Entrada</option>
-                            <option value="saida">Saída</option>
-                            <option value="ajuste">Ajuste</option>
-                            <option value="venda">Venda</option>
-                        </select>
-                        
-                        <button id="btn-filtrar" class="btn btn-primary">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table" id="tabela-movimentacoes">
-                                    <thead>
-                                        <tr>
-                                            <th>Data/Hora</th>
-                                            <th>Produto</th>
-                                            <th>Tipo</th>
-                                            <th>Quantidade</th>
-                                            <th>Estoque Anterior</th>
-                                            <th>Estoque Atual</th>
-                                            <th>Usuário</th>
-                                            <th>Observação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="8" class="text-center text-muted py-3">
-                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando movimentações...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Conteúdo da aba Ajustes -->
-                <div id="content-ajustes" class="tab-content">
-                    <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <!-- Scanner de Código de Barras -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Scanner de Código de Barras</div>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex gap-2 mb-3">
-                                    <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
-                                    <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
-                                        <i class="fas fa-search"></i>
-                                    </button>
+                        <!-- Conteúdo de Produtos -->
+                        <div id="tab-conteudo-produtos" class="tab-content active">
+                            <!-- Filtros e busca -->
+                            <div class="filters-container">
+                                <div class="search-container">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" id="busca-produto" class="form-control search-input" placeholder="Buscar produto...">
                                 </div>
                                 
-                                <div class="d-flex justify-between">
-                                    <button type="button" id="btn-scanner-estoque" class="btn btn-outline-primary">
-                                        <i class="fas fa-camera"></i> Abrir Scanner
-                                    </button>
-                                    <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary">
-                                        <i class="fas fa-barcode"></i> Gerar Código
-                                    </button>
-                                </div>
-                                
-                                <div id="resultado-scanner" class="mt-3"></div>
+                                <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
+                                    <option value="">Todos os Grupos</option>
+                                </select>
                             </div>
+                            
+                            <!-- Grid de produtos -->
+                            <div id="lista-produtos" class="produtos-grid"></div>
                         </div>
                         
-                        <!-- Formulário de Ajuste -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Ajuste de Estoque</div>
-                            </div>
-                            <div class="card-body">
-                                <form id="form-ajuste">
-                                    <input type="hidden" id="produto-id">
-                                    
-                                    <div class="alert alert-info mb-3">
-                                        <i class="fas fa-info-circle"></i> Escaneie um produto ou pesquise pelo código para ajustar seu estoque.
+                        <!-- Conteúdo do Scanner -->
+                        <div id="tab-conteudo-scanner" class="tab-content" style="display: none;">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title">Scanner de Código de Barras</div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex gap-2 mb-3">
+                                        <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
+                                        <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
                                     </div>
                                     
-                                    <div id="dados-produto" style="display: none;">
-                                        <div class="form-group">
-                                            <label for="nome-produto" class="form-label">Produto</label>
-                                            <input type="text" id="nome-produto" class="form-control" readonly>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="estoque-atual" class="form-label">Estoque Atual</label>
-                                            <input type="text" id="estoque-atual" class="form-control" readonly>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="tipo-ajuste" class="form-label">Tipo de Ajuste</label>
-                                            <select id="tipo-ajuste" class="form-control">
-                                                <option value="entrada">Entrada de Estoque</option>
-                                                <option value="saida">Saída de Estoque</option>
-                                                <option value="ajuste">Correção de Estoque</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="quantidade-ajuste" class="form-label">Quantidade</label>
-                                            <input type="number" id="quantidade-ajuste" class="form-control" min="1" step="1" required>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="observacao-ajuste" class="form-label">Observação</label>
-                                            <textarea id="observacao-ajuste" class="form-control" rows="2" placeholder="Motivo do ajuste..."></textarea>
-                                        </div>
-                                        
-                                        <div class="form-group mb-0">
-                                            <button type="submit" class="btn btn-primary w-100">
-                                                <i class="fas fa-save"></i> Registrar Ajuste
-                                            </button>
-                                        </div>
+                                    <div class="d-flex justify-between">
+                                        <button type="button" id="btn-scanner-codigo" class="btn btn-outline-primary">
+                                            <i class="fas fa-camera"></i> Abrir Scanner
+                                        </button>
+                                        <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary">
+                                            <i class="fas fa-barcode"></i> Gerar Código
+                                        </button>
                                     </div>
-                                </form>
+                                    
+                                    <div id="resultado-scanner" class="mt-3"></div>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Área do Carrinho -->
+                    <div class="carrinho-container">
+                        <div class="carrinho-header">
+                            <h3 class="mb-0"><i class="fas fa-shopping-cart"></i> Carrinho</h3>
+                        </div>
+                        
+                        <div id="carrinho-vazio" class="carrinho-vazio">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>O carrinho está vazio</p>
+                            <p>Selecione produtos para adicionar</p>
+                        </div>
+                        
+                        <div id="carrinho-itens" class="carrinho-itens"></div>
+                        
+                        <div class="carrinho-footer">
+                            <div class="carrinho-totais">
+                                <div class="totais-linha">
+                                    <span>Subtotal:</span>
+                                    <span id="subtotal">R$ 0,00</span>
+                                </div>
+                                
+                                <div class="totais-linha">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span>Desconto (%):</span>
+                                        <input type="number" id="desconto" class="form-control" style="width: 60px;" value="0" min="0" max="100">
+                                    </div>
+                                </div>
+                                
+                                <div class="totais-linha totais-total">
+                                    <span>Total:</span>
+                                    <span id="total">R$ 0,00</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cliente" class="form-label">Cliente</label>
+                                <select id="cliente" class="form-control">
+                                    <!-- Clientes serão carregados dinamicamente -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
+                                <select id="forma-pagamento" class="form-control">
+                                    <!-- Formas de pagamento serão carregadas dinamicamente -->
+                                </select>
+                            </div>
+                            
+                            <button id="btn-finalizar" class="btn btn-primary w-100 mt-3" disabled>
+                                <i class="fas fa-check-circle"></i> Finalizar Venda
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -332,57 +239,40 @@
                 <span class="error-message">Erro ao inicializar scanner</span>
             </div>
             
-            <div id="scanner-loading" style="text-align: center; padding: 1rem;">
+            <div id="scanner-loading" style="text-align: center; padding: 1rem;"> <div id="scanner-loading" style="text-align: center; padding: 1rem;">
                 <div class="loading"></div>
                 <p style="margin-top: 0.5rem; color: white;">Inicializando scanner...</p>
             </div>
         </div>
     </div>
     
-    <!-- Modal de Detalhes -->
-    <div id="modal-detalhes" class="modal">
+    <!-- Modal de Recibo -->
+    <div id="modal-recibo" class="modal">
         <div class="modal-content" style="width: 700px; max-width: 90%;">
             <div class="modal-header">
-                <div class="modal-title">Detalhes do Produto</div>
-                <button class="modal-close btn-close-modal"><i class="fas fa-times"></i></button>
+                <div class="modal-title">Comprovante de Venda</div>
+                <button class="modal-close btn-close-recibo"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                    <div>
-                        <h4 class="mb-3">Informações do Produto</h4>
-                        <div class="mb-2"><strong>Nome:</strong> <span id="detalhe-nome"></span></div>
-                        <div class="mb-2"><strong>Código:</strong> <span id="detalhe-codigo"></span></div>
-                        <div class="mb-2"><strong>Grupo:</strong> <span id="detalhe-grupo"></span></div>
-                        <div class="mb-2"><strong>Preço:</strong> <span id="detalhe-preco"></span></div>
-                        <div class="mb-2"><strong>Estoque Atual:</strong> <span id="detalhe-estoque"></span></div>
-                        <div class="mb-2"><strong>Última Atualização:</strong> <span id="detalhe-atualizacao"></span></div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="mb-3">Últimas Movimentações</h4>
-                        <div id="ultimas-movimentacoes">
-                            <div class="text-center text-muted py-3">
-                                <i class="fas fa-spinner fa-spin"></i> Carregando movimentações...
-                            </div>
-                        </div>
-                    </div>
+                <div id="recibo-conteudo" class="recibo">
+                    <!-- Conteúdo do recibo será gerado dinamicamente -->
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline-secondary btn-close-modal">Fechar</button>
-                <button id="btn-editar-produto" class="btn btn-outline-primary">
-                    <i class="fas fa-edit"></i> Editar Produto
+                <button class="btn btn-outline-secondary btn-close-recibo">
+                    <i class="fas fa-times"></i> Fechar
                 </button>
-                <button id="btn-ajustar-estoque" class="btn btn-primary">
-                    <i class="fas fa-warehouse"></i> Ajustar Estoque
+                <button id="btn-imprimir" class="btn btn-outline-primary">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button id="btn-nova-venda" class="btn btn-primary">
+                    <i class="fas fa-shopping-cart"></i> Nova Venda
                 </button>
             </div>
         </div>
     </div>
     
     <!-- Áudio de feedback -->
-    <audio id="beep-success" class="audio-feedback
-      <!-- Áudio de feedback -->
     <audio id="beep-success" class="audio-feedback">
         <source src="assets/sounds/beep-success.mp3" type="audio/mpeg">
     </audio>
@@ -402,7 +292,7 @@
     <script src="assets/js/core.js"></script>
     <script src="assets/js/barcode-scanner.js"></script>
     <script src="assets/js/integration.js"></script>
-    <script src="assets/js/estoque.js"></script>
+    <script src="assets/js/venda.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -422,84 +312,68 @@
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('current-date').textContent = dataAtual.toLocaleDateString('pt-BR', options);
             
-            // Elementos DOM - Tabs
-            const tabEstoque = document.getElementById('tab-estoque');
-            const tabMovimentacoes = document.getElementById('tab-movimentacoes');
-            const tabAjustes = document.getElementById('tab-ajustes');
+            // Elementos DOM - Geral
+            const tabProdutos = document.getElementById('tab-produtos');
+            const tabScanner = document.getElementById('tab-scanner');
+            const tabConteudoProdutos = document.getElementById('tab-conteudo-produtos');
+            const tabConteudoScanner = document.getElementById('tab-conteudo-scanner');
             
-            const contentEstoque = document.getElementById('content-estoque');
-            const contentMovimentacoes = document.getElementById('content-movimentacoes');
-            const contentAjustes = document.getElementById('content-ajustes');
-            
-            // Elementos DOM - Filtros
-            const buscaEstoqueInput = document.getElementById('busca-estoque');
+            // Elementos DOM - Produtos
             const filtroGrupoSelect = document.getElementById('filtro-grupo');
-            const filtroStatusSelect = document.getElementById('filtro-status');
-            const btnExportar = document.getElementById('btn-exportar');
+            const buscaProdutoInput = document.getElementById('busca-produto');
+            const listaProdutos = document.getElementById('lista-produtos');
             
-            // Elementos DOM - Movimentações
-            const buscaMovimentacaoInput = document.getElementById('busca-movimentacao');
-            const dataInicioInput = document.getElementById('data-inicio');
-            const dataFimInput = document.getElementById('data-fim');
-            const filtroTipoSelect = document.getElementById('filtro-tipo');
-            const btnFiltrar = document.getElementById('btn-filtrar');
-            
-            // Elementos DOM - Ajustes
+            // Elementos DOM - Scanner
             const codigoBarrasInput = document.getElementById('codigo-barras');
             const btnBuscarCodigo = document.getElementById('btn-buscar-codigo');
             const resultadoScanner = document.getElementById('resultado-scanner');
-            const btnScannerEstoque = document.getElementById('btn-scanner-estoque');
+            const btnScannerCodigo = document.getElementById('btn-scanner-codigo');
             const btnGerarCodigo = document.getElementById('btn-gerar-codigo');
             
-            // Elementos DOM - Formulário de Ajuste
-            const formAjuste = document.getElementById('form-ajuste');
-            const produtoIdInput = document.getElementById('produto-id');
-            const nomeProdutoInput = document.getElementById('nome-produto');
-            const estoqueAtualInput = document.getElementById('estoque-atual');
-            const tipoAjusteSelect = document.getElementById('tipo-ajuste');
-            const quantidadeAjusteInput = document.getElementById('quantidade-ajuste');
-            const observacaoAjusteInput = document.getElementById('observacao-ajuste');
-            const dadosProdutoDiv = document.getElementById('dados-produto');
+            // Elementos DOM - Carrinho
+            const carrinhoItens = document.getElementById('carrinho-itens');
+            const carrinhoVazio = document.getElementById('carrinho-vazio');
+            const subtotalEl = document.getElementById('subtotal');
+            const descontoInput = document.getElementById('desconto');
+            const totalEl = document.getElementById('total');
+            const clienteSelect = document.getElementById('cliente');
+            const formaPagamentoSelect = document.getElementById('forma-pagamento');
+            const btnFinalizar = document.getElementById('btn-finalizar');
             
-            // Elementos DOM - Modal de Detalhes
-            const modalDetalhes = document.getElementById('modal-detalhes');
-            const btnCloseModal = document.querySelectorAll('.btn-close-modal');
-            const btnEditarProduto = document.getElementById('btn-editar-produto');
-            const btnAjustarEstoque = document.getElementById('btn-ajustar-estoque');
+            // Elementos DOM - Modal de Recibo
+            const modalRecibo = document.getElementById('modal-recibo');
+            const reciboConteudo = document.getElementById('recibo-conteudo');
+            const btnCloseRecibo = document.querySelectorAll('.btn-close-recibo');
+            const btnImprimir = document.getElementById('btn-imprimir');
+            const btnNovaVenda = document.getElementById('btn-nova-venda');
             
-            // Tabelas
-            const tabelaEstoque = document.getElementById('tabela-estoque');
-            const tabelaMovimentacoes = document.getElementById('tabela-movimentacoes');
+            // Variáveis de controle
+            let carrinho = [];
+            let subtotal = 0;
+            let desconto = 0;
+            let total = 0;
             
             // Inicialização
-            inicializarDatas();
             carregarGrupos();
-            carregarTabelaEstoque();
+            carregarClientes();
+            carregarFormasPagamento();
+            carregarProdutos();
+            inicializarCarrinho();
             
-            // Event Listeners - Tabs
-            tabEstoque.addEventListener('click', function() {
-                ativarAba('estoque');
+            // Event Listeners - Abas
+            tabProdutos.addEventListener('click', function() {
+                ativarAba('produtos');
             });
             
-            tabMovimentacoes.addEventListener('click', function() {
-                ativarAba('movimentacoes');
-                carregarMovimentacoes();
+            tabScanner.addEventListener('click', function() {
+                ativarAba('scanner');
             });
             
-            tabAjustes.addEventListener('click', function() {
-                ativarAba('ajustes');
-            });
+            // Event Listeners - Produtos
+            filtroGrupoSelect.addEventListener('change', carregarProdutos);
+            buscaProdutoInput.addEventListener('input', carregarProdutos);
             
-            // Event Listeners - Filtros
-            buscaEstoqueInput.addEventListener('input', carregarTabelaEstoque);
-            filtroGrupoSelect.addEventListener('change', carregarTabelaEstoque);
-            filtroStatusSelect.addEventListener('change', carregarTabelaEstoque);
-            btnExportar.addEventListener('click', exportarEstoque);
-            
-            // Event Listeners - Movimentações
-            btnFiltrar.addEventListener('click', carregarMovimentacoes);
-            
-            // Event Listeners - Ajustes
+            // Event Listeners - Scanner
             btnBuscarCodigo.addEventListener('click', function() {
                 const codigo = codigoBarrasInput.value.trim();
                 
@@ -526,7 +400,7 @@
             });
             
             // Event Listeners para Scanner
-            btnScannerEstoque.addEventListener('click', function() {
+            btnScannerCodigo.addEventListener('click', function() {
                 try {
                     // Verificar se temos acesso à função de scanner
                     if (typeof window.barcodeSystem !== 'undefined') {
@@ -600,114 +474,36 @@
                 });
             });
             
-            // Formulário de Ajuste
-            formAjuste.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Verificar se há um produto selecionado
-                if (!produtoIdInput.value) {
-                    exibirMensagem('Selecione um produto para ajustar o estoque', 'error');
-                    return;
-                }
-                
-                // Verificar quantidade
-                const quantidade = parseInt(quantidadeAjusteInput.value);
-                
-                if (isNaN(quantidade) || quantidade <= 0) {
-                    exibirMensagem('Informe uma quantidade válida', 'error');
-                    return;
-                }
-                
-                // Obter produto
-                const produtoId = produtoIdInput.value;
-                const produto = db.getProduto(produtoId);
-                
-                if (!produto) {
-                    exibirMensagem('Produto não encontrado', 'error');
-                    return;
-                }
-                
-                // Verificar tipo de ajuste
-                const tipoAjuste = tipoAjusteSelect.value;
-                const estoqueAnterior = produto.estoque || 0;
-                let novoEstoque = estoqueAnterior;
-                
-                if (tipoAjuste === 'entrada') {
-                    novoEstoque += quantidade;
-                } else if (tipoAjuste === 'saida') {
-                    if (quantidade > estoqueAnterior) {
-                        exibirMensagem('Quantidade de saída maior que o estoque disponível', 'error');
-                        return;
-                    }
-                    novoEstoque -= quantidade;
-                } else if (tipoAjuste === 'ajuste') {
-                    novoEstoque = quantidade;
-                }
-                
-                // Atualizar estoque
-                produto.estoque = novoEstoque;
-                db.salvarProduto(produto);
-                
-                // Registrar movimentação
-                const movimentacao = {
-                    data: new Date().toISOString(),
-                    produto_id: produto.id,
-                    produto_nome: produto.nome,
-                    tipo: tipoAjuste,
-                    quantidade: quantidade,
-                    estoque_anterior: estoqueAnterior,
-                    estoque_atual: novoEstoque,
-                    usuario: user.nome,
-                    observacao: observacaoAjusteInput.value || ''
-                };
-                
-                // Verificar se existe método para salvar movimentação
-                if (typeof db.salvarMovimentacaoEstoque === 'function') {
-                    db.salvarMovimentacaoEstoque(movimentacao);
-                } else {
-                    // Fallback para armazenar em localStorage diretamente
-                    const movimentacoes = JSON.parse(localStorage.getItem('orion_movimentacoes_estoque') || '[]');
-                    movimentacoes.push(movimentacao);
-                    localStorage.setItem('orion_movimentacoes_estoque', JSON.stringify(movimentacoes));
-                }
-                
-                // Limpar formulário
-                formAjuste.reset();
-                produtoIdInput.value = '';
-                dadosProdutoDiv.style.display = 'none';
-                
-                // Recarregar tabela
-                carregarTabelaEstoque();
-                
-                // Exibir mensagem
-                exibirMensagem('Ajuste de estoque realizado com sucesso!', 'success');
+            // Event Listeners - Carrinho
+            descontoInput.addEventListener('input', function() {
+                atualizarTotais();
             });
             
-            // Modal de Detalhes
-            btnCloseModal.forEach(btn => {
+            btnFinalizar.addEventListener('click', finalizarVenda);
+            
+            // Event Listeners - Modal de Recibo
+            btnCloseRecibo.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    modalDetalhes.classList.remove('show');
+                    modalRecibo.classList.remove('show');
                     setTimeout(() => {
-                        modalDetalhes.style.display = 'none';
+                        modalRecibo.style.display = 'none';
                     }, 300);
                 });
             });
             
-            btnEditarProduto.addEventListener('click', function() {
-                const produtoId = produtoIdInput.value;
-                modalDetalhes.classList.remove('show');
-                setTimeout(() => {
-                    modalDetalhes.style.display = 'none';
-                    window.location.href = `produto.html?id=${produtoId}`;
-                }, 300);
-            });
+            btnImprimir.addEventListener('click', imprimirRecibo);
             
-            btnAjustarEstoque.addEventListener('click', function() {
-                modalDetalhes.classList.remove('show');
+            btnNovaVenda.addEventListener('click', function() {
+                // Fechar modal
+                modalRecibo.classList.remove('show');
                 setTimeout(() => {
-                    modalDetalhes.style.display = 'none';
-                    ativarAba('ajustes');
+                    modalRecibo.style.display = 'none';
                 }, 300);
+                
+                // Limpar carrinho
+                carrinho = [];
+                salvarCarrinho();
+                atualizarCarrinho();
             });
             
             // Logout
@@ -720,42 +516,22 @@
             
             function ativarAba(aba) {
                 // Desativar todas as abas
-                tabEstoque.classList.remove('active');
-                tabMovimentacoes.classList.remove('active');
-                tabAjustes.classList.remove('active');
+                tabProdutos.classList.remove('active');
+                tabScanner.classList.remove('active');
                 
                 // Ocultar todos os conteúdos
-                contentEstoque.classList.remove('active');
-                contentMovimentacoes.classList.remove('active');
-                contentAjustes.classList.remove('active');
+                tabConteudoProdutos.style.display = 'none';
+                tabConteudoScanner.style.display = 'none';
                 
                 // Ativar aba selecionada
-                if (aba === 'estoque') {
-                    tabEstoque.classList.add('active');
-                    contentEstoque.classList.add('active');
-                    carregarTabelaEstoque();
-                } else if (aba === 'movimentacoes') {
-                    tabMovimentacoes.classList.add('active');
-                    contentMovimentacoes.classList.add('active');
-                    carregarMovimentacoes();
-                } else if (aba === 'ajustes') {
-                    tabAjustes.classList.add('active');
-                    contentAjustes.classList.add('active');
+                if (aba === 'produtos') {
+                    tabProdutos.classList.add('active');
+                    tabConteudoProdutos.style.display = 'block';
+                } else if (aba === 'scanner') {
+                    tabScanner.classList.add('active');
+                    tabConteudoScanner.style.display = 'block';
                     codigoBarrasInput.focus();
                 }
-            }
-            
-            function inicializarDatas() {
-                // Definir data de hoje como padrão para data fim
-                const hoje = new Date();
-                const dataFimStr = hoje.toISOString().split('T')[0];
-                dataFimInput.value = dataFimStr;
-                
-                // Definir data de 30 dias atrás como padrão para data início
-                const dataInicio = new Date();
-                dataInicio.setDate(dataInicio.getDate() - 30);
-                const dataInicioStr = dataInicio.toISOString().split('T')[0];
-                dataInicioInput.value = dataInicioStr;
             }
             
             function carregarGrupos() {
@@ -790,17 +566,61 @@
                 });
             }
             
-            function carregarTabelaEstoque() {
+            function carregarClientes() {
+                // Obter clientes
+                const clientes = db.getClientes();
+                
+                // Preencher select
+                clienteSelect.innerHTML = '';
+                
+                clientes.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.id;
+                    option.textContent = cliente.nome;
+                    clienteSelect.appendChild(option);
+                });
+            }
+            
+            function carregarFormasPagamento() {
+                // Formas de pagamento disponíveis
+                const formasPagamento = [
+                    { valor: 'dinheiro', nome: 'Dinheiro' },
+                    { valor: 'cartao_credito', nome: 'Cartão de Crédito' },
+                    { valor: 'cartao_debito', nome: 'Cartão de Débito' },
+                    { valor: 'pix', nome: 'PIX' },
+                    { valor: 'boleto', nome: 'Boleto Bancário' },
+                    { valor: 'transferencia', nome: 'Transferência Bancária' }
+                ];
+                
+                // Preencher select
+                formaPagamentoSelect.innerHTML = '';
+                
+                formasPagamento.forEach(forma => {
+                    const option = document.createElement('option');
+                    option.value = forma.valor;
+                    option.textContent = forma.nome;
+                    formaPagamentoSelect.appendChild(option);
+                });
+            }
+            
+            function carregarProdutos() {
                 // Obter produtos
                 const produtos = db.getProdutos();
                 
                 // Filtros
-                const termoBusca = buscaEstoqueInput.value.toLowerCase();
+                const termoBusca = buscaProdutoInput.value.toLowerCase();
                 const grupoFiltro = filtroGrupoSelect.value;
-                const statusFiltro = filtroStatusSelect.value;
+                
+                // Limpar lista
+                listaProdutos.innerHTML = '';
                 
                 // Filtrar produtos
                 const produtosFiltrados = Object.values(produtos).filter(produto => {
+                    // Verificar estoque
+                    if (produto.estoque <= 0) {
+                        return false;
+                    }
+                    
                     // Filtro de busca
                     const matchBusca = termoBusca === '' || 
                         produto.nome.toLowerCase().includes(termoBusca) || 
@@ -809,218 +629,46 @@
                     // Filtro de grupo
                     const matchGrupo = grupoFiltro === '' || produto.grupo === grupoFiltro;
                     
-                    // Filtro de status
-                    let matchStatus = true;
-                    if (statusFiltro === 'esgotado') {
-                        matchStatus = produto.estoque === 0;
-                    } else if (statusFiltro === 'baixo') {
-                        matchStatus = produto.estoque > 0 && produto.estoque <= 10;
-                    } else if (statusFiltro === 'normal') {
-                        matchStatus = produto.estoque > 10;
-                    }
-                    
-                    return matchBusca && matchGrupo && matchStatus;
+                    return matchBusca && matchGrupo;
                 });
                 
                 // Ordenar por nome
                 produtosFiltrados.sort((a, b) => a.nome.localeCompare(b.nome));
                 
-                // Gerar HTML da tabela
-                const tbody = tabelaEstoque.querySelector('tbody');
-                
-                if (produtosFiltrados.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-3">
-                                <i class="fas fa-box-open fa-2x mb-3"></i>
-                                <p>Nenhum produto encontrado</p>
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-                
-                let html = '';
-                
+                // Adicionar produtos à lista
                 produtosFiltrados.forEach(produto => {
-                    let statusClass = '';
-                    let statusText = '';
+                    const produtoEl = document.createElement('div');
+                    produtoEl.className = 'produto-card';
+                    produtoEl.dataset.id = produto.id;
                     
-                    if (produto.estoque === 0) {
-                        statusClass = 'estoque-baixo';
-                        statusText = 'Esgotado';
-                    } else if (produto.estoque <= 10) {
-                        statusClass = 'estoque-medio';
-                        statusText = 'Baixo';
-                    } else {
-                        statusClass = 'estoque-alto';
-                        statusText = 'Normal';
-                    }
-                    
-                    // Obter data da última movimentação
-                    let ultimaAtualizacao = '-';
-                    
-                    // Verificar se há método para obter movimentações
-                    if (typeof db.getMovimentacoesEstoque === 'function') {
-                        const movimentacoes = db.getMovimentacoesEstoque();
-                        const movimentacoesProduto = movimentacoes.filter(m => m.produto_id === produto.id);
-                        
-                        if (movimentacoesProduto.length > 0) {
-                            // Ordenar por data (mais recentes primeiro)
-                            movimentacoesProduto.sort((a, b) => new Date(b.data) - new Date(a.data));
-                            
-                            // Formatar data
-                            const data = new Date(movimentacoesProduto[0].data);
-                            ultimaAtualizacao = data.toLocaleDateString('pt-BR');
-                        }
-                    }
-                    
-                    html += `
-                        <tr>
-                            <td>${produto.codigo_barras || '-'}</td>
-                            <td>${produto.nome}</td>
-                            <td>${produto.grupo || '-'}</td>
-                            <td>${produto.estoque}</td>
-                            <td><span class="${statusClass}">${statusText}</span></td>
-                            <td>${ultimaAtualizacao}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-info btn-detalhes" data-id="${produto.id}">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary btn-ajuste" data-id="${produto.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
-                        </tr>
+                    produtoEl.innerHTML = `
+                        <div class="produto-img">
+                            ${produto.foto ? `<img src="${produto.foto}" alt="${produto.nome}">` : `<i class="fas fa-box" style="font-size: 2.5rem; color: var(--primary);"></i>`}
+                        </div>
+                        <div class="produto-info">
+                            <div class="produto-nome">${produto.nome}</div>
+                            <div class="produto-preco">R$ ${produto.preco.toFixed(2)}</div>
+                            <div class="produto-estoque">Estoque: ${produto.estoque}</div>
+                        </div>
                     `;
-                });
-                
-                tbody.innerHTML = html;
-                
-                // Adicionar eventos aos botões
-                document.querySelectorAll('.btn-detalhes').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        abrirDetalhesProduto(id);
+                    
+                    // Adicionar evento de clique
+                    produtoEl.addEventListener('click', function() {
+                        adicionarAoCarrinho(produto);
                     });
+                    
+                    listaProdutos.appendChild(produtoEl);
                 });
                 
-                document.querySelectorAll('.btn-ajuste').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        prepararAjusteEstoque(id);
-                    });
-                });
-            }
-            
-            function carregarMovimentacoes() {
-                // Obter movimentações
-                let movimentacoes = [];
-                
-                // Verificar se há método para obter movimentações
-                if (typeof db.getMovimentacoesEstoque === 'function') {
-                    movimentacoes = db.getMovimentacoesEstoque();
-                } else {
-                    // Fallback para obter do localStorage diretamente
-                    movimentacoes = JSON.parse(localStorage.getItem('orion_movimentacoes_estoque') || '[]');
-                }
-                
-                // Filtros
-                const termoBusca = buscaMovimentacaoInput.value.toLowerCase();
-                const tipoFiltro = filtroTipoSelect.value;
-                
-                // Filtrar por datas
-                const dataInicio = dataInicioInput.value ? new Date(dataInicioInput.value) : null;
-                const dataFim = dataFimInput.value ? new Date(dataFimInput.value) : null;
-                
-                if (dataInicio) dataInicio.setHours(0, 0, 0, 0);
-                if (dataFim) dataFim.setHours(23, 59, 59, 999);
-                
-                // Aplicar filtros
-                const movimentacoesFiltradas = movimentacoes.filter(mov => {
-                    // Filtro de busca
-                    const matchBusca = termoBusca === '' || 
-                        (mov.produto_nome && mov.produto_nome.toLowerCase().includes(termoBusca));
-                    
-                    // Filtro de tipo
-                    const matchTipo = tipoFiltro === '' || mov.tipo === tipoFiltro;
-                    
-                    // Filtro de data
-                    let matchData = true;
-                    const dataMov = new Date(mov.data);
-                    
-                    if (dataInicio && dataFim) {
-                        matchData = dataMov >= dataInicio && dataMov <= dataFim;
-                    } else if (dataInicio) {
-                        matchData = dataMov >= dataInicio;
-                    } else if (dataFim) {
-                        matchData = dataMov <= dataFim;
-                    }
-                    
-                    return matchBusca && matchTipo && matchData;
-                });
-                
-                // Ordenar por data (mais recentes primeiro)
-                movimentacoesFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data));
-                
-                // Gerar HTML da tabela
-                const tbody = tabelaMovimentacoes.querySelector('tbody');
-                
-                if (movimentacoesFiltradas.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-3">
-                                <i class="fas fa-history fa-2x mb-3"></i>
-                                <p>Nenhuma movimentação encontrada</p>
-                            </td>
-                        </tr>
+                // Exibir mensagem se não houver produtos
+                if (produtosFiltrados.length === 0) {
+                    listaProdutos.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--text-muted);">
+                            <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Nenhum produto encontrado</p>
+                        </div>
                     `;
-                    return;
                 }
-                
-                let html = '';
-                
-                movimentacoesFiltradas.forEach(mov => {
-                    // Formatar data
-                    const data = new Date(mov.data);
-                    const dataFormatada = data.toLocaleDateString('pt-BR');
-                    const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    
-                    // Formatar tipo
-                    let tipoFormatado = '';
-                    let tipoClass = '';
-                    
-                    if (mov.tipo === 'entrada') {
-                        tipoFormatado = 'Entrada';
-                        tipoClass = 'text-success';
-                    } else if (mov.tipo === 'saida') {
-                        tipoFormatado = 'Saída';
-                        tipoClass = 'text-danger';
-                    } else if (mov.tipo === 'ajuste') {
-                        tipoFormatado = 'Ajuste';
-                        tipoClass = 'text-warning';
-                    } else if (mov.tipo === 'venda') {
-                        tipoFormatado = 'Venda';
-                        tipoClass = 'text-info';
-                    } else {
-                        tipoFormatado = mov.tipo;
-                    }
-                    
-                    html += `
-                        <tr>
-                            <td>${dataFormatada} ${horaFormatada}</td>
-                            <td>${mov.produto_nome}</td>
-                            <td><span class="${tipoClass}">${tipoFormatado}</span></td>
-                            <td>${mov.quantidade}</td>
-                            <td>${mov.estoque_anterior}</td>
-                            <td>${mov.estoque_atual}</td>
-                            <td>${mov.usuario}</td>
-                            <td>${mov.observacao || '-'}</td>
-                        </tr>
-                    `;
-                });
-                
-                tbody.innerHTML = html;
             }
             
             function buscarProdutoPorCodigo(codigo) {
@@ -1029,6 +677,16 @@
                 const produto = Object.values(produtos).find(p => p.codigo_barras === codigo);
                 
                 if (produto) {
+                    // Verificar estoque
+                    if (produto.estoque <= 0) {
+                        resultadoScanner.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle"></i> Produto <strong>${produto.nome}</strong> está sem estoque.
+                            </div>
+                        `;
+                        return;
+                    }
+                    
                     // Exibir informações do produto
                     resultadoScanner.innerHTML = `
                         <div class="card">
@@ -1043,13 +701,18 @@
                                     <div>
                                         <h4 class="mb-1">${produto.nome}</h4>
                                         <p class="text-muted mb-1">Código: ${produto.codigo_barras}</p>
-                                        <p class="mb-1">Estoque atual: <strong>${produto.estoque}</strong></p>
+                                        <p class="text-primary font-weight-bold" style="font-size: 1.25rem;">R$ ${produto.preco.toFixed(2)}</p>
                                     </div>
                                 </div>
                                 
+                                <div class="form-group mb-3">
+                                    <label for="quantidade-scanner">Quantidade</label>
+                                    <input type="number" id="quantidade-scanner" class="form-control" value="1" min="1" max="${produto.estoque}" step="1">
+                                </div>
+                                
                                 <div class="text-center">
-                                    <button id="btn-ajustar-scanner" class="btn btn-primary" data-id="${produto.id}">
-                                        <i class="fas fa-warehouse"></i> Ajustar Estoque
+                                    <button id="btn-adicionar-scanner" class="btn btn-primary">
+                                        <i class="fas fa-cart-plus"></i> Adicionar ao Carrinho
                                     </button>
                                 </div>
                             </div>
@@ -1057,9 +720,25 @@
                     `;
                     
                     // Adicionar evento ao botão
-                    document.getElementById('btn-ajustar-scanner').addEventListener('click', function() {
-                        const produtoId = this.getAttribute('data-id');
-                        prepararAjusteEstoque(produtoId);
+                    document.getElementById('btn-adicionar-scanner').addEventListener('click', function() {
+                        const quantidade = parseInt(document.getElementById('quantidade-scanner').value);
+                        
+                        if (quantidade > 0 && quantidade <= produto.estoque) {
+                            adicionarAoCarrinho(produto, quantidade);
+                            
+                            // Limpar resultado
+                            resultadoScanner.innerHTML = `
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i> Produto <strong>${produto.nome}</strong> adicionado ao carrinho.
+                                </div>
+                            `;
+                            
+                            // Limpar campo de código
+                            codigoBarrasInput.value = '';
+                            codigoBarrasInput.focus();
+                        } else {
+                            exibirMensagem('Por favor, informe uma quantidade válida', 'error');
+                        }
                     });
                 } else {
                     // Produto não encontrado
@@ -1073,12 +752,219 @@
                                 <i class="fas fa-plus"></i> Cadastrar Novo Produto
                             </a>
                         </div>
-                    `;<!DOCTYPE html>
+                    `;
+                }
+            }
+            
+            function inicializarCarrinho() {
+                // Verificar se existe um carrinho salvo no localStorage
+                const carrinhoSalvo = localStorage.getItem('orion_carrinho');
+                
+                if (carrinhoSalvo) {
+                    try {
+                        carrinho = JSON.parse(carrinhoSalvo);
+                    } catch (erro) {
+                        console.error('Erro ao carregar carrinho:', erro);
+                        carrinho = [];
+                    }
+                }
+                
+                atualizarCarrinho();
+            }
+            
+            function salvarCarrinho() {
+                // Salvar carrinho no localStorage
+                localStorage.setItem('orion_carrinho', JSON.stringify(carrinho));
+            }
+            
+            function adicionarAoCarrinho(produto, quantidade = 1) {
+                // Verificar se a quantidade é válida
+                if (quantidade <= 0 || quantidade > produto.estoque) {
+                    exibirMensagem(`Quantidade inválida. Estoque disponível: ${produto.estoque}`, 'error');
+                    return;
+                }
+                
+                // Verificar se o produto já está no carrinho
+                const itemIndex = carrinho.findIndex(item => item.produto_id === produto.id);
+                
+                if (itemIndex !== -1) {
+                    // Atualizar quantidade
+                    const novaQuantidade = carrinho[itemIndex].quantidade + quantidade;
+                    
+                    if (novaQuantidade > produto.estoque) {
+                        exibirMensagem(`Quantidade excede o estoque disponível: ${produto.estoque}`, 'error');
+                        return;
+                    }
+                    
+                    carrinho[itemIndex].quantidade = novaQuantidade;
+                    carrinho[itemIndex].subtotal = produto.preco * novaQuantidade;
+                } else {
+                    // Adicionar novo item
+                    carrinho.push({
+                        produto_id: produto.id,
+                        codigo_barras: produto.codigo_barras,
+                        nome: produto.nome,
+                        preco: produto.preco,
+                        quantidade: quantidade,
+                        foto: produto.foto || '',
+                        subtotal: produto.preco * quantidade
+                    });
+                }
+                
+                // Salvar e atualizar
+                salvarCarrinho();
+                atualizarCarrinho();
+                
+                // Exibir mensagem
+                exibirMensagem(`${produto.nome} adicionado ao carrinho`, 'success');
+                
+                // Reproduzir som de sucesso
+                const beepSuccess = document.getElementById('beep-success');
+                beepSuccess.play().catch(err => console.log("Erro ao reproduzir som", err));
+            }
+            
+            function removerDoCarrinho(index) {
+                // Remover item do carrinho
+                carrinho.splice(index, 1);
+                
+                // Salvar e atualizar
+                salvarCarrinho();
+                atualizarCarrinho();
+            }
+            
+            function atualizarQuantidadeCarrinho(index, quantidade) {
+                // Verificar se a quantidade é válida
+                if (quantidade <= 0) {
+                    removerDoCarrinho(index);
+                    return;
+                }
+                
+                // Buscar produto para verificar estoque
+                const item = carrinho[index];
+                const produtos = db.getProdutos();
+                const produto = produtos[item.produto_id];
+                
+                if (produto && quantidade > produto.estoque) {
+                    exibirMensagem(`Quantidade maior que o estoque disponível (${produto.estoque})`, 'error');
+                    return;
+                }
+                
+                // Atualizar quantidade
+                carrinho[index].quantidade = quantidade;
+                carrinho[index].subtotal = carrinho[index].preco * quantidade;
+                
+                // Salvar e atualizar
+                salvarCarrinho();
+                atualizarCarrinho();
+            }
+            
+            function atualizarCarrinho() {
+                // Exibir mensagem de carrinho vazio se não houver itens
+                if (carrinho.length === 0) {
+                    carrinhoVazio.style.display = 'block';
+                    carrinhoItens.innerHTML = '';
+                    subtotal = 0;
+                    atualizarTotais();
+                    return;
+                }
+                
+                // Ocultar mensagem de carrinho vazio
+                carrinhoVazio.style.display = 'none';
+                
+                // Limpar lista de itens
+                carrinhoItens.innerHTML = '';
+                
+                // Adicionar itens ao carrinho
+                carrinho.forEach((item, index) => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'carrinho-item';
+                    
+                    itemEl.innerHTML = `
+                        <div class="carrinho-img">
+                            ${item.foto ? `<img src="${item.foto}" alt="${item.nome}">` : `<i class="fas fa-box" style="font-size: 1.5rem; color: var(--primary);"></i>`}
+                        </div>
+                        <div class="carrinho-info">
+                            <div class="carrinho-nome">${item.nome}</div>
+                            <div class="carrinho-detalhes">
+                                <div>R$ ${item.preco.toFixed(2)} × 
+                                    <input type="number" class="qtd-input" data-index="${index}" value="${item.quantidade}" min="1" max="99">
+                                </div>
+                                <div>R$ ${item.subtotal.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <button class="btn-remove" data-index="${index}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    
+                    carrinhoItens.appendChild(itemEl);
+                });
+                
+                // Adicionar eventos aos inputs de quantidade
+                document.querySelectorAll('.qtd-input').forEach(input => {
+                    input.addEventListener('change', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        const quantidade = parseInt(this.value);
+                        
+                        atualizarQuantidadeCarrinho(index, quantidade);
+                    });
+                });
+                
+                // Adicionar eventos aos botões de remover
+                document.querySelectorAll('.btn-remove').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        removerDoCarrinho(index);
+                    });
+                });
+                
+                // Calcular subtotal
+                subtotal = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
+                
+                // Atualizar totais
+                atualizarTotais();
+            }
+            
+            function atualizarTotais() {
+                // Obter percentual de desconto
+                const percentualDesconto = parseFloat(descontoInput.value) || 0;
+                
+                // Calcular desconto
+                desconto = (subtotal * percentualDesconto) / 100;
+                
+                // Calcular total
+                total = subtotal - desconto;
+                
+                // Atualizar elementos
+                subtotalEl.textContent = `R$ ${subtotal.toFixed(2)}`;
+                totalEl.textContent = `R$ ${total.toFixed(2)}`;
+                
+                // Desabilitar botão de finalizar se não houver itens ou total for zero
+                btnFinalizar.disabled = carrinho.length === 0 || total <= 0;
+            }
+            
+            function finalizarVenda() {
+                // Verificar se há itens no carrinho
+                if (carrinho.length === 0) {
+                    exibirMensagem('Não há itens no carrinho', 'error');
+                    return;
+                }
+                
+                // Verificar se o total é maior que zero
+                if (total <= 0) {
+                    exibirMensagem('O valor total da venda deve ser maior que zero', 'error');
+                    return;
+                }
+                
+                try {
+                    // Obter cliente selecionado
+                    const clienteId = clienteSelect.value;
+                    const<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORION PDV - Estoque</title>
+    <title>ORION PDV - Vendas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
     <link rel="stylesheet" href="assets/css/orion-theme.css">
@@ -1106,7 +992,7 @@
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="venda.html" class="menu-item">
+                <a href="venda.html" class="menu-item active">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Vendas PDV</span>
                 </a>
@@ -1114,7 +1000,7 @@
                     <i class="fas fa-box"></i>
                     <span>Produtos</span>
                 </a>
-                <a href="estoque.html" class="menu-item active">
+                <a href="estoque.html" class="menu-item">
                     <i class="fas fa-warehouse"></i>
                     <span>Estoque</span>
                 </a>
@@ -1152,214 +1038,121 @@
         <div class="main-content">
             <div class="topbar">
                 <div class="topbar-title">
-                    <h1>Controle de Estoque</h1>
+                    <h1>PDV - Ponto de Venda</h1>
                 </div>
                 <div class="topbar-actions">
                     <div id="current-date" class="d-none d-md-block">Carregando data...</div>
                 </div>
             </div>
             
-            <div class="page-content">
-                <!-- Tabs -->
-                <div class="tabs">
-                    <div id="tab-estoque" class="tab active">Visão Geral</div>
-                    <div id="tab-movimentacoes" class="tab">Movimentações</div>
-                    <div id="tab-ajustes" class="tab">Ajuste de Estoque</div>
-                </div>
-                
-                <!-- Conteúdo da aba Estoque -->
-                <div id="content-estoque" class="tab-content active">
-                    <div class="filters-container">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="busca-estoque" class="form-control search-input" placeholder="Buscar produto...">
+            <div class="page-content" style="padding: 0; overflow: hidden;">
+                <div class="pdv-container">
+                    <!-- Área de Produtos -->
+                    <div class="produtos-container">
+                        <!-- Abas -->
+                        <div class="tabs">
+                            <div id="tab-produtos" class="tab active">Produtos</div>
+                            <div id="tab-scanner" class="tab">Scanner de Código</div>
                         </div>
                         
-                        <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Grupos</option>
-                        </select>
-                        
-                        <select id="filtro-status" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Status</option>
-                            <option value="esgotado">Esgotado</option>
-                            <option value="baixo">Estoque Baixo</option>
-                            <option value="normal">Estoque Normal</option>
-                        </select>
-                        
-                        <button id="btn-exportar" class="btn btn-outline-primary">
-                            <i class="fas fa-file-export"></i> Exportar
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table" id="tabela-estoque">
-                                    <thead>
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Produto</th>
-                                            <th>Grupo</th>
-                                            <th>Estoque Atual</th>
-                                            <th>Status</th>
-                                            <th>Última Atualização</th>
-                                            <th>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="7" class="text-center text-muted py-3">
-                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando produtos...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Conteúdo da aba Movimentações -->
-                <div id="content-movimentacoes" class="tab-content">
-                    <div class="filters-container">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="busca-movimentacao" class="form-control search-input" placeholder="Buscar produto...">
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <div>
-                                <label for="data-inicio" class="form-label">De</label>
-                                <input type="date" id="data-inicio" class="form-control">
-                            </div>
-                            <div>
-                                <label for="data-fim" class="form-label">Até</label>
-                                <input type="date" id="data-fim" class="form-control">
-                            </div>
-                        </div>
-                        
-                        <select id="filtro-tipo" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Tipos</option>
-                            <option value="entrada">Entrada</option>
-                            <option value="saida">Saída</option>
-                            <option value="ajuste">Ajuste</option>
-                            <option value="venda">Venda</option>
-                        </select>
-                        
-                        <button id="btn-filtrar" class="btn btn-primary">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table" id="tabela-movimentacoes">
-                                    <thead>
-                                        <tr>
-                                            <th>Data/Hora</th>
-                                            <th>Produto</th>
-                                            <th>Tipo</th>
-                                            <th>Quantidade</th>
-                                            <th>Estoque Anterior</th>
-                                            <th>Estoque Atual</th>
-                                            <th>Usuário</th>
-                                            <th>Observação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="8" class="text-center text-muted py-3">
-                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando movimentações...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Conteúdo da aba Ajustes -->
-                <div id="content-ajustes" class="tab-content">
-                    <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <!-- Scanner de Código de Barras -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Scanner de Código de Barras</div>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex gap-2 mb-3">
-                                    <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
-                                    <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
-                                        <i class="fas fa-search"></i>
-                                    </button>
+                        <!-- Conteúdo de Produtos -->
+                        <div id="tab-conteudo-produtos" class="tab-content active">
+                            <!-- Filtros e busca -->
+                            <div class="filters-container">
+                                <div class="search-container">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" id="busca-produto" class="form-control search-input" placeholder="Buscar produto...">
                                 </div>
                                 
-                                <div class="d-flex justify-between">
-                                    <button type="button" id="btn-scanner-estoque" class="btn btn-outline-primary">
-                                        <i class="fas fa-camera"></i> Abrir Scanner
-                                    </button>
-                                    <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary">
-                                        <i class="fas fa-barcode"></i> Gerar Código
-                                    </button>
-                                </div>
-                                
-                                <div id="resultado-scanner" class="mt-3"></div>
+                                <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
+                                    <option value="">Todos os Grupos</option>
+                                </select>
                             </div>
+                            
+                            <!-- Grid de produtos -->
+                            <div id="lista-produtos" class="produtos-grid"></div>
                         </div>
                         
-                        <!-- Formulário de Ajuste -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Ajuste de Estoque</div>
-                            </div>
-                            <div class="card-body">
-                                <form id="form-ajuste">
-                                    <input type="hidden" id="produto-id">
-                                    
-                                    <div class="alert alert-info mb-3">
-                                        <i class="fas fa-info-circle"></i> Escaneie um produto ou pesquise pelo código para ajustar seu estoque.
+                        <!-- Conteúdo do Scanner -->
+                        <div id="tab-conteudo-scanner" class="tab-content" style="display: none;">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title">Scanner de Código de Barras</div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex gap-2 mb-3">
+                                        <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
+                                        <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
                                     </div>
                                     
-                                    <div id="dados-produto" style="display: none;">
-                                        <div class="form-group">
-                                            <label for="nome-produto" class="form-label">Produto</label>
-                                            <input type="text" id="nome-produto" class="form-control" readonly>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="estoque-atual" class="form-label">Estoque Atual</label>
-                                            <input type="text" id="estoque-atual" class="form-control" readonly>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="tipo-ajuste" class="form-label">Tipo de Ajuste</label>
-                                            <select id="tipo-ajuste" class="form-control">
-                                                <option value="entrada">Entrada de Estoque</option>
-                                                <option value="saida">Saída de Estoque</option>
-                                                <option value="ajuste">Correção de Estoque</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="quantidade-ajuste" class="form-label">Quantidade</label>
-                                            <input type="number" id="quantidade-ajuste" class="form-control" min="1" step="1" required>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="observacao-ajuste" class="form-label">Observação</label>
-                                            <textarea id="observacao-ajuste" class="form-control" rows="2" placeholder="Motivo do ajuste..."></textarea>
-                                        </div>
-                                        
-                                        <div class="form-group mb-0">
-                                            <button type="submit" class="btn btn-primary w-100">
-                                                <i class="fas fa-save"></i> Registrar Ajuste
-                                            </button>
-                                        </div>
+                                    <div class="d-flex justify-between">
+                                        <button type="button" id="btn-scanner-codigo" class="btn btn-outline-primary">
+                                            <i class="fas fa-camera"></i> Abrir Scanner
+                                        </button>
+                                        <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary">
+                                            <i class="fas fa-barcode"></i> Gerar Código
+                                        </button>
                                     </div>
-                                </form>
+                                    
+                                    <div id="resultado-scanner" class="mt-3"></div>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Área do Carrinho -->
+                    <div class="carrinho-container">
+                        <div class="carrinho-header">
+                            <h3 class="mb-0"><i class="fas fa-shopping-cart"></i> Carrinho</h3>
+                        </div>
+                        
+                        <div id="carrinho-vazio" class="carrinho-vazio">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>O carrinho está vazio</p>
+                            <p>Selecione produtos para adicionar</p>
+                        </div>
+                        
+                        <div id="carrinho-itens" class="carrinho-itens"></div>
+                        
+                        <div class="carrinho-footer">
+                            <div class="carrinho-totais">
+                                <div class="totais-linha">
+                                    <span>Subtotal:</span>
+                                    <span id="subtotal">R$ 0,00</span>
+                                </div>
+                                
+                                <div class="totais-linha">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span>Desconto (%):</span>
+                                        <input type="number" id="desconto" class="form-control" style="width: 60px;" value="0" min="0" max="100">
+                                    </div>
+                                </div>
+                                
+                                <div class="totais-linha totais-total">
+                                    <span>Total:</span>
+                                    <span id="total">R$ 0,00</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cliente" class="form-label">Cliente</label>
+                                <select id="cliente" class="form-control">
+                                    <!-- Clientes serão carregados dinamicamente -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
+                                <select id="forma-pagamento" class="form-control">
+                                    <!-- Formas de pagamento serão carregadas dinamicamente -->
+                                </select>
+                            </div>
+                            
+                            <button id="btn-finalizar" class="btn btn-primary w-100 mt-3" disabled>
+                                <i class="fas fa-check-circle"></i> Finalizar Venda
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1408,56 +1201,40 @@
             </div>
             
             <div id="scanner-loading" style="text-align: center; padding: 1rem;">
+                        <div id="scanner-loading" style="text-align: center; padding: 1rem;">
                 <div class="loading"></div>
                 <p style="margin-top: 0.5rem; color: white;">Inicializando scanner...</p>
             </div>
         </div>
     </div>
     
-    <!-- Modal de Detalhes -->
-    <div id="modal-detalhes" class="modal">
+    <!-- Modal de Recibo -->
+    <div id="modal-recibo" class="modal">
         <div class="modal-content" style="width: 700px; max-width: 90%;">
             <div class="modal-header">
-                <div class="modal-title">Detalhes do Produto</div>
-                <button class="modal-close btn-close-modal"><i class="fas fa-times"></i></button>
+                <div class="modal-title">Comprovante de Venda</div>
+                <button class="modal-close btn-close-recibo"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                    <div>
-                        <h4 class="mb-3">Informações do Produto</h4>
-                        <div class="mb-2"><strong>Nome:</strong> <span id="detalhe-nome"></span></div>
-                        <div class="mb-2"><strong>Código:</strong> <span id="detalhe-codigo"></span></div>
-                        <div class="mb-2"><strong>Grupo:</strong> <span id="detalhe-grupo"></span></div>
-                        <div class="mb-2"><strong>Preço:</strong> <span id="detalhe-preco"></span></div>
-                        <div class="mb-2"><strong>Estoque Atual:</strong> <span id="detalhe-estoque"></span></div>
-                        <div class="mb-2"><strong>Última Atualização:</strong> <span id="detalhe-atualizacao"></span></div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="mb-3">Últimas Movimentações</h4>
-                        <div id="ultimas-movimentacoes">
-                            <div class="text-center text-muted py-3">
-                                <i class="fas fa-spinner fa-spin"></i> Carregando movimentações...
-                            </div>
-                        </div>
-                    </div>
+                <div id="recibo-conteudo" class="recibo">
+                    <!-- Conteúdo do recibo será gerado dinamicamente -->
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline-secondary btn-close-modal">Fechar</button>
-                <button id="btn-editar-produto" class="btn btn-outline-primary">
-                    <i class="fas fa-edit"></i> Editar Produto
+                <button class="btn btn-outline-secondary btn-close-recibo">
+                    <i class="fas fa-times"></i> Fechar
                 </button>
-                <button id="btn-ajustar-estoque" class="btn btn-primary">
-                    <i class="fas fa-warehouse"></i> Ajustar Estoque
+                <button id="btn-imprimir" class="btn btn-outline-primary">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button id="btn-nova-venda" class="btn btn-primary">
+                    <i class="fas fa-shopping-cart"></i> Nova Venda
                 </button>
             </div>
         </div>
     </div>
     
     <!-- Áudio de feedback -->
-    <audio id="beep-success" class="audio-feedback
-                      <!-- Áudio de feedback -->
     <audio id="beep-success" class="audio-feedback">
         <source src="assets/sounds/beep-success.mp3" type="audio/mpeg">
     </audio>
@@ -1477,7 +1254,7 @@
     <script src="assets/js/core.js"></script>
     <script src="assets/js/barcode-scanner.js"></script>
     <script src="assets/js/integration.js"></script>
-    <script src="assets/js/estoque.js"></script>
+    <script src="assets/js/venda.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1497,84 +1274,68 @@
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('current-date').textContent = dataAtual.toLocaleDateString('pt-BR', options);
             
-            // Elementos DOM - Tabs
-            const tabEstoque = document.getElementById('tab-estoque');
-            const tabMovimentacoes = document.getElementById('tab-movimentacoes');
-            const tabAjustes = document.getElementById('tab-ajustes');
+            // Elementos DOM - Geral
+            const tabProdutos = document.getElementById('tab-produtos');
+            const tabScanner = document.getElementById('tab-scanner');
+            const tabConteudoProdutos = document.getElementById('tab-conteudo-produtos');
+            const tabConteudoScanner = document.getElementById('tab-conteudo-scanner');
             
-            const contentEstoque = document.getElementById('content-estoque');
-            const contentMovimentacoes = document.getElementById('content-movimentacoes');
-            const contentAjustes = document.getElementById('content-ajustes');
-            
-            // Elementos DOM - Filtros
-            const buscaEstoqueInput = document.getElementById('busca-estoque');
+            // Elementos DOM - Produtos
             const filtroGrupoSelect = document.getElementById('filtro-grupo');
-            const filtroStatusSelect = document.getElementById('filtro-status');
-            const btnExportar = document.getElementById('btn-exportar');
+            const buscaProdutoInput = document.getElementById('busca-produto');
+            const listaProdutos = document.getElementById('lista-produtos');
             
-            // Elementos DOM - Movimentações
-            const buscaMovimentacaoInput = document.getElementById('busca-movimentacao');
-            const dataInicioInput = document.getElementById('data-inicio');
-            const dataFimInput = document.getElementById('data-fim');
-            const filtroTipoSelect = document.getElementById('filtro-tipo');
-            const btnFiltrar = document.getElementById('btn-filtrar');
-            
-            // Elementos DOM - Ajustes
+            // Elementos DOM - Scanner
             const codigoBarrasInput = document.getElementById('codigo-barras');
             const btnBuscarCodigo = document.getElementById('btn-buscar-codigo');
             const resultadoScanner = document.getElementById('resultado-scanner');
-            const btnScannerEstoque = document.getElementById('btn-scanner-estoque');
+            const btnScannerCodigo = document.getElementById('btn-scanner-codigo');
             const btnGerarCodigo = document.getElementById('btn-gerar-codigo');
             
-            // Elementos DOM - Formulário de Ajuste
-            const formAjuste = document.getElementById('form-ajuste');
-            const produtoIdInput = document.getElementById('produto-id');
-            const nomeProdutoInput = document.getElementById('nome-produto');
-            const estoqueAtualInput = document.getElementById('estoque-atual');
-            const tipoAjusteSelect = document.getElementById('tipo-ajuste');
-            const quantidadeAjusteInput = document.getElementById('quantidade-ajuste');
-            const observacaoAjusteInput = document.getElementById('observacao-ajuste');
-            const dadosProdutoDiv = document.getElementById('dados-produto');
+            // Elementos DOM - Carrinho
+            const carrinhoItens = document.getElementById('carrinho-itens');
+            const carrinhoVazio = document.getElementById('carrinho-vazio');
+            const subtotalEl = document.getElementById('subtotal');
+            const descontoInput = document.getElementById('desconto');
+            const totalEl = document.getElementById('total');
+            const clienteSelect = document.getElementById('cliente');
+            const formaPagamentoSelect = document.getElementById('forma-pagamento');
+            const btnFinalizar = document.getElementById('btn-finalizar');
             
-            // Elementos DOM - Modal de Detalhes
-            const modalDetalhes = document.getElementById('modal-detalhes');
-            const btnCloseModal = document.querySelectorAll('.btn-close-modal');
-            const btnEditarProduto = document.getElementById('btn-editar-produto');
-            const btnAjustarEstoque = document.getElementById('btn-ajustar-estoque');
+            // Elementos DOM - Modal de Recibo
+            const modalRecibo = document.getElementById('modal-recibo');
+            const reciboConteudo = document.getElementById('recibo-conteudo');
+            const btnCloseRecibo = document.querySelectorAll('.btn-close-recibo');
+            const btnImprimir = document.getElementById('btn-imprimir');
+            const btnNovaVenda = document.getElementById('btn-nova-venda');
             
-            // Tabelas
-            const tabelaEstoque = document.getElementById('tabela-estoque');
-            const tabelaMovimentacoes = document.getElementById('tabela-movimentacoes');
+            // Variáveis de controle
+            let carrinho = [];
+            let subtotal = 0;
+            let desconto = 0;
+            let total = 0;
             
             // Inicialização
-            inicializarDatas();
             carregarGrupos();
-            carregarTabelaEstoque();
+            carregarClientes();
+            carregarFormasPagamento();
+            carregarProdutos();
+            inicializarCarrinho();
             
-            // Event Listeners - Tabs
-            tabEstoque.addEventListener('click', function() {
-                ativarAba('estoque');
+            // Event Listeners - Abas
+            tabProdutos.addEventListener('click', function() {
+                ativarAba('produtos');
             });
             
-            tabMovimentacoes.addEventListener('click', function() {
-                ativarAba('movimentacoes');
-                carregarMovimentacoes();
+            tabScanner.addEventListener('click', function() {
+                ativarAba('scanner');
             });
             
-            tabAjustes.addEventListener('click', function() {
-                ativarAba('ajustes');
-            });
+            // Event Listeners - Produtos
+            filtroGrupoSelect.addEventListener('change', carregarProdutos);
+            buscaProdutoInput.addEventListener('input', carregarProdutos);
             
-            // Event Listeners - Filtros
-            buscaEstoqueInput.addEventListener('input', carregarTabelaEstoque);
-            filtroGrupoSelect.addEventListener('change', carregarTabelaEstoque);
-            filtroStatusSelect.addEventListener('change', carregarTabelaEstoque);
-            btnExportar.addEventListener('click', exportarEstoque);
-            
-            // Event Listeners - Movimentações
-            btnFiltrar.addEventListener('click', carregarMovimentacoes);
-            
-            // Event Listeners - Ajustes
+            // Event Listeners - Scanner
             btnBuscarCodigo.addEventListener('click', function() {
                 const codigo = codigoBarrasInput.value.trim();
                 
@@ -1601,7 +1362,7 @@
             });
             
             // Event Listeners para Scanner
-            btnScannerEstoque.addEventListener('click', function() {
+            btnScannerCodigo.addEventListener('click', function() {
                 try {
                     // Verificar se temos acesso à função de scanner
                     if (typeof window.barcodeSystem !== 'undefined') {
@@ -1675,114 +1436,36 @@
                 });
             });
             
-            // Formulário de Ajuste
-            formAjuste.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Verificar se há um produto selecionado
-                if (!produtoIdInput.value) {
-                    exibirMensagem('Selecione um produto para ajustar o estoque', 'error');
-                    return;
-                }
-                
-                // Verificar quantidade
-                const quantidade = parseInt(quantidadeAjusteInput.value);
-                
-                if (isNaN(quantidade) || quantidade <= 0) {
-                    exibirMensagem('Informe uma quantidade válida', 'error');
-                    return;
-                }
-                
-                // Obter produto
-                const produtoId = produtoIdInput.value;
-                const produto = db.getProduto(produtoId);
-                
-                if (!produto) {
-                    exibirMensagem('Produto não encontrado', 'error');
-                    return;
-                }
-                
-                // Verificar tipo de ajuste
-                const tipoAjuste = tipoAjusteSelect.value;
-                const estoqueAnterior = produto.estoque || 0;
-                let novoEstoque = estoqueAnterior;
-                
-                if (tipoAjuste === 'entrada') {
-                    novoEstoque += quantidade;
-                } else if (tipoAjuste === 'saida') {
-                    if (quantidade > estoqueAnterior) {
-                        exibirMensagem('Quantidade de saída maior que o estoque disponível', 'error');
-                        return;
-                    }
-                    novoEstoque -= quantidade;
-                } else if (tipoAjuste === 'ajuste') {
-                    novoEstoque = quantidade;
-                }
-                
-                // Atualizar estoque
-                produto.estoque = novoEstoque;
-                db.salvarProduto(produto);
-                
-                // Registrar movimentação
-                const movimentacao = {
-                    data: new Date().toISOString(),
-                    produto_id: produto.id,
-                    produto_nome: produto.nome,
-                    tipo: tipoAjuste,
-                    quantidade: quantidade,
-                    estoque_anterior: estoqueAnterior,
-                    estoque_atual: novoEstoque,
-                    usuario: user.nome,
-                    observacao: observacaoAjusteInput.value || ''
-                };
-                
-                // Verificar se existe método para salvar movimentação
-                if (typeof db.salvarMovimentacaoEstoque === 'function') {
-                    db.salvarMovimentacaoEstoque(movimentacao);
-                } else {
-                    // Fallback para armazenar em localStorage diretamente
-                    const movimentacoes = JSON.parse(localStorage.getItem('orion_movimentacoes_estoque') || '[]');
-                    movimentacoes.push(movimentacao);
-                    localStorage.setItem('orion_movimentacoes_estoque', JSON.stringify(movimentacoes));
-                }
-                
-                // Limpar formulário
-                formAjuste.reset();
-                produtoIdInput.value = '';
-                dadosProdutoDiv.style.display = 'none';
-                
-                // Recarregar tabela
-                carregarTabelaEstoque();
-                
-                // Exibir mensagem
-                exibirMensagem('Ajuste de estoque realizado com sucesso!', 'success');
+            // Event Listeners - Carrinho
+            descontoInput.addEventListener('input', function() {
+                atualizarTotais();
             });
             
-            // Modal de Detalhes
-            btnCloseModal.forEach(btn => {
+            btnFinalizar.addEventListener('click', finalizarVenda);
+            
+            // Event Listeners - Modal de Recibo
+            btnCloseRecibo.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    modalDetalhes.classList.remove('show');
+                    modalRecibo.classList.remove('show');
                     setTimeout(() => {
-                        modalDetalhes.style.display = 'none';
+                        modalRecibo.style.display = 'none';
                     }, 300);
                 });
             });
             
-            btnEditarProduto.addEventListener('click', function() {
-                const produtoId = produtoIdInput.value;
-                modalDetalhes.classList.remove('show');
-                setTimeout(() => {
-                    modalDetalhes.style.display = 'none';
-                    window.location.href = `produto.html?id=${produtoId}`;
-                }, 300);
-            });
+            btnImprimir.addEventListener('click', imprimirRecibo);
             
-            btnAjustarEstoque.addEventListener('click', function() {
-                modalDetalhes.classList.remove('show');
+            btnNovaVenda.addEventListener('click', function() {
+                // Fechar modal
+                modalRecibo.classList.remove('show');
                 setTimeout(() => {
-                    modalDetalhes.style.display = 'none';
-                    ativarAba('ajustes');
+                    modalRecibo.style.display = 'none';
                 }, 300);
+                
+                // Limpar carrinho
+                carrinho = [];
+                salvarCarrinho();
+                atualizarCarrinho();
             });
             
             // Logout
@@ -1795,42 +1478,22 @@
             
             function ativarAba(aba) {
                 // Desativar todas as abas
-                tabEstoque.classList.remove('active');
-                tabMovimentacoes.classList.remove('active');
-                tabAjustes.classList.remove('active');
+                tabProdutos.classList.remove('active');
+                tabScanner.classList.remove('active');
                 
                 // Ocultar todos os conteúdos
-                contentEstoque.classList.remove('active');
-                contentMovimentacoes.classList.remove('active');
-                contentAjustes.classList.remove('active');
+                tabConteudoProdutos.style.display = 'none';
+                tabConteudoScanner.style.display = 'none';
                 
                 // Ativar aba selecionada
-                if (aba === 'estoque') {
-                    tabEstoque.classList.add('active');
-                    contentEstoque.classList.add('active');
-                    carregarTabelaEstoque();
-                } else if (aba === 'movimentacoes') {
-                    tabMovimentacoes.classList.add('active');
-                    contentMovimentacoes.classList.add('active');
-                    carregarMovimentacoes();
-                } else if (aba === 'ajustes') {
-                    tabAjustes.classList.add('active');
-                    contentAjustes.classList.add('active');
+                if (aba === 'produtos') {
+                    tabProdutos.classList.add('active');
+                    tabConteudoProdutos.style.display = 'block';
+                } else if (aba === 'scanner') {
+                    tabScanner.classList.add('active');
+                    tabConteudoScanner.style.display = 'block';
                     codigoBarrasInput.focus();
                 }
-            }
-            
-            function inicializarDatas() {
-                // Definir data de hoje como padrão para data fim
-                const hoje = new Date();
-                const dataFimStr = hoje.toISOString().split('T')[0];
-                dataFimInput.value = dataFimStr;
-                
-                // Definir data de 30 dias atrás como padrão para data início
-                const dataInicio = new Date();
-                dataInicio.setDate(dataInicio.getDate() - 30);
-                const dataInicioStr = dataInicio.toISOString().split('T')[0];
-                dataInicioInput.value = dataInicioStr;
             }
             
             function carregarGrupos() {
@@ -1865,17 +1528,61 @@
                 });
             }
             
-            function carregarTabelaEstoque() {
+            function carregarClientes() {
+                // Obter clientes
+                const clientes = db.getClientes();
+                
+                // Preencher select
+                clienteSelect.innerHTML = '';
+                
+                clientes.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.id;
+                    option.textContent = cliente.nome;
+                    clienteSelect.appendChild(option);
+                });
+            }
+            
+            function carregarFormasPagamento() {
+                // Formas de pagamento disponíveis
+                const formasPagamento = [
+                    { valor: 'dinheiro', nome: 'Dinheiro' },
+                    { valor: 'cartao_credito', nome: 'Cartão de Crédito' },
+                    { valor: 'cartao_debito', nome: 'Cartão de Débito' },
+                    { valor: 'pix', nome: 'PIX' },
+                    { valor: 'boleto', nome: 'Boleto Bancário' },
+                    { valor: 'transferencia', nome: 'Transferência Bancária' }
+                ];
+                
+                // Preencher select
+                formaPagamentoSelect.innerHTML = '';
+                
+                formasPagamento.forEach(forma => {
+                    const option = document.createElement('option');
+                    option.value = forma.valor;
+                    option.textContent = forma.nome;
+                    formaPagamentoSelect.appendChild(option);
+                });
+            }
+            
+            function carregarProdutos() {
                 // Obter produtos
                 const produtos = db.getProdutos();
                 
                 // Filtros
-                const termoBusca = buscaEstoqueInput.value.toLowerCase();
+                const termoBusca = buscaProdutoInput.value.toLowerCase();
                 const grupoFiltro = filtroGrupoSelect.value;
-                const statusFiltro = filtroStatusSelect.value;
+                
+                // Limpar lista
+                listaProdutos.innerHTML = '';
                 
                 // Filtrar produtos
                 const produtosFiltrados = Object.values(produtos).filter(produto => {
+                    // Verificar estoque
+                    if (produto.estoque <= 0) {
+                        return false;
+                    }
+                    
                     // Filtro de busca
                     const matchBusca = termoBusca === '' || 
                         produto.nome.toLowerCase().includes(termoBusca) || 
@@ -1884,218 +1591,46 @@
                     // Filtro de grupo
                     const matchGrupo = grupoFiltro === '' || produto.grupo === grupoFiltro;
                     
-                    // Filtro de status
-                    let matchStatus = true;
-                    if (statusFiltro === 'esgotado') {
-                        matchStatus = produto.estoque === 0;
-                    } else if (statusFiltro === 'baixo') {
-                        matchStatus = produto.estoque > 0 && produto.estoque <= 10;
-                    } else if (statusFiltro === 'normal') {
-                        matchStatus = produto.estoque > 10;
-                    }
-                    
-                    return matchBusca && matchGrupo && matchStatus;
+                    return matchBusca && matchGrupo;
                 });
                 
                 // Ordenar por nome
                 produtosFiltrados.sort((a, b) => a.nome.localeCompare(b.nome));
                 
-                // Gerar HTML da tabela
-                const tbody = tabelaEstoque.querySelector('tbody');
-                
-                if (produtosFiltrados.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-3">
-                                <i class="fas fa-box-open fa-2x mb-3"></i>
-                                <p>Nenhum produto encontrado</p>
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-                
-                let html = '';
-                
+                // Adicionar produtos à lista
                 produtosFiltrados.forEach(produto => {
-                    let statusClass = '';
-                    let statusText = '';
+                    const produtoEl = document.createElement('div');
+                    produtoEl.className = 'produto-card';
+                    produtoEl.dataset.id = produto.id;
                     
-                    if (produto.estoque === 0) {
-                        statusClass = 'estoque-baixo';
-                        statusText = 'Esgotado';
-                    } else if (produto.estoque <= 10) {
-                        statusClass = 'estoque-medio';
-                        statusText = 'Baixo';
-                    } else {
-                        statusClass = 'estoque-alto';
-                        statusText = 'Normal';
-                    }
-                    
-                    // Obter data da última movimentação
-                    let ultimaAtualizacao = '-';
-                    
-                    // Verificar se há método para obter movimentações
-                    if (typeof db.getMovimentacoesEstoque === 'function') {
-                        const movimentacoes = db.getMovimentacoesEstoque();
-                        const movimentacoesProduto = movimentacoes.filter(m => m.produto_id === produto.id);
-                        
-                        if (movimentacoesProduto.length > 0) {
-                            // Ordenar por data (mais recentes primeiro)
-                            movimentacoesProduto.sort((a, b) => new Date(b.data) - new Date(a.data));
-                            
-                            // Formatar data
-                            const data = new Date(movimentacoesProduto[0].data);
-                            ultimaAtualizacao = data.toLocaleDateString('pt-BR');
-                        }
-                    }
-                    
-                    html += `
-                        <tr>
-                            <td>${produto.codigo_barras || '-'}</td>
-                            <td>${produto.nome}</td>
-                            <td>${produto.grupo || '-'}</td>
-                            <td>${produto.estoque}</td>
-                            <td><span class="${statusClass}">${statusText}</span></td>
-                            <td>${ultimaAtualizacao}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-info btn-detalhes" data-id="${produto.id}">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary btn-ajuste" data-id="${produto.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
-                        </tr>
+                    produtoEl.innerHTML = `
+                        <div class="produto-img">
+                            ${produto.foto ? `<img src="${produto.foto}" alt="${produto.nome}">` : `<i class="fas fa-box" style="font-size: 2.5rem; color: var(--primary);"></i>`}
+                        </div>
+                        <div class="produto-info">
+                            <div class="produto-nome">${produto.nome}</div>
+                            <div class="produto-preco">R$ ${produto.preco.toFixed(2)}</div>
+                            <div class="produto-estoque">Estoque: ${produto.estoque}</div>
+                        </div>
                     `;
-                });
-                
-                tbody.innerHTML = html;
-                
-                // Adicionar eventos aos botões
-                document.querySelectorAll('.btn-detalhes').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        abrirDetalhesProduto(id);
+                    
+                    // Adicionar evento de clique
+                    produtoEl.addEventListener('click', function() {
+                        adicionarAoCarrinho(produto);
                     });
+                    
+                    listaProdutos.appendChild(produtoEl);
                 });
                 
-                document.querySelectorAll('.btn-ajuste').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        prepararAjusteEstoque(id);
-                    });
-                });
-            }
-            
-            function carregarMovimentacoes() {
-                // Obter movimentações
-                let movimentacoes = [];
-                
-                // Verificar se há método para obter movimentações
-                if (typeof db.getMovimentacoesEstoque === 'function') {
-                    movimentacoes = db.getMovimentacoesEstoque();
-                } else {
-                    // Fallback para obter do localStorage diretamente
-                    movimentacoes = JSON.parse(localStorage.getItem('orion_movimentacoes_estoque') || '[]');
-                }
-                
-                // Filtros
-                const termoBusca = buscaMovimentacaoInput.value.toLowerCase();
-                const tipoFiltro = filtroTipoSelect.value;
-                
-                // Filtrar por datas
-                const dataInicio = dataInicioInput.value ? new Date(dataInicioInput.value) : null;
-                const dataFim = dataFimInput.value ? new Date(dataFimInput.value) : null;
-                
-                if (dataInicio) dataInicio.setHours(0, 0, 0, 0);
-                if (dataFim) dataFim.setHours(23, 59, 59, 999);
-                
-                // Aplicar filtros
-                const movimentacoesFiltradas = movimentacoes.filter(mov => {
-                    // Filtro de busca
-                    const matchBusca = termoBusca === '' || 
-                        (mov.produto_nome && mov.produto_nome.toLowerCase().includes(termoBusca));
-                    
-                    // Filtro de tipo
-                    const matchTipo = tipoFiltro === '' || mov.tipo === tipoFiltro;
-                    
-                    // Filtro de data
-                    let matchData = true;
-                    const dataMov = new Date(mov.data);
-                    
-                    if (dataInicio && dataFim) {
-                        matchData = dataMov >= dataInicio && dataMov <= dataFim;
-                    } else if (dataInicio) {
-                        matchData = dataMov >= dataInicio;
-                    } else if (dataFim) {
-                        matchData = dataMov <= dataFim;
-                    }
-                    
-                    return matchBusca && matchTipo && matchData;
-                });
-                
-                // Ordenar por data (mais recentes primeiro)
-                movimentacoesFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data));
-                
-                // Gerar HTML da tabela
-                const tbody = tabelaMovimentacoes.querySelector('tbody');
-                
-                if (movimentacoesFiltradas.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-3">
-                                <i class="fas fa-history fa-2x mb-3"></i>
-                                <p>Nenhuma movimentação encontrada</p>
-                            </td>
-                        </tr>
+                // Exibir mensagem se não houver produtos
+                if (produtosFiltrados.length === 0) {
+                    listaProdutos.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--text-muted);">
+                            <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Nenhum produto encontrado</p>
+                        </div>
                     `;
-                    return;
                 }
-                
-                let html = '';
-                
-                movimentacoesFiltradas.forEach(mov => {
-                    // Formatar data
-                    const data = new Date(mov.data);
-                    const dataFormatada = data.toLocaleDateString('pt-BR');
-                    const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    
-                    // Formatar tipo
-                    let tipoFormatado = '';
-                    let tipoClass = '';
-                    
-                    if (mov.tipo === 'entrada') {
-                        tipoFormatado = 'Entrada';
-                        tipoClass = 'text-success';
-                    } else if (mov.tipo === 'saida') {
-                        tipoFormatado = 'Saída';
-                        tipoClass = 'text-danger';
-                    } else if (mov.tipo === 'ajuste') {
-                        tipoFormatado = 'Ajuste';
-                        tipoClass = 'text-warning';
-                    } else if (mov.tipo === 'venda') {
-                        tipoFormatado = 'Venda';
-                        tipoClass = 'text-info';
-                    } else {
-                        tipoFormatado = mov.tipo;
-                    }
-                    
-                    html += `
-                        <tr>
-                            <td>${dataFormatada} ${horaFormatada}</td>
-                            <td>${mov.produto_nome}</td>
-                            <td><span class="${tipoClass}">${tipoFormatado}</span></td>
-                            <td>${mov.quantidade}</td>
-                            <td>${mov.estoque_anterior}</td>
-                            <td>${mov.estoque_atual}</td>
-                            <td>${mov.usuario}</td>
-                            <td>${mov.observacao || '-'}</td>
-                        </tr>
-                    `;
-                });
-                
-                tbody.innerHTML = html;
             }
             
             function buscarProdutoPorCodigo(codigo) {
@@ -2104,6 +1639,16 @@
                 const produto = Object.values(produtos).find(p => p.codigo_barras === codigo);
                 
                 if (produto) {
+                    // Verificar estoque
+                    if (produto.estoque <= 0) {
+                        resultadoScanner.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle"></i> Produto <strong>${produto.nome}</strong> está sem estoque.
+                            </div>
+                        `;
+                        return;
+                    }
+                    
                     // Exibir informações do produto
                     resultadoScanner.innerHTML = `
                         <div class="card">
@@ -2118,13 +1663,18 @@
                                     <div>
                                         <h4 class="mb-1">${produto.nome}</h4>
                                         <p class="text-muted mb-1">Código: ${produto.codigo_barras}</p>
-                                        <p class="mb-1">Estoque atual: <strong>${produto.estoque}</strong></p>
+                                        <p class="text-primary font-weight-bold" style="font-size: 1.25rem;">R$ ${produto.preco.toFixed(2)}</p>
                                     </div>
                                 </div>
                                 
+                                <div class="form-group mb-3">
+                                    <label for="quantidade-scanner">Quantidade</label>
+                                    <input type="number" id="quantidade-scanner" class="form-control" value="1" min="1" max="${produto.estoque}" step="1">
+                                </div>
+                                
                                 <div class="text-center">
-                                    <button id="btn-ajustar-scanner" class="btn btn-primary" data-id="${produto.id}">
-                                        <i class="fas fa-warehouse"></i> Ajustar Estoque
+                                    <button id="btn-adicionar-scanner" class="btn btn-primary">
+                                        <i class="fas fa-cart-plus"></i> Adicionar ao Carrinho
                                     </button>
                                 </div>
                             </div>
@@ -2132,9 +1682,25 @@
                     `;
                     
                     // Adicionar evento ao botão
-                    document.getElementById('btn-ajustar-scanner').addEventListener('click', function() {
-                        const produtoId = this.getAttribute('data-id');
-                        prepararAjusteEstoque(produtoId);
+                    document.getElementById('btn-adicionar-scanner').addEventListener('click', function() {
+                        const quantidade = parseInt(document.getElementById('quantidade-scanner').value);
+                        
+                        if (quantidade > 0 && quantidade <= produto.estoque) {
+                            adicionarAoCarrinho(produto, quantidade);
+                            
+                            // Limpar resultado
+                            resultadoScanner.innerHTML = `
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i> Produto <strong>${produto.nome}</strong> adicionado ao carrinho.
+                                </div>
+                            `;
+                            
+                            // Limpar campo de código
+                            codigoBarrasInput.value = '';
+                            codigoBarrasInput.focus();
+                        } else {
+                            exibirMensagem('Por favor, informe uma quantidade válida', 'error');
+                        }
                     });
                 } else {
                     // Produto não encontrado
@@ -2152,222 +1718,421 @@
                 }
             }
             
-            function prepararAjusteEstoque(produtoId) {
-                // Buscar produto
-                const produto = db.getProduto(produtoId);
+            function inicializarCarrinho() {
+                // Verificar se existe um carrinho salvo no localStorage
+                const carrinhoSalvo = localStorage.getItem('orion_carrinho');
                 
-                if (produto) {
-                    // Preencher formulário de ajuste
-                    produtoIdInput.value = produto.id;
-                    nomeProdutoInput.value = produto.nome;
-                    estoqueAtualInput.value = produto.estoque || 0;
-                    quantidadeAjusteInput.value = '';
-                    observacaoAjusteInput.value = '';
-                    
-                    // Exibir área de dados do produto
-                    dadosProdutoDiv.style.display = 'block';
-                    
-                    // Ativar aba de ajustes
-                    ativarAba('ajustes');
-                    
-                    // Focar no campo de quantidade
-                    quantidadeAjusteInput.focus();
-                } else {
-                    exibirMensagem('Produto não encontrado', 'error');
+                if (carrinhoSalvo) {
+                    try {
+                        carrinho = JSON.parse(carrinhoSalvo);
+                    } catch (erro) {
+                        console.error('Erro ao carregar carrinho:', erro);
+                        carrinho = [];
+                    }
                 }
+                
+                atualizarCarrinho();
             }
             
-            function abrirDetalhesProduto(produtoId) {
-                // Buscar produto
-                const produto = db.getProduto(produtoId);
-                
-                if (produto) {
-                    // Preencher dados do produto
-                    document.getElementById('detalhe-nome').textContent = produto.nome;
-                    document.getElementById('detalhe-codigo').textContent = produto.codigo_barras || '-';
-                    document.getElementById('detalhe-grupo').textContent = produto.grupo || '-';
-                    document.getElementById('detalhe-preco').textContent = 'R$ ' + produto.preco.toFixed(2);
-                    document.getElementById('detalhe-estoque').textContent = produto.estoque || 0;
-                    
-                    // Salvar ID para uso posterior
-                    produtoIdInput.value = produto.id;
-                    
-                    // Buscar última atualização
-                    let ultimaAtualizacao = 'Não disponível';
-                    
-                    // Verificar se há método para obter movimentações
-                    if (typeof db.getMovimentacoesEstoque === 'function') {
-                        const movimentacoes = db.getMovimentacoesEstoque();
-                        const movimentacoesProduto = movimentacoes.filter(m => m.produto_id === produto.id);
-                        
-                        if (movimentacoesProduto.length > 0) {
-                            // Ordenar por data (mais recentes primeiro)
-                            movimentacoesProduto.sort((a, b) => new Date(b.data) - new Date(a.data));
-                            
-                            // Formatar data
-                            const data = new Date(movimentacoesProduto[0].data);
-                            ultimaAtualizacao = data.toLocaleDateString('pt-BR') + ' ' + 
-                                data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                        }
-                    }
-                    
-                    document.getElementById('detalhe-atualizacao').textContent = ultimaAtualizacao;
-                    
-                    // Buscar últimas movimentações
-                    let movimentacoes = [];
-                    
-                    // Verificar se há método para obter movimentações
-                    if (typeof db.getMovimentacoesEstoque === 'function') {
-                        movimentacoes = db.getMovimentacoesEstoque();
-                    } else {
-                        // Fallback para obter do localStorage diretamente
-                        movimentacoes = JSON.parse(localStorage.getItem('orion_movimentacoes_estoque') || '[]');
-                    }
-                    
-                    // Filtrar movimentações do produto
-                    const movimentacoesProduto = movimentacoes.filter(m => m.produto_id === produto.id);
-                    
-                    // Ordenar por data (mais recentes primeiro)
-                    movimentacoesProduto.sort((a, b) => new Date(b.data) - new Date(a.data));
-                    
-                    // Limitar a 5 últimas movimentações
-                    const ultimasMovimentacoes = movimentacoesProduto.slice(0, 5);
-                    
-                    const divMovimentacoes = document.getElementById('ultimas-movimentacoes');
-                    
-                    if (ultimasMovimentacoes.length > 0) {
-                        // Criar tabela de movimentações
-                        let html = `
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Data</th>
-                                        <th>Tipo</th>
-                                        <th>Qtd</th>
-                                        <th>Estoque</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                        `;
-                        
-                        ultimasMovimentacoes.forEach(mov => {
-                            // Formatar data
-                            const data = new Date(mov.data);
-                            const dataFormatada = data.toLocaleDateString('pt-BR');
-                            
-                            // Formatar tipo
-                            let tipoFormatado = '';
-                            let tipoClass = '';
-                            
-                            if (mov.tipo === 'entrada') {
-                                tipoFormatado = 'Entrada';
-                                tipoClass = 'text-success';
-                            } else if (mov.tipo === 'saida') {
-                                tipoFormatado = 'Saída';
-                                tipoClass = 'text-danger';
-                            } else if (mov.tipo === 'ajuste') {
-                                tipoFormatado = 'Ajuste';
-                                tipoClass = 'text-warning';
-                            } else if (mov.tipo === 'venda') {
-                                tipoFormatado = 'Venda';
-                                tipoClass = 'text-info';
-                            } else {
-                                tipoFormatado = mov.tipo;
-                            }
-                            
-                            html += `
-                                <tr>
-                                    <td>${dataFormatada}</td>
-                                    <td><span class="${tipoClass}">${tipoFormatado}</span></td>
-                                    <td>${mov.quantidade}</td>
-                                    <td>${mov.estoque_atual}</td>
-                                </tr>
-                            `;
-                        });
-                        
-                        html += `
-                                </tbody>
-                            </table>
-                        `;
-                        
-                        divMovimentacoes.innerHTML = html;
-                    } else {
-                        divMovimentacoes.innerHTML = '<p class="text-center text-muted">Nenhuma movimentação encontrada</p>';
-                    }
-                    
-                    // Exibir modal
-                    modalDetalhes.style.display = 'flex';
-                    setTimeout(() => {
-                        modalDetalhes.classList.add('show');
-                    }, 10);
-                } else {
-                    exibirMensagem('Produto não encontrado', 'error');
-                }
+            function salvarCarrinho() {
+                // Salvar carrinho no localStorage
+                localStorage.setItem('orion_carrinho', JSON.stringify(carrinho));
             }
             
-            function exportarEstoque() {
+            function adicionarAoCarrinho(produto, quantidade = 1) {
+                // Verificar se a quantidade é válida
+                if (quantidade <= 0 || quantidade > produto.estoque) {
+                    exibirMensagem(`Quantidade inválida. Estoque disponível: ${produto.estoque}`, 'error');
+                    return;
+                }
+                
+                // Verificar se o produto já está no carrinho
+                const itemIndex = carrinho.findIndex(item => item.produto_id === produto.id);
+                
+                if (itemIndex !== -1) {
+                    // Atualizar quantidade
+                    const novaQuantidade = carrinho[itemIndex].quantidade + quantidade;
+                    
+                    if (novaQuantidade > produto.estoque) {
+                        exibirMensagem(`Quantidade excede o estoque disponível: ${produto.estoque}`, 'error');
+                        return;
+                    }
+                    
+                    carrinho[itemIndex].quantidade = novaQuantidade;
+                    carrinho[itemIndex].subtotal = produto.preco * novaQuantidade;
+                } else {
+                    // Adicionar novo item
+                    carrinho.push({
+                        produto_id: produto.id,
+                        codigo_barras: produto.codigo_barras,
+                        nome: produto.nome,
+                        preco: produto.preco,
+                        quantidade: quantidade,
+                        foto: produto.foto || '',
+                        subtotal: produto.preco * quantidade
+                    });
+                }
+                
+                // Salvar e atualizar
+                salvarCarrinho();
+                atualizarCarrinho();
+                
+                // Exibir mensagem
+                exibirMensagem(`${produto.nome} adicionado ao carrinho`, 'success');
+                
+                // Reproduzir som de sucesso
+                const beepSuccess = document.getElementById('beep-success');
+                beepSuccess.play().catch(err => console.log("Erro ao reproduzir som", err));
+            }
+            
+            function removerDoCarrinho(index) {
+                // Remover item do carrinho
+                carrinho.splice(index, 1);
+                
+                // Salvar e atualizar
+                salvarCarrinho();
+                atualizarCarrinho();
+            }
+            
+            function atualizarQuantidadeCarrinho(index, quantidade) {
+                // Verificar se a quantidade é válida
+                if (quantidade <= 0) {
+                    removerDoCarrinho(index);
+                    return;
+                }
+                
+                // Buscar produto para verificar estoque
+                const item = carrinho[index];
+                const produtos = db.getProdutos();
+                const produto = produtos[item.produto_id];
+                
+                if (produto && quantidade > produto.estoque) {
+                    exibirMensagem(`Quantidade maior que o estoque disponível (${produto.estoque})`, 'error');
+                    return;
+                }
+                
+                // Atualizar quantidade
+                carrinho[index].quantidade = quantidade;
+                carrinho[index].subtotal = carrinho[index].preco * quantidade;
+                
+                // Salvar e atualizar
+                salvarCarrinho();
+                atualizarCarrinho();
+            }
+            
+            function atualizarCarrinho() {
+                // Exibir mensagem de carrinho vazio se não houver itens
+                if (carrinho.length === 0) {
+                    carrinhoVazio.style.display = 'block';
+                    carrinhoItens.innerHTML = '';
+                    subtotal = 0;
+                    atualizarTotais();
+                    return;
+                }
+                
+                // Ocultar mensagem de carrinho vazio
+                carrinhoVazio.style.display = 'none';
+                
+                // Limpar lista de itens
+                carrinhoItens.innerHTML = '';
+                
+                // Adicionar itens ao carrinho
+                carrinho.forEach((item, index) => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'carrinho-item';
+                    
+                    itemEl.innerHTML = `
+                        <div class="carrinho-img">
+                            ${item.foto ? `<img src="${item.foto}" alt="${item.nome}">` : `<i class="fas fa-box" style="font-size: 1.5rem; color: var(--primary);"></i>`}
+                        </div>
+                        <div class="carrinho-info">
+                            <div class="carrinho-nome">${item.nome}</div>
+                            <div class="carrinho-detalhes">
+                                <div>R$ ${item.preco.toFixed(2)} × 
+                                    <input type="number" class="qtd-input" data-index="${index}" value="${item.quantidade}" min="1" max="99">
+                                </div>
+                                <div>R$ ${item.subtotal.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <button class="btn-remove" data-index="${index}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    
+                    carrinhoItens.appendChild(itemEl);
+                });
+                
+                // Adicionar eventos aos inputs de quantidade
+                document.querySelectorAll('.qtd-input').forEach(input => {
+                    input.addEventListener('change', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        const quantidade = parseInt(this.value);
+                        
+                        atualizarQuantidadeCarrinho(index, quantidade);
+                    });
+                });
+                
+                // Adicionar eventos aos botões de remover
+                document.querySelectorAll('.btn-remove').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        removerDoCarrinho(index);
+                    });
+                });
+                
+                // Calcular subtotal
+                subtotal = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
+                
+                // Atualizar totais
+                atualizarTotais();
+            }
+            
+            function atualizarTotais() {
+                // Obter percentual de desconto
+                const percentualDesconto = parseFloat(descontoInput.value) || 0;
+                
+                // Calcular desconto
+                desconto = (subtotal * percentualDesconto) / 100;
+                
+                // Calcular total
+                total = subtotal - desconto;
+                
+                // Atualizar elementos
+                subtotalEl.textContent = `R$ ${subtotal.toFixed(2)}`;
+                totalEl.textContent = `R$ ${total.toFixed(2)}`;
+                
+                // Desabilitar botão de finalizar se não houver itens ou total for zero
+                btnFinalizar.disabled = carrinho.length === 0 || total <= 0;
+            }
+            
+            function finalizarVenda() {
+                // Verificar se há itens no carrinho
+                if (carrinho.length === 0) {
+                    exibirMensagem('Não há itens no carrinho', 'error');
+                    return;
+                }
+                
+                // Verificar se o total é maior que zero
+                if (total <= 0) {
+                    exibirMensagem('O valor total da venda deve ser maior que zero', 'error');
+                    return;
+                }
+                
                 try {
-                    // Obter produtos
+                    // Obter cliente selecionado
+                    const clienteId = clienteSelect.value;
+                    const clientes = db.getClientes();
+                    const cliente = clientes.find(c => c.id === clienteId);
+                    
+                    if (!cliente) {
+                        exibirMensagem('Cliente não encontrado', 'error');
+                        return;
+                    }
+                    
+                    // Obter forma de pagamento
+                    const formaPagamento = formaPagamentoSelect.value;
+                    const formaPagamentoTexto = formaPagamentoSelect.options[formaPagamentoSelect.selectedIndex].text;
+                    
+                    // Dados da venda
+                    const venda = {
+                        id: Date.now().toString(),
+                        cliente_id: cliente.id,
+                        cliente_nome: cliente.nome,
+                        forma_pagamento: formaPagamentoTexto,
+                        forma_pagamento_id: formaPagamento,
+                        itens: [...carrinho],
+                        subtotal: subtotal,
+                        desconto: desconto,
+                        total: total,
+                        usuario: user.nome,
+                        data: new Date().toISOString()
+                    };
+                    
+                    // Atualizar estoque
                     const produtos = db.getProdutos();
                     
-                    // Aplicar filtros atuais
-                    const termoBusca = buscaEstoqueInput.value.toLowerCase();
-                    const grupoFiltro = filtroGrupoSelect.value;
-                    const statusFiltro = filtroStatusSelect.value;
-                    
-                    // Filtrar produtos
-                    const produtosFiltrados = Object.values(produtos).filter(produto => {
-                        // Filtro de busca
-                        const matchBusca = termoBusca === '' || 
-                            produto.nome.toLowerCase().includes(termoBusca) || 
-                            (produto.codigo_barras && produto.codigo_barras.toLowerCase().includes(termoBusca));
-                        
-                        // Filtro de grupo
-                        const matchGrupo = grupoFiltro === '' || produto.grupo === grupoFiltro;
-                        
-                        // Filtro de status
-                        let matchStatus = true;
-                        if (statusFiltro === 'esgotado') {
-                            matchStatus = produto.estoque === 0;
-                        } else if (statusFiltro === 'baixo') {
-                            matchStatus = produto.estoque > 0 && produto.estoque <= 10;
-                        } else if (statusFiltro === 'normal') {
-                            matchStatus = produto.estoque > 10;
-                        }
-                        
-                        return matchBusca && matchGrupo && matchStatus;
+                    // Verificar se todos os produtos ainda têm estoque suficiente
+                    const estoqueInsuficiente = venda.itens.some(item => {
+                        const produto = produtos[item.produto_id];
+                        return produto && produto.estoque < item.quantidade;
                     });
                     
-                    // Formatar para exportação
-                    const produtosExport = produtosFiltrados.map(produto => {
-                        let status = '';
-                        
-                        if (produto.estoque === 0) {
-                            status = 'Esgotado';
-                        } else if (produto.estoque <= 10) {
-                            status = 'Baixo';
-                        } else {
-                            status = 'Normal';
+                    if (estoqueInsuficiente) {
+                        exibirMensagem('Estoque insuficiente para alguns produtos. Verifique as quantidades.', 'error');
+                        return;
+                    }
+                    
+                    // Atualizar estoque de cada produto
+                    venda.itens.forEach(item => {
+                        const produto = produtos[item.produto_id];
+                        if (produto) {
+                            produto.estoque -= item.quantidade;
+                            db.salvarProduto(produto);
                         }
-                        
-                        return {
-                            Codigo: produto.codigo_barras || '',
-                            Nome: produto.nome,
-                            Grupo: produto.grupo || '',
-                            Preco: produto.preco.toFixed(2),
-                            Estoque: produto.estoque || 0,
-                            Status: status
-                        };
                     });
                     
-                    // Exportar CSV
-                    db.exportarCSV(produtosExport, 'estoque.csv');
+                    // Registrar venda
+                    db.salvarVenda(venda);
                     
-                    exibirMensagem('Estoque exportado com sucesso', 'success');
+                    // Limpar carrinho
+                    carrinho = [];
+                    salvarCarrinho();
+                    
+                    // Exibir recibo
+                    exibirRecibo(venda);
+                    
+                    // Mensagem de sucesso
+                    exibirMensagem('Venda finalizada com sucesso!', 'success');
                 } catch (erro) {
-                    console.error('Erro ao exportar estoque:', erro);
-                    exibirMensagem('Erro ao exportar estoque: ' + erro, 'error');
+                    console.error('Erro ao finalizar venda:', erro);
+                    exibirMensagem('Erro ao finalizar venda: ' + erro, 'error');
                 }
+            }
+            
+            function exibirRecibo(venda) {
+                // Obter configurações da empresa
+                const config = db.getConfig();
+                
+                // Formatar data
+                const data = new Date(venda.data);
+                const dataFormatada = data.toLocaleDateString('pt-BR');
+                const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                // Gerar HTML dos itens
+                let itensHTML = '';
+                venda.itens.forEach((item, index) => {
+                    itensHTML += `
+                        <tr>
+                            <td>${index + 1}. ${item.nome}</td>
+                            <td>${item.quantidade}</td>
+                            <td>R$ ${item.preco.toFixed(2)}</td>
+                            <td class="text-right">R$ ${item.subtotal.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                // Recibo HTML
+                const reciboHTML = `
+                    <div style="font-family: monospace; line-height: 1.4; font-size: 12px;">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; font-size: 16px;">${config.nome_empresa || 'ORION PDV'}</h3>
+                            <p style="margin: 0;">${config.endereco || ''}</p>
+                            <p style="margin: 0;">${config.cidade || ''}</p>
+                            <p style="margin: 0;">CNPJ: ${config.cnpj || ''}</p>
+                            <p style="margin: 0;">${config.telefone || ''}</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <p><strong>CUPOM NÃO FISCAL</strong></p>
+                            <p><strong>Venda:</strong> ${venda.id}</p>
+                            <p><strong>Data:</strong> ${dataFormatada} ${horaFormatada}</p>
+                            <p><strong>Cliente:</strong> ${venda.cliente_nome}</p>
+                            <p><strong>Operador:</strong> ${venda.usuario}</p>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Item</th>
+                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Qtd</th>
+                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Valor</th>
+                                    <th style="text-align: right; border-bottom: 1px dashed #ccc; padding: 3px 0;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itensHTML}
+                            </tbody>
+                        </table>
+                        
+                        <div style="text-align: right; border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
+                            <p><strong>Subtotal:</strong> R$ ${venda.subtotal.toFixed(2)}</p>
+                            <p><strong>Desconto:</strong> R$ ${venda.desconto.toFixed(2)}</p>
+                            <p style="font-size: 14px;"><strong>TOTAL: R$ ${venda.total.toFixed(2)}</strong></p>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
+                            <p><strong>Forma de pagamento:</strong> ${venda.forma_pagamento}</p>
+                        </div>
+                        
+                        <div style="text-align: center; border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
+                            <p>ORION PDV - Sistema de Gestão de Vendas</p>
+                            <p>${dataFormatada} ${horaFormatada}</p>
+                            <p><strong>OBRIGADO PELA PREFERÊNCIA!</strong></p>
+                            <p>Volte Sempre</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Preencher modal
+                reciboConteudo.innerHTML = reciboHTML;
+                
+                // Exibir modal
+                modalRecibo.style.display = 'flex';
+                setTimeout(() => {
+                    modalRecibo.classList.add('show');
+                }, 10);
+            }
+            
+            function imprimirRecibo() {
+                // Abrir nova janela para impressão
+                const reciboWindow = window.open('', '_blank', 'width=400,height=600');
+                
+                // Obter HTML do recibo
+                const reciboHTML = reciboConteudo.innerHTML;
+                
+                // Escrever na nova janela
+                reciboWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Recibo de Venda - ORION PDV</title>
+                        <style>
+                            body {
+                                font-family: monospace;
+                                line-height: 1.4;
+                                font-size: 12px;
+                                padding: 20px;
+                                max-width: 80mm;
+                                margin: 0 auto;
+                            }
+                            
+                            @media print {
+                                body {
+                                    width: 80mm;
+                                    margin: 0;
+                                    padding: 0;
+                                }
+                                
+                                .no-print {
+                                    display: none !important;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${reciboHTML}
+                        
+                        <div class="no-print" style="position: fixed; bottom: 20px; left: 0; width: 100%; text-align: center; margin-top: 20px;">
+                            <button onclick="window.print();" style="padding: 10px 20px; background-color: #0B3D91; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                <span style="margin-right: 5px;">🖨️</span> Imprimir Recibo
+                            </button>
+                            &nbsp;
+                            <button onclick="window.close();" style="padding: 10px 20px; background-color: #555; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                Fechar
+                            </button>
+                        </div>
+                        
+                        <script>
+                            // Auto-imprimir quando aberto
+                            window.onload = function() {
+                                setTimeout(function() {
+                                    window.print();
+                                }, 500);
+                            };
+                        </script>
+                    </body>
+                    </html>
+                `);
             }
             
             // Função para exibir mensagens de notificação
@@ -2407,7 +2172,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORION PDV - Estoque</title>
+    <title>ORION PDV - Vendas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
     <link rel="stylesheet" href="assets/css/orion-theme.css">
@@ -2435,7 +2200,7 @@
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="venda.html" class="menu-item">
+                <a href="venda.html" class="menu-item active">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Vendas PDV</span>
                 </a>
@@ -2443,7 +2208,7 @@
                     <i class="fas fa-box"></i>
                     <span>Produtos</span>
                 </a>
-                <a href="estoque.html" class="menu-item active">
+                <a href="estoque.html" class="menu-item">
                     <i class="fas fa-warehouse"></i>
                     <span>Estoque</span>
                 </a>
@@ -2481,214 +2246,121 @@
         <div class="main-content">
             <div class="topbar">
                 <div class="topbar-title">
-                    <h1>Controle de Estoque</h1>
+                    <h1>PDV - Ponto de Venda</h1>
                 </div>
                 <div class="topbar-actions">
                     <div id="current-date" class="d-none d-md-block">Carregando data...</div>
                 </div>
             </div>
             
-            <div class="page-content">
-                <!-- Tabs -->
-                <div class="tabs">
-                    <div id="tab-estoque" class="tab active">Visão Geral</div>
-                    <div id="tab-movimentacoes" class="tab">Movimentações</div>
-                    <div id="tab-ajustes" class="tab">Ajuste de Estoque</div>
-                </div>
-                
-                <!-- Conteúdo da aba Estoque -->
-                <div id="content-estoque" class="tab-content active">
-                    <div class="filters-container">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="busca-estoque" class="form-control search-input" placeholder="Buscar produto...">
+            <div class="page-content" style="padding: 0; overflow: hidden;">
+                <div class="pdv-container">
+                    <!-- Área de Produtos -->
+                    <div class="produtos-container">
+                        <!-- Abas -->
+                        <div class="tabs">
+                            <div id="tab-produtos" class="tab active">Produtos</div>
+                            <div id="tab-scanner" class="tab">Scanner de Código</div>
                         </div>
                         
-                        <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Grupos</option>
-                        </select>
-                        
-                        <select id="filtro-status" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Status</option>
-                            <option value="esgotado">Esgotado</option>
-                            <option value="baixo">Estoque Baixo</option>
-                            <option value="normal">Estoque Normal</option>
-                        </select>
-                        
-                        <button id="btn-exportar" class="btn btn-outline-primary">
-                            <i class="fas fa-file-export"></i> Exportar
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table" id="tabela-estoque">
-                                    <thead>
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Produto</th>
-                                            <th>Grupo</th>
-                                            <th>Estoque Atual</th>
-                                            <th>Status</th>
-                                            <th>Última Atualização</th>
-                                            <th>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="7" class="text-center text-muted py-3">
-                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando produtos...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Conteúdo da aba Movimentações -->
-                <div id="content-movimentacoes" class="tab-content">
-                    <div class="filters-container">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="busca-movimentacao" class="form-control search-input" placeholder="Buscar produto...">
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <div>
-                                <label for="data-inicio" class="form-label">De</label>
-                                <input type="date" id="data-inicio" class="form-control">
-                            </div>
-                            <div>
-                                <label for="data-fim" class="form-label">Até</label>
-                                <input type="date" id="data-fim" class="form-control">
-                            </div>
-                        </div>
-                        
-                        <select id="filtro-tipo" class="form-control" style="max-width: 200px;">
-                            <option value="">Todos os Tipos</option>
-                            <option value="entrada">Entrada</option>
-                            <option value="saida">Saída</option>
-                            <option value="ajuste">Ajuste</option>
-                            <option value="venda">Venda</option>
-                        </select>
-                        
-                        <button id="btn-filtrar" class="btn btn-primary">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table" id="tabela-movimentacoes">
-                                    <thead>
-                                        <tr>
-                                            <th>Data/Hora</th>
-                                            <th>Produto</th>
-                                            <th>Tipo</th>
-                                            <th>Quantidade</th>
-                                            <th>Estoque Anterior</th>
-                                            <th>Estoque Atual</th>
-                                            <th>Usuário</th>
-                                            <th>Observação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="8" class="text-center text-muted py-3">
-                                                <i class="fas fa-spinner fa-spin mr-2"></i> Carregando movimentações...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Conteúdo da aba Ajustes -->
-                <div id="content-ajustes" class="tab-content">
-                    <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <!-- Scanner de Código de Barras -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Scanner de Código de Barras</div>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex gap-2 mb-3">
-                                    <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
-                                    <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
-                                        <i class="fas fa-search"></i>
-                                    </button>
+                        <!-- Conteúdo de Produtos -->
+                        <div id="tab-conteudo-produtos" class="tab-content active">
+                            <!-- Filtros e busca -->
+                            <div class="filters-container">
+                                <div class="search-container">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" id="busca-produto" class="form-control search-input" placeholder="Buscar produto...">
                                 </div>
                                 
-                                <div class="d-flex justify-between">
-                                    <button type="button" id="btn-scanner-estoque" class="btn btn-outline-primary">
-                                        <i class="fas fa-camera"></i> Abrir Scanner
-                                    </button>
-                                    <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary">
-                                        <i class="fas fa-barcode"></i> Gerar Código
-                                    </button>
-                                </div>
-                                
-                                <div id="resultado-scanner" class="mt-3"></div>
+                                <select id="filtro-grupo" class="form-control" style="max-width: 200px;">
+                                    <option value="">Todos os Grupos</option>
+                                </select>
                             </div>
+                            
+                            <!-- Grid de produtos -->
+                            <div id="lista-produtos" class="produtos-grid"></div>
                         </div>
                         
-                        <!-- Formulário de Ajuste -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Ajuste de Estoque</div>
-                            </div>
-                            <div class="card-body">
-                                <form id="form-ajuste">
-                                    <input type="hidden" id="produto-id">
-                                    
-                                    <div class="alert alert-info mb-3">
-                                        <i class="fas fa-info-circle"></i> Escaneie um produto ou pesquise pelo código para ajustar seu estoque.
+                        <!-- Conteúdo do Scanner -->
+                        <div id="tab-conteudo-scanner" class="tab-content" style="display: none;">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title">Scanner de Código de Barras</div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex gap-2 mb-3">
+                                        <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
+                                        <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
                                     </div>
                                     
-                                    <div id="dados-produto" style="display: none;">
-                                        <div class="form-group">
-                                            <label for="nome-produto" class="form-label">Produto</label>
-                                            <input type="text" id="nome-produto" class="form-control" readonly>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="estoque-atual" class="form-label">Estoque Atual</label>
-                                            <input type="text" id="estoque-atual" class="form-control" readonly>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="tipo-ajuste" class="form-label">Tipo de Ajuste</label>
-                                            <select id="tipo-ajuste" class="form-control">
-                                                <option value="entrada">Entrada de Estoque</option>
-                                                <option value="saida">Saída de Estoque</option>
-                                                <option value="ajuste">Correção de Estoque</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="quantidade-ajuste" class="form-label">Quantidade</label>
-                                            <input type="number" id="quantidade-ajuste" class="form-control" min="1" step="1" required>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="observacao-ajuste" class="form-label">Observação</label>
-                                            <textarea id="observacao-ajuste" class="form-control" rows="2" placeholder="Motivo do ajuste..."></textarea>
-                                        </div>
-                                        
-                                        <div class="form-group mb-0">
-                                            <button type="submit" class="btn btn-primary w-100">
-                                                <i class="fas fa-save"></i> Registrar Ajuste
-                                            </button>
-                                        </div>
+                                    <div class="d-flex justify-between">
+                                        <button type="button" id="btn-scanner-codigo" class="btn btn-outline-primary">
+                                            <i class="fas fa-camera"></i> Abrir Scanner
+                                        </button>
+                                        <button type="button" id="btn-gerar-codigo" class="btn btn-outline-secondary">
+                                            <i class="fas fa-barcode"></i> Gerar Código
+                                        </button>
                                     </div>
-                                </form>
+                                    
+                                    <div id="resultado-scanner" class="mt-3"></div>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Área do Carrinho -->
+                    <div class="carrinho-container">
+                        <div class="carrinho-header">
+                            <h3 class="mb-0"><i class="fas fa-shopping-cart"></i> Carrinho</h3>
+                        </div>
+                        
+                        <div id="carrinho-vazio" class="carrinho-vazio">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>O carrinho está vazio</p>
+                            <p>Selecione produtos para adicionar</p>
+                        </div>
+                        
+                        <div id="carrinho-itens" class="carrinho-itens"></div>
+                        
+                        <div class="carrinho-footer">
+                            <div class="carrinho-totais">
+                                <div class="totais-linha">
+                                    <span>Subtotal:</span>
+                                    <span id="subtotal">R$ 0,00</span>
+                                </div>
+                                
+                                <div class="totais-linha">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span>Desconto (%):</span>
+                                        <input type="number" id="desconto" class="form-control" style="width: 60px;" value="0" min="0" max="100">
+                                    </div>
+                                </div>
+                                
+                                <div class="totais-linha totais-total">
+                                    <span>Total:</span>
+                                    <span id="total">R$ 0,00</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cliente" class="form-label">Cliente</label>
+                                <select id="cliente" class="form-control">
+                                    <!-- Clientes serão carregados dinamicamente -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
+                                <select id="forma-pagamento" class="form-control">
+                                    <!-- Formas de pagamento serão carregadas dinamicamente -->
+                                </select>
+                            </div>
+                            
+                            <button id="btn-finalizar" class="btn btn-primary w-100 mt-3" disabled>
+                                <i class="fas fa-check-circle"></i> Finalizar Venda
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2737,52 +2409,3 @@
             </div>
             
             <div id="scanner-loading" style="text-align: center; padding: 1rem;">
-                <div class="loading"></div>
-                <p style="margin-top: 0.5rem; color: white;">Inicializando scanner...</p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Detalhes -->
-    <div id="modal-detalhes" class="modal">
-        <div class="modal-content" style="width: 700px; max-width: 90%;">
-            <div class="modal-header">
-                <div class="modal-title">Detalhes do Produto</div>
-                <button class="modal-close btn-close-modal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                    <div>
-                        <h4 class="mb-3">Informações do Produto</h4>
-                        <div class="mb-2"><strong>Nome:</strong> <span id="detalhe-nome"></span></div>
-                        <div class="mb-2"><strong>Código:</strong> <span id="detalhe-codigo"></span></div>
-                        <div class="mb-2"><strong>Grupo:</strong> <span id="detalhe-grupo"></span></div>
-                        <div class="mb-2"><strong>Preço:</strong> <span id="detalhe-preco"></span></div>
-                        <div class="mb-2"><strong>Estoque Atual:</strong> <span id="detalhe-estoque"></span></div>
-                        <div class="mb-2"><strong>Última Atualização:</strong> <span id="detalhe-atualizacao"></span></div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="mb-3">Últimas Movimentações</h4>
-                        <div id="ultimas-movimentacoes">
-                            <div class="text-center text-muted py-3">
-                                <i class="fas fa-spinner fa-spin"></i> Carregando movimentações...
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline-secondary btn-close-modal">Fechar</button>
-                <button id="btn-editar-produto" class="btn btn-outline-primary">
-                    <i class="fas fa-edit"></i> Editar Produto
-                </button>
-                <button id="btn-ajustar-estoque" class="btn btn-primary">
-                    <i class="fas fa-warehouse"></i> Ajustar Estoque
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Áudio de feedback -->
-    <audio id="beep-success" class="audio-feedback
