@@ -3,400 +3,556 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORION PDV - Gerenciamento de Estoque</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
-    <link rel="stylesheet" href="styles/main.css">
-    <!-- Biblioteca CryptoJS para hash de senhas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <title>Gerenciamento de Estoque - ORION PDV</title>
+    <link rel="stylesheet" href="css/orion-theme.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Container Principal -->
     <div class="app-container">
         <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
+        <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <img src="img/logo.svg" alt="ORION PDV">
+                    <img src="img/logo-orion.png" alt="ORION PDV">
                     <span>ORION PDV</span>
                 </div>
-                <button id="sidebar-collapse" class="sidebar-toggle d-none d-md-block">
+                <button class="sidebar-toggle" id="sidebar-toggle">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
             
-            <div class="sidebar-menu">
+            <nav class="sidebar-menu">
                 <a href="dashboard.html" class="menu-item">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="venda.html" class="menu-item">
+                <a href="vendas.html" class="menu-item">
                     <i class="fas fa-shopping-cart"></i>
-                    <span>Vendas PDV</span>
-                </a>
-                <a href="produto.html" class="menu-item">
-                    <i class="fas fa-box"></i>
-                    <span>Produtos</span>
+                    <span>Vendas</span>
                 </a>
                 <a href="estoque.html" class="menu-item active">
-                    <i class="fas fa-warehouse"></i>
+                    <i class="fas fa-boxes"></i>
                     <span>Estoque</span>
                 </a>
-                <a href="cliente.html" class="menu-item">
+                <a href="produtos.html" class="menu-item">
+                    <i class="fas fa-barcode"></i>
+                    <span>Produtos</span>
+                </a>
+                <a href="clientes.html" class="menu-item">
                     <i class="fas fa-users"></i>
                     <span>Clientes</span>
                 </a>
-                <a href="relatorio.html" class="menu-item">
+                <a href="relatorios.html" class="menu-item">
                     <i class="fas fa-chart-bar"></i>
                     <span>Relatórios</span>
                 </a>
-                <a href="config.html" class="menu-item">
+                <a href="configuracoes.html" class="menu-item">
                     <i class="fas fa-cog"></i>
                     <span>Configurações</span>
                 </a>
-            </div>
+            </nav>
             
             <div class="sidebar-footer">
                 <div class="user-menu" id="user-menu">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
+                    <div class="user-avatar" id="user-avatar">
+                        <span>JS</span>
                     </div>
                     <div class="user-info">
-                        <div class="user-name" id="user-name">Carregando...</div>
-                        <div class="user-role" id="user-role">Carregando...</div>
+                        <div class="user-name" id="user-name">João Silva</div>
+                        <div class="user-role" id="user-role">Administrador</div>
                     </div>
                 </div>
-                <button id="btn-logout" class="sidebar-toggle">
+                <button class="sidebar-toggle" id="btn-logout">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
-        </div>
+        </aside>
         
-        <!-- Conteúdo Principal -->
+        <!-- Conteúdo principal -->
         <div class="main-content">
-            <div class="topbar">
-                <div class="topbar-title">
-                    <h1>Gerenciamento de Estoque</h1>
-                </div>
+            <header class="topbar">
+                <h1 class="topbar-title">Gerenciamento de Estoque</h1>
                 <div class="topbar-actions">
-                    <div id="current-date" class="d-none d-md-block">Carregando data...</div>
+                    <span id="current-date">Segunda-feira, 14 de abril de 2025</span>
                 </div>
-            </div>
+            </header>
             
-            <div class="page-content">
-                <!-- Resumo do Estoque -->
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="card stat-card">
-                            <div class="stat-icon bg-primary">
-                                <i class="fas fa-boxes"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-title">Total de Produtos</div>
-                                <div class="stat-value" id="total-produtos">0</div>
-                            </div>
+            <main class="page-content">
+                <!-- Cards de estatísticas -->
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon products">
+                            <i class="fas fa-tags"></i>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card stat-card">
-                            <div class="stat-icon bg-success">
-                                <i class="fas fa-cubes"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-title">Itens em Estoque</div>
-                                <div class="stat-value" id="total-itens">0</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card stat-card">
-                            <div class="stat-icon bg-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-title">Estoque Baixo</div>
-                                <div class="stat-value" id="estoque-baixo">0</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card stat-card">
-                            <div class="stat-icon bg-danger">
-                                <i class="fas fa-times-circle"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-title">Sem Estoque</div>
-                                <div class="stat-value" id="sem-estoque">0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <!-- Área de Movimentação de Estoque -->
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Movimentação de Estoque</div>
-                            </div>
-                            <div class="card-body">
-                                <form id="form-movimentacao">
-                                    <div class="form-group">
-                                        <label for="produto-movimentacao" class="form-label">Produto</label>
-                                        <div class="input-group">
-                                            <input type="text" id="codigo-barras-movimentacao" class="form-control" placeholder="Código de barras">
-                                            <button type="button" id="btn-buscar-produto" class="btn btn-primary">
-                                                <i class="fas fa-search"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div id="produto-info" style="display: none;">
-                                        <div class="produto-card-info mb-3">
-                                            <div class="produto-nome-info" id="produto-nome-info">Nome do produto</div>
-                                            <div class="produto-detalhe-info">
-                                                <span>Estoque atual:</span>
-                                                <span id="produto-estoque-info">0</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="tipo-movimentacao" class="form-label">Tipo de Movimentação</label>
-                                        <select id="tipo-movimentacao" class="form-control">
-                                            <option value="entrada">Entrada de Estoque</option>
-                                            <option value="saida">Saída de Estoque</option>
-                                            <option value="ajuste">Ajuste de Estoque</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="quantidade-movimentacao" class="form-label">Quantidade</label>
-                                        <input type="number" id="quantidade-movimentacao" class="form-control" placeholder="0" min="1" required>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="motivo-movimentacao" class="form-label">Motivo</label>
-                                        <select id="motivo-movimentacao" class="form-control">
-                                            <option value="compra">Compra de Mercadoria</option>
-                                            <option value="ajuste">Ajuste de Inventário</option>
-                                            <option value="devolucao">Devolução</option>
-                                            <option value="avaria">Produto Avariado</option>
-                                            <option value="perda">Perda</option>
-                                            <option value="outro">Outro</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="form-group" id="grupo-outro-motivo" style="display: none;">
-                                        <label for="outro-motivo" class="form-label">Especifique o Motivo</label>
-                                        <input type="text" id="outro-motivo" class="form-control" placeholder="Descreva o motivo">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="observacao-movimentacao" class="form-label">Observação (opcional)</label>
-                                        <textarea id="observacao-movimentacao" class="form-control" rows="2"></textarea>
-                                    </div>
-                                    
-                                    <button type="submit" id="btn-registrar-movimentacao" class="btn btn-primary w-100" disabled>
-                                        <i class="fas fa-save"></i> Registrar Movimentação
-                                    </button>
-                                </form>
-                            </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="total-produtos">86</div>
+                            <div class="stat-label">Produtos Cadastrados</div>
                         </div>
                     </div>
                     
-                    <!-- Histórico de Movimentações -->
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Histórico de Movimentações</div>
-                                <div class="card-actions">
-                                    <button id="btn-filtro-historico" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-filter"></i> Filtros
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <!-- Área de filtros (inicialmente oculta) -->
-                                <div id="filtros-historico" class="mb-3" style="display: none;">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="form-label">Tipo</label>
-                                                <select id="filtro-tipo" class="form-control form-control-sm">
-                                                    <option value="">Todos</option>
-                                                    <option value="entrada">Entrada</option>
-                                                    <option value="saida">Saída</option>
-                                                    <option value="ajuste">Ajuste</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="form-label">Data Início</label>
-                                                <input type="date" id="filtro-data-inicio" class="form-control form-control-sm">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="form-label">Data Fim</label>
-                                                <input type="date" id="filtro-data-fim" class="form-control form-control-sm">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex justify-content-end">
-                                        <button id="btn-aplicar-filtro" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-check"></i> Aplicar
-                                        </button>
-                                        <button id="btn-limpar-filtro" class="btn btn-sm btn-secondary ml-2">
-                                            <i class="fas fa-eraser"></i> Limpar
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Data</th>
-                                                <th>Produto</th>
-                                                <th>Tipo</th>
-                                                <th>Quantidade</th>
-                                                <th>Estoque Anterior</th>
-                                                <th>Estoque Atual</th>
-                                                <th>Motivo</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tabela-movimentacoes">
-                                            <tr>
-                                                <td colspan="7" class="text-center">
-                                                    <div class="loading-indicator">
-                                                        <i class="fas fa-spinner fa-spin"></i>
-                                                        <span>Carregando movimentações...</span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                
-                                <!-- Paginação -->
-                                <div class="pagination-container">
-                                    <ul class="pagination" id="paginacao-historico">
-                                        <!-- Paginação gerada dinamicamente -->
-                                    </ul>
-                                </div>
-                            </div>
+                    <div class="stat-card">
+                        <div class="stat-icon sales">
+                            <i class="fas fa-cubes"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="total-itens">1.285</div>
+                            <div class="stat-label">Itens em Estoque</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value estoque-medio" id="estoque-baixo">12</div>
+                            <div class="stat-label">Estoque Baixo</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon customers">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value estoque-baixo" id="sem-estoque">5</div>
+                            <div class="stat-label">Sem Estoque</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Lista de Produtos com Estoque Crítico -->
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Produtos com Estoque Crítico</div>
-                                <div class="card-actions">
-                                    <div class="input-group">
-                                        <select id="filtro-critico" class="form-control form-control-sm">
-                                            <option value="todos">Todos</option>
-                                            <option value="sem_estoque">Sem Estoque</option>
-                                            <option value="estoque_baixo">Estoque Baixo</option>
-                                        </select>
+                <!-- Registro de movimentação -->
+                <section id="section-movimentacao" class="mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-exchange-alt mr-2"></i>
+                                Registrar Movimentação
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="form-movimentacao">
+                                <div class="d-flex gap-3">
+                                    <div style="width: 50%;">
+                                        <div class="form-group">
+                                            <label class="form-label" for="codigo-barras-movimentacao">Código de Barras</label>
+                                            <div class="d-flex gap-2">
+                                                <input type="text" class="form-control" id="codigo-barras-movimentacao" placeholder="Digite ou escaneie o código">
+                                                <button type="button" class="btn btn-primary" id="btn-buscar-produto">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="produto-info" class="produto-info mb-3" style="display: block;">
+                                            <div class="produto-info-header">
+                                                <strong>Produto Selecionado</strong>
+                                            </div>
+                                            <div class="produto-info-body">
+                                                <div class="produto-nome" id="produto-nome-info">Leite Integral 1L - Marca Premium</div>
+                                                <div class="produto-estoque">
+                                                    Estoque Atual: <span id="produto-estoque-info">48</span> unidades
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="width: 50%;">
+                                        <div class="form-group">
+                                            <label class="form-label" for="tipo-movimentacao">Tipo de Movimentação</label>
+                                            <select class="form-control" id="tipo-movimentacao">
+                                                <option value="entrada">Entrada de Estoque</option>
+                                                <option value="saida">Saída de Estoque</option>
+                                                <option value="ajuste">Ajuste de Inventário</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label" for="quantidade-movimentacao">Quantidade a Adicionar</label>
+                                            <input type="number" class="form-control" id="quantidade-movimentacao" min="1" placeholder="Informe a quantidade">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex gap-3">
+                                    <div style="width: 50%;">
+                                        <div class="form-group">
+                                            <label class="form-label" for="motivo-movimentacao">Motivo</label>
+                                            <select class="form-control" id="motivo-movimentacao">
+                                                <option value="reposicao">Reposição de Estoque</option>
+                                                <option value="venda">Venda</option>
+                                                <option value="devolucao">Devolução</option>
+                                                <option value="perda">Perda/Avaria</option>
+                                                <option value="inventario">Inventário</option>
+                                                <option value="outro">Outro</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group" id="grupo-outro-motivo" style="display: none;">
+                                            <label class="form-label" for="outro-motivo">Especifique o Motivo</label>
+                                            <input type="text" class="form-control" id="outro-motivo" placeholder="Descreva o motivo">
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="width: 50%;">
+                                        <div class="form-group">
+                                            <label class="form-label" for="observacao-movimentacao">Observação (opcional)</label>
+                                            <textarea class="form-control" id="observacao-movimentacao" rows="3" placeholder="Informações adicionais..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <button type="submit" class="btn btn-primary" id="btn-registrar-movimentacao">
+                                        <i class="fas fa-save"></i>
+                                        Registrar Movimentação
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Histórico de movimentações -->
+                <section class="mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-history mr-2"></i>
+                                Histórico de Movimentações
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" id="btn-filtro-historico">
+                                <i class="fas fa-filter"></i> Filtros
+                            </button>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Área de filtros -->
+                            <div id="filtros-historico" class="filtros-container mb-3" style="display: none;">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex gap-3">
+                                            <div style="width: 33%;">
+                                                <div class="form-group">
+                                                    <label class="form-label" for="filtro-tipo">Tipo de Movimentação</label>
+                                                    <select class="form-control" id="filtro-tipo">
+                                                        <option value="">Todos</option>
+                                                        <option value="entrada">Entradas</option>
+                                                        <option value="saida">Saídas</option>
+                                                        <option value="ajuste">Ajustes</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div style="width: 33%;">
+                                                <div class="form-group">
+                                                    <label class="form-label" for="filtro-data-inicio">Data Inicial</label>
+                                                    <input type="date" class="form-control" id="filtro-data-inicio">
+                                                </div>
+                                            </div>
+                                            
+                                            <div style="width: 33%;">
+                                                <div class="form-group">
+                                                    <label class="form-label" for="filtro-data-fim">Data Final</label>
+                                                    <input type="date" class="form-control" id="filtro-data-fim">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-right">
+                                            <button class="btn btn-outline-primary mr-2" id="btn-limpar-filtro">
+                                                <i class="fas fa-eraser mr-1"></i> Limpar
+                                            </button>
+                                            <button class="btn btn-primary" id="btn-aplicar-filtro">
+                                                <i class="fas fa-search mr-1"></i> Aplicar
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Código</th>
-                                                <th>Produto</th>
-                                                <th>Grupo</th>
-                                                <th>Estoque Atual</th>
-                                                <th>Estoque Mínimo</th>
-                                                <th>Status</th>
-                                                <th>Ações</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tabela-criticos">
-                                            <tr>
-                                                <td colspan="7" class="text-center">
-                                                    <div class="loading-indicator">
-                                                        <i class="fas fa-spinner fa-spin"></i>
-                                                        <span>Carregando produtos...</span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                
-                                <!-- Paginação -->
-                                <div class="pagination-container">
-                                    <ul class="pagination" id="paginacao-criticos">
-                                        <!-- Paginação gerada dinamicamente -->
+                            
+                            <!-- Tabela de movimentações -->
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data/Hora</th>
+                                            <th>Produto</th>
+                                            <th>Tipo</th>
+                                            <th>Quantidade</th>
+                                            <th>Estoque Anterior</th>
+                                            <th>Estoque Atual</th>
+                                            <th>Motivo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabela-movimentacoes">
+                                        <tr>
+                                            <td>19/04/2025 09:45</td>
+                                            <td>Leite Integral 1L - Marca Premium</td>
+                                            <td class="text-success">Entrada</td>
+                                            <td>30 <span class="text-success">(+30)</span></td>
+                                            <td>18</td>
+                                            <td>48</td>
+                                            <td>
+                                                <span title="Reposição de Estoque">Reposição de Estoque</span>
+                                                <button class="btn-action btn-details" data-id="123">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>18/04/2025 16:20</td>
+                                            <td>Arroz Branco 5kg</td>
+                                            <td class="text-danger">Saída</td>
+                                            <td>5 <span class="text-danger">(-5)</span></td>
+                                            <td>27</td>
+                                            <td>22</td>
+                                            <td>
+                                                <span title="Venda">Venda</span>
+                                                <button class="btn-action btn-details" data-id="122">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>18/04/2025 14:30</td>
+                                            <td>Café Torrado 500g</td>
+                                            <td class="text-warning">Ajuste</td>
+                                            <td>12 <span class="text-danger">(-5)</span></td>
+                                            <td>17</td>
+                                            <td>12</td>
+                                            <td>
+                                                <span title="Inventário">Inventário</span>
+                                                <button class="btn-action btn-details" data-id="121">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Paginação -->
+                            <div class="d-flex justify-between align-center">
+                                <div>Exibindo 3 de 120 registros</div>
+                                <nav aria-label="Paginação do histórico">
+                                    <ul class="pagination" id="paginacao-historico">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" aria-label="Anterior">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">4</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">5</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#" aria-label="Próximo">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
                                     </ul>
-                                </div>
+                                </nav>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </section>
+                
+                <!-- Produtos com estoque crítico -->
+                <section class="mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                Produtos com Estoque Crítico
+                            </div>
+                            <div class="d-flex align-center gap-2">
+                                <label for="filtro-critico" class="mb-0 mr-2">Exibir:</label>
+                                <select class="form-control" id="filtro-critico">
+                                    <option value="todos">Todos Críticos</option>
+                                    <option value="sem_estoque">Sem Estoque</option>
+                                    <option value="estoque_baixo">Estoque Baixo</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Tabela de produtos críticos -->
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Produto</th>
+                                            <th>Grupo</th>
+                                            <th>Estoque Atual</th>
+                                            <th>Estoque Mínimo</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabela-criticos">
+                                        <tr>
+                                            <td>7891234567890</td>
+                                            <td>Açúcar Refinado 1kg</td>
+                                            <td>Alimentos</td>
+                                            <td>0</td>
+                                            <td>10</td>
+                                            <td><span class="badge badge-danger">Sem Estoque</span></td>
+                                            <td>
+                                                <button class="btn-action btn-repor" data-codigo="7891234567890" title="Repor Estoque">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                </button>
+                                                <button class="btn-action btn-editar" data-codigo="7891234567890" title="Editar Produto">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>7891234567891</td>
+                                            <td>Feijão Carioca 1kg</td>
+                                            <td>Alimentos</td>
+                                            <td>3</td>
+                                            <td>15</td>
+                                            <td><span class="badge badge-warning">Estoque Baixo</span></td>
+                                            <td>
+                                                <button class="btn-action btn-repor" data-codigo="7891234567891" title="Repor Estoque">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                </button>
+                                                <button class="btn-action btn-editar" data-codigo="7891234567891" title="Editar Produto">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>7891234567892</td>
+                                            <td>Óleo de Soja 900ml</td>
+                                            <td>Alimentos</td>
+                                            <td>0</td>
+                                            <td>12</td>
+                                            <td><span class="badge badge-danger">Sem Estoque</span></td>
+                                            <td>
+                                                <button class="btn-action btn-repor" data-codigo="7891234567892" title="Repor Estoque">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                </button>
+                                                <button class="btn-action btn-editar" data-codigo="7891234567892" title="Editar Produto">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Paginação -->
+                            <div class="d-flex justify-between align-center">
+                                <div>Exibindo 3 de 17 registros</div>
+                                <nav aria-label="Paginação de produtos críticos">
+                                    <ul class="pagination" id="paginacao-criticos">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" aria-label="Anterior">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#" aria-label="Próximo">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
         </div>
     </div>
     
-    <!-- Modal de Detalhes da Movimentação -->
-    <div id="modal-detalhes" class="modal">
-        <div class="modal-content" style="width: 600px; max-width: 90vw;">
+    <!-- Modal de detalhes da movimentação -->
+    <div class="modal" id="modal-detalhes">
+        <div class="modal-content" style="width: 500px;">
             <div class="modal-header">
-                <h3 class="modal-title">Detalhes da Movimentação</h3>
-                <button class="modal-close" data-dismiss="modal">
+                <h5 class="modal-title">Detalhes da Movimentação</h5>
+                <button type="button" class="modal-close" data-dismiss="modal" aria-label="Fechar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <div id="detalhes-movimentacao">
-                    <!-- Detalhes carregados dinamicamente -->
+                    <div class="detalhe-item">
+                        <strong>Data:</strong> 19/04/2025 às 09:45
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Produto:</strong> Leite Integral 1L - Marca Premium
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Código:</strong> 7891234567893
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Tipo:</strong> <span class="text-success">Entrada</span>
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Quantidade:</strong> 30
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Estoque Anterior:</strong> 18
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Estoque Atual:</strong> 48
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Diferença:</strong> <span class="text-success">+30</span>
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Motivo:</strong> Reposição de Estoque
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Observação:</strong> Entrega regular do fornecedor
+                    </div>
+                    <div class="detalhe-item">
+                        <strong>Registrado por:</strong> João Silva
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times"></i> Fechar
-                </button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Fechar</button>
             </div>
         </div>
     </div>
     
-    <!-- Modal de Confirmação -->
-    <div id="modal-confirmacao" class="modal">
-        <div class="modal-content" style="width: 400px; max-width: 90vw;">
+    <!-- Modal de confirmação -->
+    <div class="modal" id="modal-confirmacao">
+        <div class="modal-content" style="width: 400px;">
             <div class="modal-header">
-                <h3 class="modal-title">Confirmação</h3>
-                <button class="modal-close" data-dismiss="modal">
+                <h5 class="modal-title">Confirmação</h5>
+                <button type="button" class="modal-close" data-dismiss="modal" aria-label="Fechar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <p id="confirmacao-mensagem">Tem certeza que deseja realizar esta ação?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span id="confirmacao-mensagem">Tem certeza que deseja continuar?</span>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
-                <button id="btn-confirmar" class="btn btn-primary">
-                    <i class="fas fa-check"></i> Confirmar
-                </button>
+                <button type="button" class="btn btn-outline-primary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-confirmar">Confirmar</button>
             </div>
         </div>
     </div>
     
-    <!-- Container de notificações -->
-    <div id="toast-container" class="toast-container"></div>
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toast-container"></div>
     
     <!-- Scripts -->
+    <script src="js/jquery.min.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/database.js"></script>
     <script src="js/estoque.js"></script>
