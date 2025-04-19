@@ -1,82 +1,77 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Financeiro - ORION PDV</title>
-  <link rel="stylesheet" href="assets/css/orion-theme.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION PDV - Estoque</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/scanner.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
 </head>
 <body>
-  <div class="wrapper">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="logo">
-        <img src="assets/img/logo.png" alt="ORION PDV">
-        <span class="logo-text">ORION PDV</span>
-      </div>
-      
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="dashboard.html" class="nav-link">
-            <i class="fas fa-tachometer-alt nav-icon"></i>
-            <span>Dashboard</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="venda.html" class="nav-link">
-            <i class="fas fa-shopping-cart nav-icon"></i>
-            <span>Registrar Venda</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="produto.html" class="nav-link">
-            <i class="fas fa-box nav-icon"></i>
-            <span>Cadastrar Produto</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="cliente.html" class="nav-link">
-            <i class="fas fa-user nav-icon"></i>
-            <span>Cadastrar Cliente</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="relatorio.html" class="nav-link active">
-            <i class="fas fa-chart-bar nav-icon"></i>
-            <span>Painel Financeiro</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="estoque.html" class="nav-link">
-            <i class="fas fa-warehouse nav-icon"></i>
-            <span>Gerenciar Estoque</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="config.html" class="nav-link">
-            <i class="fas fa-cog nav-icon"></i>
-            <span>Configurações</span>
-          </a>
-        </li>
-      </ul>
-      
-      <div style="margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
-        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-          <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-right: 10px;"></i>
-          <div>
-            <div id="user-name" style="font-weight: 500;">Nome do Usuário</div>
-            <small class="text-muted">Administrador</small>
-          </div>
+    <!-- Container Principal -->
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="assets/img/logo-small.png" alt="ORION PDV">
+                    <span>ORION PDV</span>
+                </div>
+                <button id="sidebar-collapse" class="sidebar-toggle d-none d-md-block">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="venda.html" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Vendas PDV</span>
+                </a>
+                <a href="produto.html" class="menu-item">
+                    <i class="fas fa-box"></i>
+                    <span>Produtos</span>
+                </a>
+                <a href="estoque.html" class="menu-item active">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Estoque</span>
+                </a>
+                <a href="cliente.html" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Clientes</span>
+                </a>
+                <a href="relatorio.html" class="menu-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="config.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-menu" id="user-menu">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name">Carregando...</div>
+                        <div class="user-role" id="user-role">Carregando...</div>
+                    </div>
+                </div>
+                <button id="btn-logout" class="sidebar-toggle">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
         </div>
-        <button id="btn-logout" class="btn btn-outline-primary" style="width: 100%;">
-          <i class="fas fa-sign-out-alt"></i> Sair
-        </button>
-      </div>
-    </aside>
-
     <!-- Conteúdo principal -->
     <main class="content">
       <div class="header" style="margin-bottom: 1.5rem;">
