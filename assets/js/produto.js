@@ -821,3 +821,412 @@ document.addEventListener('DOMContentLoaded', function() {
                                         mensagemErro.textContent = erro.message;
                                     }
                                 }
+                            });
+                    } else {
+                        throw new Error('Módulo de scanner não encontrado');
+                    }
+                })
+                .catch(erro => {
+                    console.error('Erro ao acessar câmera:', erro);
+                    estado.scannerIniciando = false;
+                    
+                    // Ocultar carregamento
+                    if (elementos.scannerLoading) {
+                        elementos.scannerLoading.style.display = 'none';
+                    }
+                    
+                    // Determinar mensagem de erro
+                    let mensagemErro = 'Erro ao acessar câmera';
+                    
+                    if (erro.name === 'NotAllowedError') {
+                        mensagemErro = 'Acesso à câmera negado. Por favor, permita o acesso à câmera.';
+                    } else if (erro.name === 'NotFoundError') {
+                        mensagemErro = 'Nenhuma câmera encontrada no dispositivo.';
+                    } else {
+                        mensagemErro = `Erro ao acessar câmera: ${erro.message}`;
+                    }
+                    
+                    // Atualizar status
+                    atualizarStatusScanner(mensagemErro, 'error');
+                    
+                    // Exibir detalhes do erro
+                    if (elementos.scannerError) {
+                        elementos.scannerError.style.display = 'block';
+                        const mensagemErroEl = elementos.scannerError.querySelector('.error-message');
+                        if (mensagemErroEl) {
+                            mensagemErroEl.textContent = mensagemErro;
+                        }
+                    }
+                });
+        } catch (erro) {
+            console.error('Erro ao acessar câmera:', erro);
+            estado.scannerIniciando = false;
+            
+            // Ocultar carregamento
+            if (elementos.scannerLoading) {
+                elementos.scannerLoading.style.display = 'none';
+            }
+            
+            // Atualizar status
+            atualizarStatusScanner('Erro ao acessar câmera: ' + erro.message, 'error');
+        }
+    }
+    
+    /**
+     * Callback quando um código de barras é detectado
+     */
+    function codigoDetectado(codigo) {
+        // Ativar efeito de sucesso
+        const soundWave = document.querySelector('.sound-wave');
+        if (soundWave) {
+            soundWave.classList.add('active');
+            setTimeout(() => {
+                soundWave.classList.remove('active');
+            }, 500);
+        }
+        
+        // Reproduzir som de sucesso
+        const beepSuccess = document.getElementById('beep-success');
+        if (beepSuccess) beepSuccess.play();
+        
+        // Mostrar código detectado
+        atualizarStatusScanner(`Código detectado: ${formatarCodigoBarras(codigo)}`, 'success');
+        
+        // Executar callback se existir
+        if (typeof estado.callback === 'function') {
+            estado.callback(codigo);
+        }
+        
+        // Fechar scanner após delay
+        setTimeout(() => {
+            pararScanner();
+        }, 1000);
+    }
+    
+    /**
+     * Para o scanner de código de barras
+     */
+    function pararScanner() {
+        // Parar o scanner
+        if (estado.scannerAtivo && typeof barcodeScanner !== 'undefined' && typeof barcodeScanner.parar === 'function') {
+            barcodeScanner.parar();
+            estado.scannerAtivo = false;
+        }
+        
+        // Parar stream de vídeo
+        if (estado.scannerStream) {
+            estado.scannerStream.getTracks().forEach(track => track.stop());
+            estado.scannerStream = null;
+        }
+        
+        // Limpar vídeo
+        if (elementos.scannerVideo) {
+            elementos.scannerVideo.srcObject = null;
+        }
+        
+        // Resetar estado da lanterna
+        estado.scannerLanternaAtiva = false;
+        if (elementos.btnToggleTorch) {
+            elementos.btnToggleTorch.classList.remove('active');
+        }
+        
+        // Fechar modal
+        if (elementos.modalScanner) {
+            elementos.modalScanner.style.display = 'none';
+        }
+    }
+    
+    /**
+     * Atualiza o status do scanner
+     */
+    function atualizarStatusScanner(mensagem, tipo = 'info') {
+        if (!elementos.scannerStatus) return;
+        
+        // Atualizar texto
+        const textoStatus = elementos.scannerStatus.querySelector('.status-text');
+        if (textoStatus) {
+            textoStatus.textContent = mensagem;
+        } else {
+            elementos.scannerStatus.textContent = mensagem;
+        }
+        
+        // Atualizar classe de estilo
+        elementos.scannerStatus.className = `${tipo}`;
+        elementos.scannerStatus.classList.add('active');
+        
+        // Mudar ícone conforme o tipo
+        const icone = elementos.scannerStatus.querySelector('i');
+        if (icone) {
+            icone.className = tipo === 'success' ? 'fas fa-check-circle' : 
+                             tipo === 'error' ? 'fas fa-exclamation-circle' :
+                             tipo === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
+        }
+        
+        // Remover após um tempo se não for info
+        if (tipo !== 'info') {
+            setTimeout(() => {
+                elementos.scannerStatus.classList.remove('active');
+            }, 3000);
+        }
+    }
+    
+    /**
+     * Toggle da lanterna da câmera
+     */
+    async function toggleLanterna() {
+        if (!estado.scannerAtivo || !estado.scannerStream) return;
+        
+        try {
+            // Obter track de vídeo
+            const videoTrack = estado.scannerStream.getVideoTracks()[0];
+            
+            if (!videoTrack || typeof videoTrack.getCapabilities !== 'function') return;
+            
+            const capabilities = videoTrack.getCapabilities();
+            
+            // Verificar se a lanterna é suportada
+            if (capabilities.torch) {
+                const novoEstado = !estado.scannerLanternaAtiva;
+                
+                await videoTrack.applyConstraints({
+                    advanced: [{ torch: novoEstado }]
+                });
+                
+                estado.scannerLanternaAtiva = novoEstado;
+                
+                // Atualizar botão
+                if (elementos.btnToggleTorch) {
+                    elementos.btnToggleTorch.classList.toggle('active', novoEstado);
+                }
+                
+                // Atualizar status
+                atualizarStatusScanner(
+                    novoEstado ? 'Lanterna ativada' : 'Lanterna desativada', 
+                    'info'
+                );
+            } else {
+                atualizarStatusScanner('Lanterna não disponível neste dispositivo', 'warning');
+            }
+        } catch (erro) {
+            console.error('Erro ao controlar lanterna:', erro);
+            atualizarStatusScanner('Erro ao controlar lanterna', 'error');
+        }
+    }
+    
+    /**
+     * Gera um código de barras EAN-13 válido
+     */
+    function gerarCodigoBarras() {
+        try {
+            let codigo = '';
+            
+            // Usar o gerador do barcodeScanner se disponível
+            if (typeof barcodeScanner !== 'undefined' && 
+                typeof barcodeScanner.gerarCodigoBarrasAleatorio === 'function') {
+                codigo = barcodeScanner.gerarCodigoBarrasAleatorio();
+            } else if (typeof db.gerarCodigoBarras === 'function') {
+                // Usar o gerador do banco de dados
+                codigo = db.gerarCodigoBarras();
+            } else {
+                // Implementação padrão
+                codigo = gerarCodigoEAN13();
+            }
+            
+            // Preencher campo
+            elementos.codigoBarras.value = codigo;
+            
+            // Exibir mensagem
+            exibirMensagem('Código de barras gerado automaticamente', 'success');
+            
+            return codigo;
+        } catch (erro) {
+            console.error('Erro ao gerar código de barras:', erro);
+            exibirMensagem('Erro ao gerar código de barras: ' + erro.message, 'error');
+            return null;
+        }
+    }
+    
+    /**
+     * Implementação padrão para gerar EAN-13
+     */
+    function gerarCodigoEAN13() {
+        // Prefixo para Brasil
+        let codigo = '789';
+        
+        // Gerar 9 dígitos aleatórios
+        for (let i = 0; i < 9; i++) {
+            codigo += Math.floor(Math.random() * 10);
+        }
+        
+        // Calcular dígito verificador
+        let soma = 0;
+        for (let i = 0; i < 12; i++) {
+            const digito = parseInt(codigo[i]);
+            soma += (i % 2 === 0) ? digito : digito * 3;
+        }
+        
+        const digitoVerificador = (10 - (soma % 10)) % 10;
+        
+        return codigo + digitoVerificador;
+    }
+    
+    /**
+     * Formata um código de barras para exibição
+     */
+    function formatarCodigoBarras(codigo) {
+        if (!codigo) return '';
+        
+        // Remover espaços e caracteres não numéricos
+        codigo = codigo.replace(/\D/g, '');
+        
+        // Formatar EAN-13
+        if (codigo.length === 13) {
+            return codigo.substring(0, 1) + ' ' + 
+                   codigo.substring(1, 7) + ' ' + 
+                   codigo.substring(7);
+        }
+        
+        return codigo;
+    }
+    
+    /**
+     * Abre o modal para novo grupo
+     */
+    function abrirModalNovoGrupo() {
+        // Limpar campo
+        elementos.nomeGrupo.value = '';
+        
+        // Mostrar modal
+        elementos.modalGrupo.style.display = 'flex';
+        
+        // Focar no campo
+        setTimeout(() => elementos.nomeGrupo.focus(), 100);
+    }
+    
+    /**
+     * Salva um novo grupo de produtos
+     */
+    function salvarGrupoProdutos() {
+        const nome = elementos.nomeGrupo.value.trim();
+        
+        if (nome === '') {
+            exibirMensagem('Nome do grupo é obrigatório', 'error');
+            return;
+        }
+        
+        try {
+            // Salvar grupo
+            const resultado = db.salvarGrupoProdutos(nome);
+            
+            if (resultado) {
+                // Recarregar grupos
+                carregarGrupos().then(() => {
+                    // Selecionar o novo grupo
+                    elementos.grupo.value = nome;
+                    
+                    // Fechar modal
+                    fecharModal(elementos.modalGrupo);
+                    
+                    // Exibir mensagem
+                    exibirMensagem('Grupo adicionado com sucesso', 'success');
+                });
+            } else {
+                exibirMensagem('Grupo já existe', 'warning');
+            }
+        } catch (erro) {
+            console.error('Erro ao salvar grupo:', erro);
+            exibirMensagem('Erro ao salvar grupo: ' + erro.message, 'error');
+        }
+    }
+    
+    /**
+     * Exibe ou oculta um modal
+     */
+    function fecharModal(modal) {
+        modal.style.display = 'none';
+    }
+    
+    /**
+     * Gera uma prévia da foto selecionada
+     */
+    function previewFoto(e) {
+        const fileInput = e.target;
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            elementos.fotoPreview.style.display = 'none';
+            estado.fotoAlterada = true;
+            estado.fotoProduto = null;
+            return;
+        }
+        
+        if (!file.type.startsWith('image/')) {
+            exibirMensagem('Por favor, selecione uma imagem válida', 'error');
+            fileInput.value = '';
+            elementos.fotoPreview.style.display = 'none';
+            estado.fotoAlterada = true;
+            estado.fotoProduto = null;
+            return;
+        }
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            // Exibir preview
+            elementos.fotoPreviewImg.src = e.target.result;
+            elementos.fotoPreview.style.display = 'block';
+            
+            // Atualizar estado
+            estado.fotoAlterada = true;
+            estado.fotoProduto = e.target.result;
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    /**
+     * Exibe uma mensagem toast ao usuário
+     * @param {string} mensagem Texto da mensagem
+     * @param {string} tipo Tipo da mensagem (success, error, warning, info)
+     * @param {number} duracao Duração em milissegundos
+     */
+    function exibirMensagem(mensagem, tipo = 'info', duracao = 3000) {
+        // Criar container se não existir
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Criar toast
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${tipo}`;
+        toast.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-${tipo === 'success' ? 'check-circle' : 
+                               tipo === 'warning' ? 'exclamation-triangle' : 
+                               tipo === 'error' ? 'exclamation-circle' : 
+                               'info-circle'}"></i>
+                <span>${mensagem}</span>
+            </div>
+        `;
+        
+        // Adicionar ao container
+        toastContainer.appendChild(toast);
+        
+        // Exibir com animação
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // Remover após a duração
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, duracao);
+    }
+});
