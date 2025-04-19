@@ -1,210 +1,256 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recibo de Venda - ORION PDV</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 12px;
-      line-height: 1.4;
-      color: #000;
-      background-color: #fff;
-      padding: 20px;
-      max-width: 80mm; /* Largura padrão de impressora térmica */
-      margin: 0 auto;
-    }
-    
-    .recibo-header {
-      text-align: center;
-      margin-bottom: 15px;
-      border-bottom: 1px dashed #000;
-      padding-bottom: 10px;
-    }
-    
-    .recibo-header h1 {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 5px;
-      text-transform: uppercase;
-    }
-    
-    .recibo-header p {
-      font-size: 12px;
-      margin-bottom: 3px;
-    }
-    
-    .recibo-info {
-      margin-bottom: 15px;
-    }
-    
-    .recibo-info p {
-      margin-bottom: 5px;
-    }
-    
-    .recibo-items {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 15px;
-    }
-    
-    .recibo-items th {
-      text-align: left;
-      border-bottom: 1px dashed #000;
-      padding: 3px 0;
-    }
-    
-    .recibo-items td {
-      padding: 3px 0;
-    }
-    
-    .recibo-items .right {
-      text-align: right;
-    }
-    
-    .recibo-totais {
-      border-top: 1px dashed #000;
-      padding-top: 10px;
-      margin-bottom: 15px;
-    }
-    
-    .recibo-total {
-      font-weight: bold;
-      font-size: 14px;
-      margin-top: 5px;
-    }
-    
-    .recibo-pagamento {
-      border-top: 1px dashed #000;
-      padding-top: 10px;
-      margin-bottom: 15px;
-    }
-    
-    .recibo-footer {
-      text-align: center;
-      border-top: 1px dashed #000;
-      padding-top: 10px;
-      margin-bottom: 15px;
-    }
-    
-    .recibo-qrcode {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    
-    .text-center {
-      text-align: center;
-    }
-    
-    .text-right {
-      text-align: right;
-    }
-    
-    .font-bold {
-      font-weight: bold;
-    }
-    
-    .no-print {
-      display: none;
-    }
-    
-    @media print {
-      body {
-        padding: 0;
-      }
-      
-      .no-print {
-        display: none !important;
-      }
-      
-      @page {
-        margin: 0;
-        size: 80mm;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION PDV - Recibo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .recibo-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .recibo-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .recibo-content {
+            padding: 1rem;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+                background-color: white;
+            }
+            
+            .recibo-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+            
+            .actions {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="recibo-header">
-    <h1>{{NOME_EMPRESA}}</h1>
-    <p>{{ENDERECO}}</p>
-    <p>{{CIDADE}}</p>
-    <p>CNPJ: {{CNPJ}}</p>
-    <p>{{TEL}}</p>
-  </div>
-  
-  <div class="recibo-info">
-    <p><span class="font-bold">CUPOM NÃO FISCAL</span></p>
-    <p><span class="font-bold">Venda:</span> {{ID_VENDA}}</p>
-    <p><span class="font-bold">Data:</span> {{DATA_VENDA}}</p>
-    <p><span class="font-bold">Cliente:</span> {{CLIENTE}}</p>
-    <p><span class="font-bold">Operador:</span> {{OPERADOR}}</p>
-  </div>
-  
-  <table class="recibo-items">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Qtd</th>
-        <th>Valor</th>
-        <th class="right">Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ITEMS}}
-    </tbody>
-  </table>
-  
-  <div class="recibo-totais">
-    <p class="text-right"><span class="font-bold">Subtotal:</span> {{SUBTOTAL}}</p>
-    <p class="text-right"><span class="font-bold">Desconto:</span> {{DESCONTO}}</p>
-    <p class="recibo-total text-right">TOTAL: {{TOTAL}}</p>
-  </div>
-  
-  <div class="recibo-pagamento">
-    <p><span class="font-bold">Forma de pagamento:</span> {{FORMA_PAGAMENTO}}</p>
-    <p><span class="font-bold">Valor recebido:</span> {{VALOR_PAGO}}</p>
-    <p><span class="font-bold">Troco:</span> {{TROCO}}</p>
-  </div>
-  
-  <div class="recibo-footer">
-    <p>ORION PDV - Sistema de Gestão de Vendas</p>
-    <p>{{DATA_HORA}}</p>
-    <p class="font-bold">OBRIGADO PELA PREFERÊNCIA!</p>
-    <p>Volte Sempre</p>
-  </div>
-  
-  <div class="recibo-qrcode">
-    <p>{{QR_CODE}}</p>
-  </div>
-  
-  <div class="no-print" style="position: fixed; bottom: 20px; left: 0; width: 100%; text-align: center; padding: 10px; background-color: #f5f5f5;">
-    <button onclick="window.print();" style="padding: 10px 20px; background-color: #0B3D91; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-      <i style="margin-right: 5px;">🖨️</i> Imprimir Recibo
-    </button>
-    &nbsp;
-    <button onclick="window.close();" style="padding: 10px 20px; background-color: #555; color: white; border: none; border-radius: 5px; cursor: pointer;">
-      Fechar
-    </button>
-  </div>
-  
-  <script>
-    // Auto-imprimir quando aberto em nova janela
-    window.onload = function() {
-      // Se foi aberto como pop-up, imprimir automaticamente
-      if (window.opener) {
-        setTimeout(function() {
-          window.print();
-        }, 500);
-      }
-    };
-  </script>
+    <div class="recibo-container">
+        <div class="recibo-header">
+            <h2>Comprovante de Venda</h2>
+        </div>
+        <div class="recibo-content">
+            <div id="recibo">
+                <!-- O conteúdo do recibo será gerado dinamicamente pelo JavaScript -->
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                    <p>Carregando dados do recibo...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="actions">
+        <button id="btn-imprimir" class="btn btn-primary">
+            <i class="fas fa-print"></i> Imprimir
+        </button>
+        <button id="btn-voltar" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+    </div>
+    
+    <!-- Notificações -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/db-fix.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/core.js"></script>
+    <script src="assets/js/recibo.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botões
+            const btnImprimir = document.getElementById('btn-imprimir');
+            const btnVoltar = document.getElementById('btn-voltar');
+            
+            // Event Listeners
+            btnImprimir.addEventListener('click', function() {
+                window.print();
+            });
+            
+            btnVoltar.addEventListener('click', function() {
+                window.close();
+            });
+            
+            // Verificar se há um ID de venda na URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const vendaId = urlParams.get('venda');
+            
+            if (!vendaId) {
+                document.getElementById('recibo').innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                        <p>ID da venda não informado.</p>
+                        <button onclick="window.close();" class="btn btn-outline-primary mt-3">
+                            <i class="fas fa-times"></i> Fechar
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Carregar venda e gerar recibo
+            try {
+                // Verificar se estamos autenticados
+                if (!auth.verificarAutenticacao()) {
+                    // Permitir abrir o recibo mesmo sem autenticação (para casos como envio por e-mail ou link direto)
+                    // Mas tentar carregar o banco de dados
+                    db.inicializar();
+                }
+                
+                const venda = db.getVenda(vendaId);
+                
+                if (!venda) {
+                    document.getElementById('recibo').innerHTML = `
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                            <p>Venda não encontrada.</p>
+                            <button onclick="window.close();" class="btn btn-outline-primary mt-3">
+                                <i class="fas fa-times"></i> Fechar
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Obter configurações da empresa
+                const config = db.getConfig();
+                
+                // Gerar HTML dos itens
+                let itensHTML = '';
+                venda.itens.forEach((item, index) => {
+                    itensHTML += `
+                        <tr>
+                            <td>${index + 1}. ${item.nome}</td>
+                            <td>${item.quantidade}</td>
+                            <td>R$ ${item.preco.toFixed(2)}</td>
+                            <td class="text-right">R$ ${item.subtotal.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                // Formatar data
+                const data = new Date(venda.data);
+                const dataFormatada = data.toLocaleDateString('pt-BR');
+                const horaFormatada = data.toLocaleTimeString('pt-BR');
+                
+                // Valor recebido e troco (fictícios para o recibo)
+                // Numa implementação real, esses valores seriam armazenados na venda
+                const valorPago = venda.valor_pago || venda.total;
+                const troco = venda.troco || (venda.valor_pago ? venda.valor_pago - venda.total : 0);
+                
+                // Substituir variáveis no HTML
+                const reciboHTML = `
+                    <div style="font-family: monospace; line-height: 1.4; font-size: 12px;">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; font-size: 16px;">${config.nome_empresa || 'ORION PDV'}</h3>
+                            <p style="margin: 0;">${config.endereco || ''}</p>
+                            <p style="margin: 0;">${config.cidade || ''}</p>
+                            <p style="margin: 0;">CNPJ: ${config.cnpj || ''}</p>
+                            <p style="margin: 0;">${config.telefone || ''}</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <p><strong>CUPOM NÃO FISCAL</strong></p>
+                            <p><strong>Venda:</strong> ${venda.id}</p>
+                            <p><strong>Data:</strong> ${dataFormatada} ${horaFormatada}</p>
+                            <p><strong>Cliente:</strong> ${venda.cliente_nome}</p>
+                            <p><strong>Operador:</strong> ${venda.usuario}</p>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Item</th>
+                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Qtd</th>
+                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Valor</th>
+                                    <th style="text-align: right; border-bottom: 1px dashed #ccc; padding: 3px 0;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itensHTML}
+                            </tbody>
+                        </table>
+                        
+                        <div style="text-align: right; border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
+                            <p><strong>Subtotal:</strong> R$ ${venda.subtotal.toFixed(2)}</p>
+                            <p><strong>Desconto:</strong> R$ ${venda.desconto.toFixed(2)}</p>
+                            <p style="font-size: 14px;"><strong>TOTAL: R$ ${venda.total.toFixed(2)}</strong></p>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
+                            <p><strong>Forma de pagamento:</strong> ${venda.forma_pagamento}</p>
+                            <p><strong>Valor pago:</strong> R$ ${valorPago.toFixed(2)}</p>
+                            <p><strong>Troco:</strong> R$ ${troco.toFixed(2)}</p>
+                        </div>
+                        
+                        <div style="text-align: center; border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
+                            <p>ORION PDV - Sistema de Gestão de Vendas</p>
+                            <p>${dataFormatada} ${horaFormatada}</p>
+                            <p><strong>OBRIGADO PELA PREFERÊNCIA!</strong></p>
+                            <p>Volte Sempre</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('recibo').innerHTML = reciboHTML;
+                
+            } catch (erro) {
+                console.error('Erro ao gerar recibo:', erro);
+                
+                document.getElementById('recibo').innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                        <p>Erro ao gerar recibo: ${erro.message}</p>
+                        <button onclick="window.close();" class="btn btn-outline-primary mt-3">
+                            <i class="fas fa-times"></i> Fechar
+                        </button>
+                    </div>
+                `;
+            }
+        });
+    </script>
 </body>
 </html>
