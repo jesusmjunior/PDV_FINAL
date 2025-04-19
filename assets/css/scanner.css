@@ -154,3 +154,31 @@
 }
 
 #scanner-status.info
+/* scanner.css */
+#scanner-video {
+    object-fit: cover;
+    transform: scaleX(-1);
+}
+
+.btn-toggle-torch.active {
+    background-color: var(--warning);
+    color: black;
+}
+
+.scanner-status.active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.scanner-status {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+@keyframes scanning {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
