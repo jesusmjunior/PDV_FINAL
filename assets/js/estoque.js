@@ -1,11 +1,12 @@
 /**
- * ORION PDV - Gerenciamento de Estoque
+ * ORION PDV - Módulo de Gerenciamento de Estoque
+ * Versão 2.0 (2025)
  * 
  * Este módulo implementa:
- * - Listagem de produtos em estoque
- * - Filtros e buscas
- * - Movimentações de estoque
- * - Ajustes de inventário
+ * - Controle de estoque baseado em códigos de barras
+ * - Registro de movimentações (entradas, saídas e ajustes)
+ * - Relatórios de produtos críticos (sem estoque ou abaixo do mínimo)
+ * - Histórico completo de movimentações
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,446 +16,1018 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Dados do usuário
-    const user = auth.getUsuarioAtual();
-    document.getElementById('user-name').textContent = user.nome;
+    // Elementos DOM
+    const elementos = {
+        // Elementos de usuário
+        userNameEl: document.getElementById('user-name'),
+        userRoleEl: document.getElementById('user-role'),
+        currentDateEl: document.getElementById('current-date'),
+        
+        // Estatísticas
+        totalProdutosEl: document.getElementById('total-produtos'),
+        totalItensEl: document.getElementById('total-itens'),
+        estoqueBaixoEl: document.getElementById('estoque-baixo'),
+        semEstoqueEl: document.getElementById('sem-estoque'),
+        
+        // Movimentação de estoque
+        formMovimentacao: document.getElementById('form-movimentacao'),
+        codigoBarrasMovimentacaoInput: document.getElementById('codigo-barras-movimentacao'),
+        btnBuscarProduto: document.getElementById('btn-buscar-produto'),
+        produtoInfo: document.getElementById('produto-info'),
+        produtoNomeInfo: document.getElementById('produto-nome-info'),
+        produtoEstoqueInfo: document.getElementById('produto-estoque-info'),
+        tipoMovimentacaoSelect: document.getElementById('tipo-movimentacao'),
+        quantidadeMovimentacaoInput: document.getElementById('quantidade-movimentacao'),
+        motivoMovimentacaoSelect: document.getElementById('motivo-movimentacao'),
+        outroMotivoGrupo: document.getElementById('grupo-outro-motivo'),
+        outroMotivoInput: document.getElementById('outro-motivo'),
+        observacaoMovimentacaoInput: document.getElementById('observacao-movimentacao'),
+        btnRegistrarMovimentacao: document.getElementById('btn-registrar-movimentacao'),
+        
+        // Histórico de movimentações
+        btnFiltroHistorico: document.getElementById('btn-filtro-historico'),
+        filtrosHistorico: document.getElementById('filtros-historico'),
+        filtroTipoSelect: document.getElementById('filtro-tipo'),
+        filtroDataInicioInput: document.getElementById('filtro-data-inicio'),
+        filtroDataFimInput: document.getElementById('filtro-data-fim'),
+        btnAplicarFiltro: document.getElementById('btn-aplicar-filtro'),
+        btnLimparFiltro: document.getElementById('btn-limpar-filtro'),
+        tabelaMovimentacoes: document.getElementById('tabela-movimentacoes'),
+        paginacaoHistorico: document.getElementById('paginacao-historico'),
+        
+        // Produtos críticos
+        filtroCriticoSelect: document.getElementById('filtro-critico'),
+        tabelaCriticos: document.getElementById('tabela-criticos'),
+        paginacaoCriticos: document.getElementById('paginacao-criticos'),
+        
+        // Modais
+        modalDetalhes: document.getElementById('modal-detalhes'),
+        detalhesMovimentacao: document.getElementById('detalhes-movimentacao'),
+        modalConfirmacao: document.getElementById('modal-confirmacao'),
+        confirmacaoMensagem: document.getElementById('confirmacao-mensagem'),
+        btnConfirmar: document.getElementById('btn-confirmar')
+    };
     
-    // Data atual
-    const dataAtual = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('current-date').textContent = dataAtual.toLocaleDateString('pt-BR', options);
+    // Estado da aplicação
+    const estado = {
+        // Produto atual na movimentação
+        produtoAtual: null,
+        
+        // Paginação de histórico
+        paginaHistorico: 1,
+        itensPorPaginaHistorico: 10,
+        movimentacoes: [],
+        movimentacoesFiltradas: [],
+        
+        // Filtros de histórico
+        filtros: {
+            tipo: '',
+            dataInicio: null,
+            dataFim: null
+        },
+        
+        // Paginação de produtos críticos
+        paginaCriticos: 1,
+        itensPorPaginaCriticos: 10,
+        produtosCriticos: [],
+        produtosCriticosFiltrados: [],
+        
+        // Filtro de produtos críticos
+        filtroCritico: 'todos',
+        
+        // Movimentação para confirmar
+        movimentacaoParaConfirmar: null,
+        
+        // Flags de carregamento
+        carregandoEstatisticas: false,
+        carregandoMovimentacoes: false,
+        carregandoCriticos: false
+    };
     
-    // Elementos DOM - Abas
-    const tabListagem = document.getElementById('tab-listagem');
-    const tabMovimentacoes = document.getElementById('tab-movimentacoes');
-    const tabScanner = document.getElementById('tab-scanner');
+    // Inicializar
+    iniciar();
     
-    const contentListagem = document.getElementById('content-listagem');
-    const contentMovimentacoes = document.getElementById('content-movimentacoes');
-    const contentScanner = document.getElementById('content-scanner');
+    /**
+     * Inicializa a aplicação
+     */
+    function iniciar() {
+        // Carregar dados do usuário
+        carregarDadosUsuario();
+        
+        // Carregar dados iniciais
+        carregarEstatisticas();
+        carregarMovimentacoes();
+        carregarProdutosCriticos();
+        
+        // Configurar eventos
+        configurarEventos();
+    }
     
-    // Elementos DOM - Listagem
-    const filtroGrupoSelect = document.getElementById('filtro-grupo');
-    const buscaProdutoInput = document.getElementById('busca-produto');
-    const tabelaProdutos = document.getElementById('tabela-produtos');
-    const btnExportar = document.getElementById('btn-exportar');
+    /**
+     * Carrega dados do usuário
+     */
+    function carregarDadosUsuario() {
+        // Dados do usuário
+        const user = auth.getUsuarioAtual();
+        if (user) {
+            elementos.userNameEl.textContent = user.nome;
+            elementos.userRoleEl.textContent = user.perfil === 'admin' ? 'Administrador' : 
+                                             user.perfil === 'supervisor' ? 'Supervisor' : 'Vendedor';
+        }
+        
+        // Data atual
+        const dataAtual = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        elementos.currentDateEl.textContent = dataAtual.toLocaleDateString('pt-BR', options);
+    }
     
-    // Elementos DOM - Movimentações
-    const tabelaMovimentacoes = document.getElementById('tabela-movimentacoes');
-    const btnNovaMovimentacao = document.getElementById('btn-nova-movimentacao');
-    
-    // Elementos DOM - Modal de Estoque
-    const modalEstoque = document.getElementById('modal-estoque');
-    const btnCloseModal = document.querySelectorAll('.btn-close-modal');
-    const formEstoque = document.getElementById('form-estoque');
-    const produtoIdSelect = document.getElementById('produto-id');
-    const tipoMovimentacaoSelect = document.getElementById('tipo-movimentacao');
-    const quantidadeInput = document.getElementById('quantidade');
-    const motivoSelect = document.getElementById('motivo');
-    const outroMotivoContainer = document.getElementById('outro-motivo-container');
-    const outroMotivoInput = document.getElementById('outro-motivo');
-    const observacaoInput = document.getElementById('observacao');
-    
-    // Carregar dados iniciais
-    carregarGrupos();
-    carregarProdutos();
-    carregarMovimentacoes();
-    
-    // Event Listeners - Abas
-    tabListagem.addEventListener('click', function(e) {
-        e.preventDefault();
-        ativarAba('listagem');
-    });
-    
-    tabMovimentacoes.addEventListener('click', function(e) {
-        e.preventDefault();
-        ativarAba('movimentacoes');
-    });
-    
-    tabScanner.addEventListener('click', function(e) {
-        e.preventDefault();
-        ativarAba('scanner');
-    });
-    
-    // Event Listeners - Listagem
-    filtroGrupoSelect.addEventListener('change', carregarProdutos);
-    buscaProdutoInput.addEventListener('input', carregarProdutos);
-    
-    btnExportar.addEventListener('click', function() {
-        exportarProdutos();
-    });
-    
-    // Event Listeners - Movimentações
-    btnNovaMovimentacao.addEventListener('click', function() {
-        abrirModalEstoque();
-    });
-    
-    // Event Listeners - Modal de Estoque
-    btnCloseModal.forEach(btn => {
-        btn.addEventListener('click', function() {
-            modalEstoque.style.display = 'none';
+    /**
+     * Configura eventos da aplicação
+     */
+    function configurarEventos() {
+        // Form de movimentação
+        elementos.formMovimentacao.addEventListener('submit', registrarMovimentacao);
+        elementos.btnBuscarProduto.addEventListener('click', buscarProduto);
+        
+        // Buscar produto ao pressionar Enter
+        elementos.codigoBarrasMovimentacaoInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarProduto();
+            }
         });
-    });
-    
-    motivoSelect.addEventListener('change', function() {
-        outroMotivoContainer.style.display = this.value === 'outro' ? 'block' : 'none';
-    });
-    
-    formEstoque.addEventListener('submit', function(e) {
-        e.preventDefault();
-        salvarMovimentacaoEstoque();
-    });
-    
-    // Logout
-    document.getElementById('btn-logout').addEventListener('click', function() {
-        auth.fazerLogout();
-        window.location.href = 'index.html';
-    });
-    
-    // ========== FUNÇÕES ==========
-    
-    function ativarAba(aba) {
-        // Desativar todas as abas
-        tabListagem.classList.remove('active');
-        tabListagem.style.color = 'var(--text-muted)';
-        tabListagem.style.borderBottom = '2px solid transparent';
         
-        tabMovimentacoes.classList.remove('active');
-        tabMovimentacoes.style.color = 'var(--text-muted)';
-        tabMovimentacoes.style.borderBottom = '2px solid transparent';
+        // Tipo de movimentação
+        elementos.tipoMovimentacaoSelect.addEventListener('change', function() {
+            // Ajustar texto da quantidade conforme tipo
+            const tipo = this.value;
+            
+            if (tipo === 'saida' && estado.produtoAtual) {
+                // No caso de saída, limitar ao estoque disponível
+                elementos.quantidadeMovimentacaoInput.max = estado.produtoAtual.estoque;
+            } else {
+                // Para entrada ou ajuste, não limitar
+                elementos.quantidadeMovimentacaoInput.removeAttribute('max');
+            }
+        });
         
-        tabScanner.classList.remove('active');
-        tabScanner.style.color = 'var(--text-muted)';
-        tabScanner.style.borderBottom = '2px solid transparent';
+        // Motivo outro
+        elementos.motivoMovimentacaoSelect.addEventListener('change', function() {
+            elementos.outroMotivoGrupo.style.display = 
+                this.value === 'outro' ? 'block' : 'none';
+        });
         
-        // Ocultar todos os conteúdos
-        contentListagem.style.display = 'none';
-        contentMovimentacoes.style.display = 'none';
-        contentScanner.style.display = 'none';
+        // Filtros de histórico
+        elementos.btnFiltroHistorico.addEventListener('click', function() {
+            elementos.filtrosHistorico.style.display = 
+                elementos.filtrosHistorico.style.display === 'none' ? 'block' : 'none';
+        });
         
-        // Ativar aba selecionada
-        if (aba === 'listagem') {
-            tabListagem.classList.add('active');
-            tabListagem.style.color = 'var(--text-light)';
-            tabListagem.style.borderBottom = '2px solid var(--primary)';
-            contentListagem.style.display = 'block';
-        } else if (aba === 'movimentacoes') {
-            tabMovimentacoes.classList.add('active');
-            tabMovimentacoes.style.color = 'var(--text-light)';
-            tabMovimentacoes.style.borderBottom = '2px solid var(--primary)';
-            contentMovimentacoes.style.display = 'block';
-        } else if (aba === 'scanner') {
-            tabScanner.classList.add('active');
-            tabScanner.style.color = 'var(--text-light)';
-            tabScanner.style.borderBottom = '2px solid var(--primary)';
-            contentScanner.style.display = 'block';
+        elementos.btnAplicarFiltro.addEventListener('click', aplicarFiltros);
+        elementos.btnLimparFiltro.addEventListener('click', limparFiltros);
+        
+        // Filtro de produtos críticos
+        elementos.filtroCriticoSelect.addEventListener('change', function() {
+            estado.filtroCritico = this.value;
+            filtrarProdutosCriticos();
+            renderizarTabelaCriticos();
+        });
+        
+        // Fechar modais
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    fecharModal(modal);
+                }
+            });
+        });
+        
+        // Logout
+        document.getElementById('btn-logout').addEventListener('click', function() {
+            auth.fazerLogout();
+            window.location.href = 'index.html';
+        });
+    }
+    
+    /**
+     * Carrega estatísticas de estoque
+     */
+    function carregarEstatisticas() {
+        // Evitar múltiplas chamadas simultâneas
+        if (estado.carregandoEstatisticas) return;
+        estado.carregandoEstatisticas = true;
+        
+        try {
+            // Obter estatísticas do relatório de estoque
+            const relatorio = db.gerarRelatorioEstoque();
+            
+            // Exibir estatísticas
+            elementos.totalProdutosEl.textContent = relatorio.totais.produtos;
+            elementos.totalItensEl.textContent = relatorio.totais.itens_estoque.toLocaleString();
+            elementos.estoqueBaixoEl.textContent = relatorio.resumo.estoque_baixo;
+            elementos.semEstoqueEl.textContent = relatorio.resumo.sem_estoque;
+            
+            estado.carregandoEstatisticas = false;
+        } catch (erro) {
+            console.error('Erro ao carregar estatísticas:', erro);
+            exibirMensagem('Erro ao carregar estatísticas de estoque', 'error');
+            estado.carregandoEstatisticas = false;
         }
     }
     
-    function carregarGrupos() {
-        const grupos = db.getGruposProdutos();
-        
-        // Limpar select
-        filtroGrupoSelect.innerHTML = '<option value="">Todos os Grupos</option>';
-        
-        // Adicionar grupos ao select
-        grupos.forEach(grupo => {
-            const option = document.createElement('option');
-            option.value = grupo;
-            option.textContent = grupo;
-            filtroGrupoSelect.appendChild(option);
-        });
-    }
-    
-    function carregarProdutos() {
-        const produtos = db.getProdutos();
-        const tbody = tabelaProdutos.querySelector('tbody');
-        
-        // Limpar tabela
-        tbody.innerHTML = '';
-        
-        // Filtros
-        const termoBusca = buscaProdutoInput.value.toLowerCase();
-        const grupoFiltro = filtroGrupoSelect.value;
-        
-        // Ordenar produtos por nome
-        const produtosOrdenados = Object.values(produtos).sort((a, b) => a.nome.localeCompare(b.nome));
-        
-        // Filtrar produtos
-        const produtosFiltrados = produtosOrdenados.filter(produto => {
-            // Filtro de busca
-            const matchBusca = termoBusca === '' || 
-                produto.nome.toLowerCase().includes(termoBusca) || 
-                produto.codigo_barras.toLowerCase().includes(termoBusca);
-            
-            // Filtro de grupo
-            const matchGrupo = grupoFiltro === '' || produto.grupo === grupoFiltro;
-            
-            return matchBusca && matchGrupo;
-        });
-        
-        // Adicionar produtos à tabela
-        produtosFiltrados.forEach(produto => {
-            const tr = document.createElement('tr');
-            
-            // Determinar status de estoque
-            let status = 'Adequado';
-            let statusClass = '';
-            
-            if (produto.estoque <= 0) {
-                status = 'Esgotado';
-                statusClass = 'text-danger';
-            } else if (produto.estoque <= produto.estoque_minimo) {
-                status = 'Baixo';
-                statusClass = 'text-warning';
-            }
-            
-            tr.innerHTML = `
-                <td>${produto.codigo_barras}</td>
-                <td>${produto.nome}</td>
-                <td>${produto.grupo || '-'}</td>
-                <td>R$ ${produto.preco.toFixed(2)}</td>
-                <td>
-                    <span class="${produto.estoque <= 0 ? 'text-danger' : produto.estoque <= produto.estoque_minimo ? 'text-warning' : ''}">
-                        ${produto.estoque}
-                    </span>
-                </td>
-                <td>${produto.estoque_minimo}</td>
-                <td><span class="${statusClass}">${status}</span></td>
-                <td>
-                    <button class="btn btn-outline-primary btn-sm btn-add-estoque" data-id="${produto.id}">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button class="btn btn-outline-info btn-sm btn-view-produto" data-id="${produto.id}">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            `;
-            
-            tbody.appendChild(tr);
-        });
-        
-        // Adicionar eventos aos botões
-        document.querySelectorAll('.btn-add-estoque').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.getAttribute('data-id');
-                abrirModalEstoque(id);
-            });
-        });
-        
-        document.querySelectorAll('.btn-view-produto').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.getAttribute('data-id');
-                window.location.href = `produto.html?id=${id}`;
-            });
-        });
-    }
-    
+    /**
+     * Carrega histórico de movimentações
+     */
     function carregarMovimentacoes() {
-        const movimentacoes = db.getMovimentacoesEstoque();
-        const tbody = tabelaMovimentacoes.querySelector('tbody');
+        // Evitar múltiplas chamadas simultâneas
+        if (estado.carregandoMovimentacoes) return;
+        estado.carregandoMovimentacoes = true;
         
-        // Limpar tabela
-        tbody.innerHTML = '';
-        
-        // Ordenar movimentações por data (mais recentes primeiro)
-        const movimentacoesOrdenadas = [...movimentacoes].sort((a, b) => {
-            return new Date(b.data) - new Date(a.data);
-        });
-        
-        // Adicionar movimentações à tabela
-        movimentacoesOrdenadas.forEach(mov => {
-            const tr = document.createElement('tr');
+        try {
+            // Obter todas as movimentações
+            const movimentacoes = db.getMovimentacoesEstoque();
             
-            // Formatar data
-            const data = new Date(mov.data);
-            const dataFormatada = data.toLocaleDateString('pt-BR') + ' ' + 
-                                  data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            // Ordenar por data (mais recente primeiro)
+            estado.movimentacoes = movimentacoes.sort((a, b) => 
+                new Date(b.data) - new Date(a.data)
+            );
             
-            // Classe do tipo
-            let tipoClass = '';
-            if (mov.tipo === 'entrada') {
-                tipoClass = 'text-success';
-            } else if (mov.tipo === 'saida') {
-                tipoClass = 'text-danger';
-            }
+            // Aplicar filtros
+            aplicarFiltros();
             
-            tr.innerHTML = `
-                <td>${dataFormatada}</td>
-                <td>${mov.produto_nome}</td>
-                <td><span class="${tipoClass}">${mov.tipo === 'entrada' ? 'Entrada' : mov.tipo === 'saida' ? 'Saída' : 'Ajuste'}</span></td>
-                <td>${mov.quantidade}</td>
-                <td>${mov.motivo}</td>
-                <td>${mov.usuario}</td>
+            estado.carregandoMovimentacoes = false;
+        } catch (erro) {
+            console.error('Erro ao carregar movimentações:', erro);
+            exibirMensagem('Erro ao carregar histórico de movimentações', 'error');
+            estado.carregandoMovimentacoes = false;
+            
+            // Exibir mensagem de erro na tabela
+            elementos.tabelaMovimentacoes.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger">
+                        <i class="fas fa-exclamation-circle"></i> Erro ao carregar movimentações
+                    </td>
+                </tr>
             `;
-            
-            tbody.appendChild(tr);
-        });
+        }
     }
     
-    function exportarProdutos() {
+    /**
+     * Carrega produtos com estoque crítico
+     */
+    function carregarProdutosCriticos() {
+        // Evitar múltiplas chamadas simultâneas
+        if (estado.carregandoCriticos) return;
+        estado.carregandoCriticos = true;
+        
         try {
-            // Obter produtos
+            // Obter produtos com estoque zero ou abaixo do mínimo
             const produtos = db.getProdutos();
             
-            // Transformar para formato de tabela
-            const dados = Object.values(produtos).map(produto => ({
-                ID: produto.id,
-                'Código de Barras': produto.codigo_barras,
-                Nome: produto.nome,
-                Grupo: produto.grupo || '',
-                Marca: produto.marca || '',
-                'Preço': produto.preco.toFixed(2),
-                Estoque: produto.estoque,
-                'Estoque Mínimo': produto.estoque_minimo,
-                'Data de Cadastro': new Date(produto.data_cadastro).toLocaleDateString('pt-BR'),
-                'URL da Foto': produto.foto || ''
-            }));
+            // Filtrar produtos críticos
+            estado.produtosCriticos = Object.values(produtos).filter(produto => 
+                produto.estoque <= 0 || (produto.estoque_minimo && produto.estoque <= produto.estoque_minimo)
+            );
             
-            // Exportar para CSV
-            const nomeArquivo = `produtos_${new Date().toISOString().split('T')[0]}.csv`;
-            db.exportarCSV(dados, nomeArquivo);
+            // Ordenar: primeiro os sem estoque, depois os com estoque baixo
+            estado.produtosCriticos.sort((a, b) => {
+                // Primeiro critério: sem estoque vem antes de estoque baixo
+                if ((a.estoque <= 0) !== (b.estoque <= 0)) {
+                    return a.estoque <= 0 ? -1 : 1;
+                }
+                // Segundo critério: ordenar por nome
+                return a.nome.localeCompare(b.nome);
+            });
             
-            // Mensagem de sucesso
-            exibirMensagem('Produtos exportados com sucesso', 'success');
+            // Aplicar filtro inicial
+            filtrarProdutosCriticos();
+            
+            estado.carregandoCriticos = false;
         } catch (erro) {
-            exibirMensagem('Erro ao exportar produtos: ' + erro, 'error');
-        }
-    }
-    
-    function abrirModalEstoque(produtoId) {
-        // Carregar produtos para o select
-        carregarProdutosSelect();
-        
-        // Se temos um ID de produto, selecionar no select
-        if (produtoId) {
-            produtoIdSelect.value = produtoId;
-        }
-        
-        // Resetar formulário
-        tipoMovimentacaoSelect.selectedIndex = 0;
-        quantidadeInput.value = '1';
-        motivoSelect.selectedIndex = 0;
-        outroMotivoInput.value = '';
-        observacaoInput.value = '';
-        outroMotivoContainer.style.display = 'none';
-        
-        // Exibir modal
-        modalEstoque.style.display = 'flex';
-    }
-    
-    function carregarProdutosSelect() {
-        const produtos = db.getProdutos();
-        
-        // Limpar select
-        produtoIdSelect.innerHTML = '<option value="">Selecione um produto...</option>';
-        
-        // Ordenar produtos por nome
-        const produtosOrdenados = Object.values(produtos).sort((a, b) => a.nome.localeCompare(b.nome));
-        
-        // Adicionar produtos ao select
-        produtosOrdenados.forEach(produto => {
-            const option = document.createElement('option');
-            option.value = produto.id;
-            option.textContent = `${produto.nome} (${produto.codigo_barras}) - Estoque: ${produto.estoque}`;
-            produtoIdSelect.appendChild(option);
-        });
-    }
-    
-    function salvarMovimentacaoEstoque() {
-        // Validar formulário
-        const produtoId = produtoIdSelect.value;
-        
-        if (!produtoId) {
-            exibirMensagem('Selecione um produto', 'error');
-            return;
-        }
-        
-        const quantidade = parseInt(quantidadeInput.value);
-        
-        if (isNaN(quantidade) || quantidade <= 0) {
-            exibirMensagem('Quantidade inválida', 'error');
-            return;
-        }
-        
-        // Obter produto
-        const produto = db.getProduto(produtoId);
-        
-        // Verificar tipo de movimentação
-        const tipo = tipoMovimentacaoSelect.value;
-        
-        // Para saídas, verificar se há estoque suficiente
-        if (tipo === 'saida' && quantidade > produto.estoque) {
-            exibirMensagem(`Estoque insuficiente. Disponível: ${produto.estoque}`, 'error');
-            return;
-        }
-        
-        // Obter motivo
-        let motivo = motivoSelect.value;
-        
-        // Se for "outro", usar o texto informado
-        if (motivo === 'outro') {
-            motivo = outroMotivoInput.value.trim();
+            console.error('Erro ao carregar produtos críticos:', erro);
+            exibirMensagem('Erro ao carregar produtos com estoque crítico', 'error');
+            estado.carregandoCriticos = false;
             
-            if (!motivo) {
-                exibirMensagem('Informe o motivo', 'error');
-                return;
+            // Exibir mensagem de erro na tabela
+            elementos.tabelaCriticos.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger">
+                        <i class="fas fa-exclamation-circle"></i> Erro ao carregar produtos
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    /**
+     * Aplica filtros ao histórico de movimentações
+     */
+    function aplicarFiltros() {
+        // Obter valores dos filtros
+        estado.filtros.tipo = elementos.filtroTipoSelect.value;
+        estado.filtros.dataInicio = elementos.filtroDataInicioInput.value ? 
+            new Date(elementos.filtroDataInicioInput.value) : null;
+        estado.filtros.dataFim = elementos.filtroDataFimInput.value ? 
+            new Date(elementos.filtroDataFimInput.value) : null;
+        
+        // Se data fim for informada, ajustar para o final do dia
+        if (estado.filtros.dataFim) {
+            estado.filtros.dataFim.setHours(23, 59, 59, 999);
+        }
+        
+        // Filtrar movimentações
+        estado.movimentacoesFiltradas = estado.movimentacoes.filter(mov => {
+            // Filtrar por tipo
+            if (estado.filtros.tipo && mov.tipo !== estado.filtros.tipo) {
+                return false;
+            }
+            
+            // Filtrar por data início
+            if (estado.filtros.dataInicio) {
+                const dataMovimentacao = new Date(mov.data);
+                if (dataMovimentacao < estado.filtros.dataInicio) {
+                    return false;
+                }
+            }
+            
+            // Filtrar por data fim
+            if (estado.filtros.dataFim) {
+                const dataMovimentacao = new Date(mov.data);
+                if (dataMovimentacao > estado.filtros.dataFim) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        // Reset da paginação
+        estado.paginaHistorico = 1;
+        
+        // Renderizar tabela com os dados filtrados
+        renderizarTabelaMovimentacoes();
+    }
+    
+    /**
+     * Limpa os filtros de movimentações
+     */
+    function limparFiltros() {
+        // Limpar campos
+        elementos.filtroTipoSelect.value = '';
+        elementos.filtroDataInicioInput.value = '';
+        elementos.filtroDataFimInput.value = '';
+        
+        // Limpar estado
+        estado.filtros = {
+            tipo: '',
+            dataInicio: null,
+            dataFim: null
+        };
+        
+        // Aplicar filtros limpos
+        aplicarFiltros();
+    }
+    
+    /**
+     * Filtra produtos críticos conforme seleção
+     */
+    function filtrarProdutosCriticos() {
+        const filtro = estado.filtroCritico;
+        
+        if (filtro === 'todos') {
+            estado.produtosCriticosFiltrados = [...estado.produtosCriticos];
+        } else if (filtro === 'sem_estoque') {
+            estado.produtosCriticosFiltrados = estado.produtosCriticos.filter(p => p.estoque <= 0);
+        } else if (filtro === 'estoque_baixo') {
+            estado.produtosCriticosFiltrados = estado.produtosCriticos.filter(p => 
+                p.estoque > 0 && p.estoque <= p.estoque_minimo
+            );
+        }
+        
+        // Reset da paginação
+        estado.paginaCriticos = 1;
+    }
+    
+    /**
+     * Renderiza a tabela de movimentações com paginação
+     */
+    function renderizarTabelaMovimentacoes() {
+        // Calcular paginação
+        const totalPaginas = Math.ceil(estado.movimentacoesFiltradas.length / estado.itensPorPaginaHistorico);
+        const inicio = (estado.paginaHistorico - 1) * estado.itensPorPaginaHistorico;
+        const fim = inicio + estado.itensPorPaginaHistorico;
+        const movimentacoesPagina = estado.movimentacoesFiltradas.slice(inicio, fim);
+        
+        // Verificar se há movimentações para exibir
+        if (movimentacoesPagina.length === 0) {
+            elementos.tabelaMovimentacoes.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center">
+                        <i class="fas fa-info-circle"></i> Nenhuma movimentação encontrada
+                    </td>
+                </tr>
+            `;
+            elementos.paginacaoHistorico.innerHTML = '';
+            return;
+        }
+        
+        // Gerar linhas da tabela
+        let html = '';
+        movimentacoesPagina.forEach(mov => {
+            // Formatar data
+            const data = new Date(mov.data);
+            const dataFormatada = data.toLocaleDateString('pt-BR');
+            const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            // Determinar classe CSS baseada no tipo
+            const classesTipo = {
+                'entrada': 'text-success',
+                'saida': 'text-danger',
+                'ajuste': 'text-warning'
+            };
+            
+            // Formatar tipo para exibição
+            const tiposFormatados = {
+                'entrada': 'Entrada',
+                'saida': 'Saída',
+                'ajuste': 'Ajuste'
+            };
+            
+            html += `
+                <tr data-id="${mov.id}" class="linha-movimentacao">
+                    <td>${dataFormatada} ${horaFormatada}</td>
+                    <td title="${mov.produto_codigo}">${mov.produto_nome}</td>
+                    <td class="${classesTipo[mov.tipo] || ''}">
+                        ${tiposFormatados[mov.tipo] || mov.tipo}
+                    </td>
+                    <td>${mov.quantidade}</td>
+                    <td>${mov.estoque_anterior}</td>
+                    <td>${mov.estoque_atual}</td>
+                    <td>${mov.motivo}</td>
+                </tr>
+            `;
+        });
+        
+        elementos.tabelaMovimentacoes.innerHTML = html;
+        
+        // Adicionar evento para exibir detalhes ao clicar
+        document.querySelectorAll('.linha-movimentacao').forEach(linha => {
+            linha.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                exibirDetalhesMovimentacao(id);
+            });
+        });
+        
+        // Renderizar paginação
+        renderizarPaginacao(
+            totalPaginas, 
+            estado.paginaHistorico, 
+            elementos.paginacaoHistorico, 
+            (pagina) => {
+                estado.paginaHistorico = pagina;
+                renderizarTabelaMovimentacoes();
+            }
+        );
+    }
+    
+    /**
+     * Renderiza a tabela de produtos críticos com paginação
+     */
+    function renderizarTabelaCriticos() {
+        // Calcular paginação
+        const totalPaginas = Math.ceil(estado.produtosCriticosFiltrados.length / estado.itensPorPaginaCriticos);
+        const inicio = (estado.paginaCriticos - 1) * estado.itensPorPaginaCriticos;
+        const fim = inicio + estado.itensPorPaginaCriticos;
+        const produtosPagina = estado.produtosCriticosFiltrados.slice(inicio, fim);
+        
+        // Verificar se há produtos para exibir
+        if (produtosPagina.length === 0) {
+            elementos.tabelaCriticos.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center">
+                        <i class="fas fa-info-circle"></i> Nenhum produto com estoque crítico encontrado
+                    </td>
+                </tr>
+            `;
+            elementos.paginacaoCriticos.innerHTML = '';
+            return;
+        }
+        
+        // Gerar linhas da tabela
+        let html = '';
+        produtosPagina.forEach(produto => {
+            // Determinar status
+            let status = '';
+            let statusClasse = '';
+            
+            if (produto.estoque <= 0) {
+                status = 'Sem estoque';
+                statusClasse = 'text-danger';
+            } else if (produto.estoque <= produto.estoque_minimo) {
+                status = 'Estoque baixo';
+                statusClasse = 'text-warning';
+            }
+            
+            html += `
+                <tr>
+                    <td title="${produto.codigo_barras}">${formatarCodigoBarras(produto.codigo_barras)}</td>
+                    <td>${produto.nome}</td>
+                    <td>${produto.grupo || '-'}</td>
+                    <td class="text-center">${produto.estoque}</td>
+                    <td class="text-center">${produto.estoque_minimo || 0}</td>
+                    <td class="${statusClasse}">${status}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-primary btn-estoque" data-codigo="${produto.codigo_barras}" title="Movimentar estoque">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <a href="produto.html?codigo=${produto.codigo_barras}" class="btn btn-sm btn-info" title="Editar produto">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        elementos.tabelaCriticos.innerHTML = html;
+        
+        // Adicionar evento para movimentar estoque
+        document.querySelectorAll('.btn-estoque').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const codigo = this.getAttribute('data-codigo');
+                elementos.codigoBarrasMovimentacaoInput.value = codigo;
+                buscarProduto();
+                // Rolar para o formulário
+                elementos.formMovimentacao.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+        
+        // Renderizar paginação
+        renderizarPaginacao(
+            totalPaginas, 
+            estado.paginaCriticos, 
+            elementos.paginacaoCriticos, 
+            (pagina) => {
+                estado.paginaCriticos = pagina;
+                renderizarTabelaCriticos();
+            }
+        );
+    }
+    
+    /**
+     * Renderiza controles de paginação
+     */
+    function renderizarPaginacao(totalPaginas, paginaAtual, elementoPaginacao, callback) {
+        if (totalPaginas <= 1) {
+            elementoPaginacao.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // Botão anterior
+        html += `
+            <li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${paginaAtual - 1}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+        `;
+        
+        // Páginas
+        for (let i = 1; i <= totalPaginas; i++) {
+            if (totalPaginas > 7) {
+                // Versão compacta para muitas páginas
+                if (i === 1 || i === totalPaginas || 
+                   (i >= paginaAtual - 1 && i <= paginaAtual + 1)) {
+                    html += `
+                        <li class="page-item ${paginaAtual === i ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `;
+                } else if (i === 2 || i === totalPaginas - 1) {
+                    html += `
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    `;
+                }
+            } else {
+                // Versão completa para poucas páginas
+                html += `
+                    <li class="page-item ${paginaAtual === i ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
             }
         }
         
+        // Botão próximo
+        html += `
+            <li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${paginaAtual + 1}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        `;
+        
+        elementoPaginacao.innerHTML = html;
+        
+        // Adicionar eventos aos links de paginação
+        elementoPaginacao.querySelectorAll('.page-link[data-page]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const pagina = parseInt(this.getAttribute('data-page'));
+                if (!isNaN(pagina) && pagina > 0) {
+                    callback(pagina);
+                }
+            });
+        });
+    }
+    
+    /**
+     * Busca produto por código de barras para movimentação
+     */
+    function buscarProduto() {
+        const codigo = elementos.codigoBarrasMovimentacaoInput.value.trim();
+        
+        if (!codigo) {
+            exibirMensagem('Informe o código de barras do produto', 'warning');
+            return;
+        }
+        
+        // Buscar produto
         try {
-            // Atualizar estoque
-            let qtdAjuste = quantidade;
+            const produto = db.getProduto(codigo);
             
-            if (tipo === 'saida') {
-                qtdAjuste = -quantidade;
-            } else if (tipo === 'ajuste') {
-                // No ajuste, calculamos a diferença entre o valor atual e o desejado
-                qtdAjuste = quantidade - produto.estoque;
+            if (!produto) {
+                exibirMensagem('Produto não encontrado', 'error');
+                esconderInfoProduto();
+                return;
+            }
+            
+            // Guardar produto atual
+            estado.produtoAtual = produto;
+            
+            // Exibir informações do produto
+            elementos.produtoNomeInfo.textContent = produto.nome;
+            elementos.produtoEstoqueInfo.textContent = produto.estoque;
+            elementos.produtoInfo.style.display = 'block';
+            
+            // Habilitar botão de registrar
+            elementos.btnRegistrarMovimentacao.disabled = false;
+            
+            // Ajustar quantidade máxima conforme tipo de movimentação
+            if (elementos.tipoMovimentacaoSelect.value === 'saida') {
+                elementos.quantidadeMovimentacaoInput.max = produto.estoque;
+            } else {
+                elementos.quantidadeMovimentacaoInput.removeAttribute('max');
+            }
+            
+            // Focar no campo de quantidade
+            elementos.quantidadeMovimentacaoInput.focus();
+        } catch (erro) {
+            console.error('Erro ao buscar produto:', erro);
+            exibirMensagem('Erro ao buscar produto: ' + erro.message, 'error');
+            esconderInfoProduto();
+        }
+    }
+    
+    /**
+     * Esconde informações do produto
+     */
+    function esconderInfoProduto() {
+        elementos.produtoInfo.style.display = 'none';
+        estado.produtoAtual = null;
+        elementos.btnRegistrarMovimentacao.disabled = true;
+    }
+    
+    /**
+     * Registra uma movimentação de estoque
+     */
+    function registrarMovimentacao(e) {
+        e.preventDefault();
+        
+        try {
+            // Verificar se há produto selecionado
+            if (!estado.produtoAtual) {
+                throw new Error('Nenhum produto selecionado');
+            }
+            
+            // Obter dados do formulário
+            const tipo = elementos.tipoMovimentacaoSelect.value;
+            const quantidade = parseInt(elementos.quantidadeMovimentacaoInput.value);
+            let motivo = elementos.motivoMovimentacaoSelect.value;
+            
+            // Validar quantidade
+            if (isNaN(quantidade) || quantidade <= 0) {
+                throw new Error('Quantidade inválida');
+            }
+            
+            // Verificar estoque para saída
+            if (tipo === 'saida' && quantidade > estado.produtoAtual.estoque) {
+                throw new Error(`Quantidade maior que o estoque disponível (${estado.produtoAtual.estoque})`);
+            }
+            
+            // Tratar motivo "outro"
+            if (motivo === 'outro') {
+                const outroMotivo = elementos.outroMotivoInput.value.trim();
+                if (!outroMotivo) {
+                    throw new Error('Informe o motivo da movimentação');
+                }
+                motivo = outroMotivo;
+            }
+            
+            // Criar dados da movimentação para confirmar
+            const movimentacao = {
+                produto: estado.produtoAtual,
+                tipo: tipo,
+                quantidade: quantidade,
+                motivo: motivo,
+                observacao: elementos.observacaoMovimentacaoInput.value.trim()
+            };
+            
+            // Guardar movimentação para confirmação
+            estado.movimentacaoParaConfirmar = movimentacao;
+            
+            // Exibir confirmação
+            confirmarMovimentacao();
+        } catch (erro) {
+            console.error('Erro ao registrar movimentação:', erro);
+            exibirMensagem('Erro: ' + erro.message, 'error');
+        }
+    }
+    
+    /**
+     * Exibe confirmação da movimentação
+     */
+    function confirmarMovimentacao() {
+        if (!estado.movimentacaoParaConfirmar) return;
+        
+        const mov = estado.movimentacaoParaConfirmar;
+        
+        // Formatar tipo para exibição
+        const tiposFormatados = {
+            'entrada': 'Entrada',
+            'saida': 'Saída',
+            'ajuste': 'Ajuste'
+        };
+        
+        // Configurar mensagem de confirmação
+        let mensagem = `
+            <p>Confirma a ${tiposFormatados[mov.tipo]} de <strong>${mov.quantidade}</strong> 
+            unidades do produto <strong>${mov.produto.nome}</strong>?</p>
+            
+            <div class="mb-3">
+                <strong>Tipo:</strong> ${tiposFormatados[mov.tipo]}<br>
+                <strong>Motivo:</strong> ${mov.motivo}<br>
+                <strong>Estoque atual:</strong> ${mov.produto.estoque}<br>
+                <strong>Estoque após movimentação:</strong> 
+        `;
+        
+        // Calcular novo estoque
+        let novoEstoque;
+        if (mov.tipo === 'entrada') {
+            novoEstoque = mov.produto.estoque + mov.quantidade;
+        } else if (mov.tipo === 'saida') {
+            novoEstoque = Math.max(0, mov.produto.estoque - mov.quantidade);
+        } else { // ajuste
+            novoEstoque = mov.quantidade; // quantidade é o novo valor
+        }
+        
+        mensagem += `${novoEstoque}</div>`;
+        
+        // Verificar se ficará sem estoque ou abaixo do mínimo
+        if (novoEstoque <= 0) {
+            mensagem += `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Atenção: O produto ficará <strong>sem estoque</strong> após esta movimentação!
+                </div>
+            `;
+        } else if (mov.produto.estoque_minimo && novoEstoque <= mov.produto.estoque_minimo) {
+            mensagem += `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Atenção: O produto ficará com estoque <strong>abaixo do mínimo</strong> (${mov.produto.estoque_minimo}) após esta movimentação!
+                </div>
+            `;
+        }
+        
+        elementos.confirmacaoMensagem.innerHTML = mensagem;
+        
+        // Configurar botão de confirmação
+        elementos.btnConfirmar.innerHTML = `<i class="fas fa-check"></i> Confirmar Movimentação`;
+        elementos.btnConfirmar.className = 'btn btn-primary';
+        elementos.btnConfirmar.onclick = executarMovimentacao;
+        
+        // Exibir modal
+        abrirModal(elementos.modalConfirmacao);
+    }
+    
+    /**
+     * Executa uma movimentação de estoque
+     */
+    function executarMovimentacao() {
+        try {
+            if (!estado.movimentacaoParaConfirmar) return;
+            
+            const mov = estado.movimentacaoParaConfirmar;
+            
+            // Determinar quantidade para atualização
+            let quantidadeAtualizacao;
+            
+            if (mov.tipo === 'entrada') {
+                quantidadeAtualizacao = mov.quantidade; // positivo para entrada
+            } else if (mov.tipo === 'saida') {
+                quantidadeAtualizacao = -mov.quantidade; // negativo para saída
+            } else { // ajuste
+                // Quantidade é o valor final desejado
+                quantidadeAtualizacao = mov.quantidade - mov.produto.estoque;
             }
             
             // Registrar movimentação
-            db.atualizarEstoqueProduto(produtoId, qtdAjuste, motivo);
+            const resultado = db.atualizarEstoqueProduto(
+                mov.produto.codigo_barras,
+                quantidadeAtualizacao,
+                mov.motivo + (mov.observacao ? ' - ' + mov.observacao : '')
+            );
             
             // Fechar modal
-            modalEstoque.style.display = 'none';
+            fecharModal(elementos.modalConfirmacao);
+            
+            // Limpar formulário
+            limparFormularioMovimentacao();
             
             // Recarregar dados
-            carregarProdutos();
+            carregarEstatisticas();
             carregarMovimentacoes();
+            carregarProdutosCriticos();
             
-            // Mensagem de sucesso
-            exibirMensagem('Movimentação registrada com sucesso', 'success');
+            // Exibir mensagem de sucesso
+            exibirMensagem('Movimentação de estoque registrada com sucesso', 'success');
         } catch (erro) {
-            exibirMensagem('Erro ao registrar movimentação: ' + erro, 'error');
+            console.error('Erro ao executar movimentação:', erro);
+            exibirMensagem('Erro ao registrar movimentação: ' + erro.message, 'error');
+        } finally {
+            estado.movimentacaoParaConfirmar = null;
         }
     }
     
-    function exibirMensagem(mensagem, tipo) {
+    /**
+     * Limpa o formulário de movimentação
+     */
+    function limparFormularioMovimentacao() {
+        elementos.formMovimentacao.reset();
+        esconderInfoProduto();
+        elementos.outroMotivoGrupo.style.display = 'none';
+    }
+    
+    /**
+     * Exibe detalhes de uma movimentação
+     */
+    function exibirDetalhesMovimentacao(id) {
+        // Encontrar movimentação pelo ID
+        const movimentacao = estado.movimentacoes.find(m => m.id === id);
+        
+        if (!movimentacao) {
+            exibirMensagem('Movimentação não encontrada', 'error');
+            return;
+        }
+        
+        // Formatar data
+        const data = new Date(movimentacao.data);
+        const dataFormatada = data.toLocaleDateString('pt-BR');
+        const horaFormatada = data.toLocaleTimeString('pt-BR');
+        
+        // Formatar tipo para exibição
+        const tiposFormatados = {
+            'entrada': 'Entrada de Estoque',
+            'saida': 'Saída de Estoque',
+            'ajuste': 'Ajuste de Estoque'
+        };
+        
+        // Gerar HTML com detalhes
+        let html = `
+            <div class="detalhes-cabecalho mb-3">
+                <h4>${tiposFormatados[movimentacao.tipo] || movimentacao.tipo}</h4>
+                <p class="text-muted">
+                    <i class="fas fa-calendar"></i> ${dataFormatada} às ${horaFormatada}
+                </p>
+            </div>
+            
+            <div class="detalhes-produto mb-3">
+                <h5>Produto</h5>
+                <p>
+                    <strong>Nome:</strong> ${movimentacao.produto_nome}<br>
+                    <strong>Código:</strong> ${formatarCodigoBarras(movimentacao.produto_codigo)}
+                </p>
+            </div>
+            
+            <div class="detalhes-movimento mb-3">
+                <h5>Dados da Movimentação</h5>
+                <p>
+                    <strong>Quantidade:</strong> ${movimentacao.quantidade} unidades<br>
+                    <strong>Estoque Anterior:</strong> ${movimentacao.estoque_anterior}<br>
+                    <strong>Estoque Atual:</strong> ${movimentacao.estoque_atual}<br>
+                    <strong>Motivo:</strong> ${movimentacao.motivo || 'Não informado'}<br>
+                    <strong>Usuário:</strong> ${movimentacao.usuario || 'Sistema'}<br>
+                </p>
+            </div>
+        `;
+        
+        // Preencher modal
+        elementos.detalhesMovimentacao.innerHTML = html;
+        
+        // Exibir modal
+        abrirModal(elementos.modalDetalhes);
+    }
+    
+    /**
+     * Abre um modal
+     */
+    function abrirModal(modal) {
+        if (!modal) return;
+        modal.style.display = 'flex';
+        
+        // Aplicar efeito de fade-in
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+    }
+    
+    /**
+     * Fecha um modal
+     */
+    function fecharModal(modal) {
+        if (!modal) return;
+        modal.classList.remove('show');
+        
+        // Remover após a animação terminar
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+    
+    /**
+     * Formata um código de barras para exibição
+     */
+    function formatarCodigoBarras(codigo) {
+        if (!codigo) return '';
+        
+        // Remover espaços e caracteres não numéricos
+        codigo = codigo.replace(/\D/g, '');
+        
+        // Formatar EAN-13
+        if (codigo.length === 13) {
+            return codigo.substring(0, 1) + ' ' + 
+                   codigo.substring(1, 7) + ' ' + 
+                   codigo.substring(7);
+        }
+        
+        return codigo;
+    }
+    
+    /**
+     * Exibe uma mensagem toast
+     */
+    function exibirMensagem(mensagem, tipo = 'info', duracao = 3000) {
+        // Criar container se não existir
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        
         // Criar toast
         const toast = document.createElement('div');
         toast.className = `toast-notification toast-${tipo}`;
         toast.innerHTML = `
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'warning' ? 'exclamation-circle' : 'times-circle'}"></i>
+                <i class="fas fa-${tipo === 'success' ? 'check-circle' : 
+                                    tipo === 'warning' ? 'exclamation-triangle' : 
+                                    tipo === 'error' ? 'exclamation-circle' : 
+                                    'info-circle'}"></i>
                 <span>${mensagem}</span>
             </div>
         `;
         
-        // Adicionar ao DOM
-        document.body.appendChild(toast);
+        // Adicionar ao container
+        toastContainer.appendChild(toast);
         
         // Exibir com animação
         setTimeout(() => {
             toast.classList.add('show');
         }, 10);
         
-        // Remover após 3 segundos
+        // Remover após a duração
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => {
-                document.body.removeChild(toast);
+                toast.remove();
             }, 300);
-        }, 3000);
+        }, duracao);
     }
 });
