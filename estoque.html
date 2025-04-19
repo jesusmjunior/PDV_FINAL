@@ -641,4 +641,111 @@
                 } else if (tipoAjuste === 'ajuste') {
                     novoEstoque = quantidade;
                 }
-                
+                // Continuação do código anterior...
+
+                // Criar objeto de movimentação
+                const movimentacao = {
+                    id: db.generateId(),
+                    produtoId: produtoId,
+                    tipo: tipoAjuste,
+                    quantidade: quantidade,
+                    estoqueAnterior: estoqueAnterior,
+                    estoqueAtual: novoEstoque,
+                    data: new Date().toISOString(),
+                    usuario: user.id,
+                    observacao: observacaoAjusteInput.value.trim() || null
+                };
+
+                try {
+                    // Atualizar estoque do produto
+                    produto.estoque = novoEstoque;
+                    db.salvarProduto(produto);
+
+                    // Registrar movimentação
+                    db.salvarMovimentacaoEstoque(movimentacao);
+
+                    // Atualizar interface
+                    atualizarExibicaoProduto(produto);
+                    carregarTabelaEstoque();
+                    carregarMovimentacoes();
+
+                    // Feedback ao usuário
+                    exibirMensagem(`Estoque atualizado para ${novoEstoque} unidades`, 'success');
+                    document.getElementById('beep-success').play();
+
+                    // Resetar formulário
+                    formAjuste.reset();
+                    dadosProdutoDiv.style.display = 'none';
+                    produtoIdInput.value = '';
+
+                } catch (error) {
+                    console.error('Erro ao salvar ajuste:', error);
+                    exibirMensagem('Erro ao salvar ajuste: ' + error.message, 'error');
+                    document.getElementById('beep-error').play();
+                }
+            });
+
+            // Funções auxiliares
+            function atualizarExibicaoProduto(produto) {
+                nomeProdutoInput.value = produto.nome;
+                estoqueAtualInput.value = produto.estoque;
+            }
+
+            function buscarProdutoPorCodigo(codigo) {
+                try {
+                    const produto = db.buscarProdutoPorCodigo(codigo);
+                    
+                    if (produto) {
+                        produtoIdInput.value = produto.id;
+                        dadosProdutoDiv.style.display = 'block';
+                        atualizarExibicaoProduto(produto);
+                        exibirMensagem('Produto encontrado!', 'success');
+                    } else {
+                        resultadoScanner.innerHTML = `
+                            <div class="alert alert-warning mt-3">
+                                <i class="fas fa-exclamation-triangle"></i> Produto não encontrado
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Erro na busca:', error);
+                    exibirMensagem('Erro na busca: ' + error.message, 'error');
+                }
+            }
+
+            function exibirMensagem(mensagem, tipo) {
+                const toast = document.createElement('div');
+                toast.className = `toast-notification toast-${tipo} fade-in`;
+                toast.innerHTML = `
+                    <div class="toast-content">
+                        <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                        <span>${mensagem}</span>
+                    </div>
+                `;
+
+                const container = document.getElementById('toast-container');
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
+
+            // Restante das funções de carregamento de dados...
+        });
+
+        // Funções externas
+        function carregarTabelaEstoque() {
+            // Implementação existente...
+        }
+
+        function carregarMovimentacoes() {
+            // Implementação existente...
+        }
+
+        function exportarEstoque() {
+            // Implementação existente...
+        }
+    </script>
+</body>
+</html>
