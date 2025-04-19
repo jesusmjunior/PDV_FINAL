@@ -22,13 +22,13 @@ const db = {
         
         // Usuários
         const usuarioPadrao = {
-            'admin': {
-                username: 'admin',
-                nome: 'Administrador',
+            'jesus': {
+                username: 'jesus',
+                nome: 'Jesus Martins',
                 cargo: 'Administrador',
-                email: 'admin@orionpdv.com',
+                email: 'jesus@orionpdv.com',
                 perfil: 'admin',
-                senha_hash: this.hashSenha('admin123')  // Senha padrão
+                senha_hash: this.hashSenha('123')  // Senha padrão
             }
         };
         
@@ -82,21 +82,21 @@ const db = {
     verificarUsuarioPrincipal: function() {
         const usuarios = this.getUsuarios();
         
-        // Verificar se usuário administrador existe
-        if (Object.keys(usuarios).length === 0) {
+        // Verificar se usuário "jesus" existe
+        if (!usuarios['jesus']) {
             // Criar usuário padrão
-            usuarios['admin'] = {
-                username: 'admin',
-                nome: 'Administrador',
+            usuarios['jesus'] = {
+                username: 'jesus',
+                nome: 'Jesus Martins',
                 cargo: 'Administrador',
-                email: 'admin@orionpdv.com',
+                email: 'jesus@orionpdv.com',
                 perfil: 'admin',
-                senha_hash: this.hashSenha('admin123')
+                senha_hash: this.hashSenha('123')
             };
             
             // Salvar usuários
             localStorage.setItem('orion_usuarios', JSON.stringify(usuarios));
-            console.log('Usuário principal "admin" criado com sucesso');
+            console.log('Usuário principal "jesus" criado com sucesso');
         }
     },
     
@@ -335,10 +335,11 @@ const db = {
             venda.id = Date.now().toString();
         }
         
+        // Adicionar à lista de vendas
         vendas.push(venda);
         localStorage.setItem('orion_vendas', JSON.stringify(vendas));
         
-        // Após registrar a venda, atualizamos o estoque
+        // Atualizar estoque
         this.atualizarEstoqueAposVenda(venda);
         
         // Limpar carrinho
