@@ -1,65 +1,52 @@
-// core.js - Versão 2.0
+/**
+ * Núcleo do sistema com integração de scanner e gestão de eventos
+ */
+
 class OrionCore {
     static init() {
-        this.configurarScanner();
-        this.iniciarMonitoramentoEstoque();
+        this.configurarScannerGlobal();
+        this.iniciarMonitoramento();
     }
 
-    static configurarScanner() {
-        document.querySelectorAll('[data-scanner]').forEach(element => {
-            element.addEventListener('click', () => this.ativarScanner(element.dataset.scanner));
+    static configurarScannerGlobal() {
+        document.querySelectorAll('[data-scanner]').forEach(btn => {
+            btn.addEventListener('click', () => this.ativarScanner(btn.dataset.contexto));
         });
     }
 
     static ativarScanner(contexto) {
-        const scannerUI = {
-            video: document.getElementById('scanner-video'),
-            status: document.getElementById('scanner-status'),
-            resultado: document.getElementById('scanner-resultado')
-        };
-
-        BarcodeScanner.iniciar(scannerUI, {
+        const scannerUI = this.criarInterfaceScanner();
+        
+        BarcodeScanner.iniciar({
+            elementoVideo: scannerUI.video,
             onSucesso: (codigo) => this.processarCodigo(codigo, contexto),
-            onErro: (erro) => this.mostrarErroScanner(erro)
+            onErro: (erro) => this.mostrarErro(erro)
         });
     }
 
-    static async processarCodigo(codigo, contexto) {
-        // Feedback sonoro
-        this.executarSom('scan');
+    static processarCodigo(codigo, contexto) {
+        this.executarFeedbackSonoro();
         
-        // Busca inteligente
-        const produto = db.buscarProdutoPorCodigo(codigo) || 
-                       db.buscarProdutoFuzzy(codigo)[0];
-
-        if (produto) {
-            switch(contexto) {
-                case 'venda':
-                    this.adicionarAoCarrinho(produto);
-                    break;
-                case 'cadastro':
-                    this.preencherFormularioProduto(produto);
-                    break;
-                case 'estoque':
-                    this.exibirDetalhesEstoque(produto);
-                    break;
-            }
+        const produto = db.buscarProdutoPorCodigo(codigo);
+        
+        switch(contexto) {
+            case 'venda':
+                this.atualizarEstoque(produto, -1);
+                Carrinho.adicionarItem(produto);
+                break;
+                
+            case 'cadastro':
+                this.preencherFormulario(produto);
+                break;
         }
     }
 
-    static executarSom(tipo) {
-        const sons = {
-            scan: 'assets/sounds/scan.mp3',
-            erro: 'assets/sounds/error.mp3'
-        };
-        new Audio(sons[tipo]).play();
-    }
-
-    static iniciarMonitoramentoEstoque() {
-        setInterval(() => {
-            const produtos = db.getProdutos();
-            const alertas = Object.values(produtos).filter(p => p.estoque < p.estoque_minimo);
-            this.notificarAlertasEstoque(alertas);
-        }, 300000); // Verificar a cada 5 minutos
+    static atualizarEstoque(produto, quantidade) {
+        produto.estoque += quantidade;
+        db.salvarProduto(produto);
+        AtualizadorUI.atualizarCardEstoque(produto);
     }
 }
+
+// Inicialização do sistema
+document.addEventListener('DOMContentLoaded', () => OrionCore.init());
