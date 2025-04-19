@@ -1570,3 +1570,415 @@ const db = {
 document.addEventListener('DOMContentLoaded', function() {
     db.inicializar();
 });
+/**
+     * Busca produto por código de barras e adiciona ao carrinho
+     */
+    adicionarProdutoPorCodigo: function(codigo, quantidade = 1) {
+        try {
+            if (!codigo) {
+                throw new Error('Código de barras não informado');
+            }
+            
+            // Buscar produto
+            const produto = db.getProduto(codigo);
+            
+            if (!produto) {
+                throw new Error('Produto não encontrado');
+            }
+            
+            // Verificar estoque
+            if (produto.estoque <= 0) {
+                throw new Error('Produto sem estoque disponível');
+            }
+            
+            if (quantidade > produto.estoque) {
+                throw new Error(`Quantidade informada maior que estoque disponível (${produto.estoque})`);
+            }
+            
+            // Adicionar ao carrinho
+            const itemCarrinho = {
+                codigo_barras: produto.codigo_barras,
+                nome: produto.nome,
+                preco: produto.preco,
+                quantidade: quantidade,
+                subtotal: produto.preco * quantidade,
+                foto: produto.foto || null
+            };
+            
+            const resultado = db.adicionarItemCarrinho(itemCarrinho);
+            
+            return {
+                sucesso: resultado,
+                produto: produto,
+                carrinho: db.getCarrinho()
+            };
+        } catch (erro) {
+            console.error('Erro ao adicionar produto:', erro);
+            return {
+                sucesso: false,
+                mensagem: erro.message,
+                carrinho: db.getCarrinho()
+            };
+        }
+    },
+    
+    /**
+     * Finaliza uma venda com os dados do formulário
+     */
+    finalizarVenda: function(formData) {
+        try {
+            // Verificar se há itens no carrinho
+            const carrinho = db.getCarrinho();
+            
+            if (carrinho.length === 0) {
+                throw new Error('Não há itens no carrinho');
+            }
+            
+            // Calcular totais
+            const subtotal = carrinho.reduce((total, item) => total + item.subtotal, 0);
+            const desconto = parseFloat(formData.desconto) || 0;
+            const total = subtotal - desconto;
+            
+            if (total <= 0) {
+                throw new Error('O valor total da venda deve ser maior que zero');
+            }
+            
+            // Verificar cliente
+            const clienteId = formData.cliente_id || '1'; // Padrão: Consumidor Final
+            const cliente = db.getCliente(clienteId);
+            
+            if (!cliente) {
+                throw new Error('Cliente não encontrado');
+            }
+            
+            // Obter forma de pagamento
+            const formaPagamento = formData.forma_pagamento || 'dinheiro';
+            let formaPagamentoTexto = formaPagamento;
+            
+            // Buscar texto descritivo da forma de pagamento se estiver em um select
+            const select = document.getElementById('forma-pagamento');
+            if (select) {
+                const option = select.querySelector(`option[value="${formaPagamento}"]`);
+                if (option) {
+                    formaPagamentoTexto = option.textContent;
+                }
+            }
+            
+            // Obter usuário logado
+            const usuario = db.getUsuarioAtual();
+            
+            // Criar objeto da venda
+            const venda = {
+                cliente_id: cliente.id,
+                cliente_nome: cliente.nome,
+                forma_pagamento: formaPagamentoTexto,
+                forma_pagamento_id: formaPagamento,
+                itens: carrinho,
+                subtotal: subtotal,
+                desconto: desconto,
+                total: total,
+                usuario: usuario ? usuario.nome : 'Sistema',
+                usuario_id: usuario ? usuario.username : null,
+                data: new Date().toISOString(),
+                observacao: formData.observacao || ''
+            };
+            
+            // Registrar venda
+            const resultado = db.registrarVenda(venda);
+            
+            // Limpar carrinho já é feito dentro de registrarVenda
+            
+            return {
+                sucesso: true,
+                venda: resultado,
+                carrinho: []
+            };
+        } catch (erro) {
+            console.error('Erro ao finalizar venda:', erro);
+            return {
+                sucesso: false,
+                mensagem: erro.message,
+                carrinho: db.getCarrinho()
+            };
+        }
+    },
+    
+    /**
+     * Valida um código de barras
+     */
+    validarCodigoBarras: function(codigo) {
+        if (!codigo) return false;
+        
+        // Remover caracteres não numéricos
+        codigo = codigo.replace(/\D/g, '');
+        
+        // Validar tamanho
+        if (codigo.length !== 13) return false;
+        
+        // Algoritmo de validação EAN-13
+        let soma = 0;
+        for (let i = 0; i < 12; i++) {
+            soma += parseInt(codigo.charAt(i)) * (i % 2 === 0 ? 1 : 3);
+        }
+        
+        const digitoVerificador = (10 - (soma % 10)) % 10;
+        
+        return digitoVerificador === parseInt(codigo.charAt(12));
+    },
+    
+    /**
+     * Formata um código de barras conforme padrão
+     */
+    formatarCodigoBarras: function(codigo) {
+        if (!codigo) return '';
+        
+        // Remover caracteres não numéricos
+        codigo = codigo.replace(/\D/g, '');
+        
+        // Formatar EAN-13
+        if (codigo.length === 13) {
+            return codigo.substr(0, 1) + ' ' + 
+                   codigo.substr(1, 6) + ' ' + 
+                   codigo.substr(7, 6);
+        }
+        
+        return codigo;
+    },
+    
+    /**
+     * Formata um CPF
+     */
+    formatarCPF: function(cpf) {
+        if (!cpf) return '';
+        
+        // Remover caracteres não numéricos
+        cpf = cpf.replace(/\D/g, '');
+        
+        if (cpf.length !== 11) return cpf;
+        
+        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    },
+    
+    /**
+     * Valida um CPF
+     */
+    validarCPF: function(cpf) {
+        if (!cpf) return false;
+        
+        // Remover caracteres não numéricos
+        cpf = cpf.replace(/\D/g, '');
+        
+        if (cpf.length !== 11) return false;
+        
+        // Verificar CPFs inválidos conhecidos
+        if (/^(\d)\1{10}$/.test(cpf)) return false;
+        
+        // Validação do primeiro dígito
+        let soma = 0;
+        for (let i = 0; i < 9; i++) {
+            soma += parseInt(cpf.charAt(i)) * (10 - i);
+        }
+        
+        let resto = 11 - (soma % 11);
+        if (resto === 10 || resto === 11) resto = 0;
+        if (resto !== parseInt(cpf.charAt(9))) return false;
+        
+        // Validação do segundo dígito
+        soma = 0;
+        for (let i = 0; i < 10; i++) {
+            soma += parseInt(cpf.charAt(i)) * (11 - i);
+        }
+        
+        resto = 11 - (soma % 11);
+        if (resto === 10 || resto === 11) resto = 0;
+        
+        return resto === parseInt(cpf.charAt(10));
+    },
+    
+    /**
+     * Gera uma notificação toast
+     */
+    notificar: function(mensagem, tipo = 'info', duracao = 3000) {
+        // Criar container se não existir
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.position = 'fixed';
+            container.style.top = '1rem';
+            container.style.right = '1rem';
+            container.style.zIndex = '9999';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.gap = '0.5rem';
+            document.body.appendChild(container);
+        }
+        
+        // Criar toast
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${tipo}`;
+        toast.style.padding = '0.75rem 1rem';
+        toast.style.borderRadius = '0.25rem';
+        toast.style.minWidth = '250px';
+        toast.style.maxWidth = '350px';
+        toast.style.boxShadow = '0 0.25rem 0.75rem rgba(0, 0, 0, 0.1)';
+        toast.style.display = 'flex';
+        toast.style.alignItems = 'center';
+        toast.style.gap = '0.5rem';
+        toast.style.transform = 'translateX(100%)';
+        toast.style.opacity = '0';
+        toast.style.transition = 'all 0.3s ease';
+        
+        // Estilo baseado no tipo
+        if (tipo === 'success') {
+            toast.style.backgroundColor = '#43A047';
+            toast.style.color = 'white';
+        } else if (tipo === 'error' || tipo === 'danger') {
+            toast.style.backgroundColor = '#E53935';
+            toast.style.color = 'white';
+        } else if (tipo === 'warning') {
+            toast.style.backgroundColor = '#FFB300';
+            toast.style.color = 'black';
+        } else {
+            toast.style.backgroundColor = '#2196F3';
+            toast.style.color = 'white';
+        }
+        
+        // Ícone baseado no tipo
+        let icone = 'info-circle';
+        if (tipo === 'success') icone = 'check-circle';
+        if (tipo === 'error' || tipo === 'danger') icone = 'exclamation-circle';
+        if (tipo === 'warning') icone = 'exclamation-triangle';
+        
+        // Adicionar conteúdo
+        toast.innerHTML = `
+            <i class="fas fa-${icone}"></i>
+            <span>${mensagem}</span>
+        `;
+        
+        // Adicionar ao container
+        container.appendChild(toast);
+        
+        // Animar entrada
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+            toast.style.opacity = '1';
+        }, 10);
+        
+        // Remover após duração
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
+            
+            setTimeout(() => {
+                container.removeChild(toast);
+            }, 300);
+        }, duracao);
+    },
+    
+    /**
+     * Mostra confirmação personalizada
+     */
+    confirmar: function(opcoes = {}) {
+        return new Promise((resolve, reject) => {
+            // Configurar opções padrão
+            const config = {
+                titulo: opcoes.titulo || 'Confirmação',
+                mensagem: opcoes.mensagem || 'Tem certeza que deseja continuar?',
+                textoBtnSim: opcoes.textoBtnSim || 'Sim',
+                textoBtnNao: opcoes.textoBtnNao || 'Não',
+                tipo: opcoes.tipo || 'info'
+            };
+            
+            // Criar modal de confirmação
+            const modal = document.createElement('div');
+            modal.className = 'modal-confirm';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = '9999';
+            modal.style.opacity = '0';
+            modal.style.transition = 'opacity 0.3s ease';
+            
+            // Cor baseada no tipo
+            let corTipo = '#2196F3';
+            let iconeTipo = 'info-circle';
+            
+            if (config.tipo === 'success') {
+                corTipo = '#43A047';
+                iconeTipo = 'check-circle';
+            } else if (config.tipo === 'warning') {
+                corTipo = '#FFB300';
+                iconeTipo = 'exclamation-triangle';
+            } else if (config.tipo === 'danger' || config.tipo === 'error') {
+                corTipo = '#E53935';
+                iconeTipo = 'exclamation-circle';
+            }
+            
+            // Conteúdo do modal
+            modal.innerHTML = `
+                <div class="modal-confirm-content" style="background-color: #fff; border-radius: 0.25rem; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); width: 100%; max-width: 400px; overflow: hidden;">
+                    <div class="modal-confirm-header" style="padding: 1rem; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fas fa-${iconeTipo}" style="color: ${corTipo}; font-size: 1.25rem;"></i>
+                        <h5 style="margin: 0; font-size: 1.25rem;">${config.titulo}</h5>
+                    </div>
+                    <div class="modal-confirm-body" style="padding: 1rem;">
+                        <p style="margin-top: 0;">${config.mensagem}</p>
+                    </div>
+                    <div class="modal-confirm-footer" style="padding: 1rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                        <button class="btn-cancelar" style="padding: 0.375rem 0.75rem; border: 1px solid #dee2e6; background-color: #fff; border-radius: 0.25rem; cursor: pointer;">${config.textoBtnNao}</button>
+                        <button class="btn-confirmar" style="padding: 0.375rem 0.75rem; background-color: ${corTipo}; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">${config.textoBtnSim}</button>
+                    </div>
+                </div>
+            `;
+            
+            // Adicionar ao DOM
+            document.body.appendChild(modal);
+            
+            // Animar entrada
+            setTimeout(() => {
+                modal.style.opacity = '1';
+            }, 10);
+            
+            // Adicionar eventos
+            const btnConfirmar = modal.querySelector('.btn-confirmar');
+            const btnCancelar = modal.querySelector('.btn-cancelar');
+            
+            btnConfirmar.addEventListener('click', () => {
+                // Animar saída
+                modal.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(modal);
+                    resolve(true);
+                }, 300);
+            });
+            
+            btnCancelar.addEventListener('click', () => {
+                // Animar saída
+                modal.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(modal);
+                    resolve(false);
+                }, 300);
+            });
+            
+            // Fechar ao clicar fora
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    // Animar saída
+                    modal.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(modal);
+                        resolve(false);
+                    }, 300);
+                }
+            });
+        });
+    }
+};
