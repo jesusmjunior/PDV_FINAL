@@ -1,136 +1,140 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ORION PDV</title>
-    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <title>ORION PDV - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <style>
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: var(--dark-background);
-        }
-        
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-            padding: 2rem;
-        }
-        
-        .login-logo {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .login-logo img {
-            width: 120px;
-            margin-bottom: 1rem;
-        }
-        
-        .login-logo h1 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-light);
-        }
-        
-        .login-logo p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-    </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
+    <link rel="stylesheet" href="assets/css/orion-theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
 </head>
 <body>
+    <!-- Contêiner de Login -->
     <div class="login-container">
-        <div class="login-logo">
-            <img src="assets/img/logo.png" alt="Logo ORION PDV">
-            <h1>ORION PDV</h1>
-            <p>Sistema de Gestão de Vendas</p>
-            <p>Desenvolvido por Jesus Martins & ORION I.A.</p>
-        </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-sign-in-alt"></i> Login
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <img src="assets/img/logo.png" alt="ORION PDV">
+                </div>
+                <h1 class="login-title">ORION PDV</h1>
+                <p class="login-subtitle">Sistema de Gestão de Vendas</p>
             </div>
-            <div class="card-body">
-                <div id="alertMessage"></div>
-                
-                <form id="loginForm">
+            
+            <div class="login-body">
+                <form id="form-login">
                     <div class="form-group">
-                        <label for="usuario" class="form-label">Usuário</label>
-                        <input type="text" class="form-control" id="usuario" value="jesus" required>
+                        <label for="username" class="form-label">Usuário</label>
+                        <div class="search-container">
+                            <i class="fas fa-user search-icon"></i>
+                            <input type="text" id="username" name="username" class="form-control search-input" placeholder="Seu nome de usuário" required>
+                        </div>
                     </div>
+                    
                     <div class="form-group">
                         <label for="senha" class="form-label">Senha</label>
-                        <input type="password" class="form-control" id="senha" value="123" required>
+                        <div class="search-container">
+                            <i class="fas fa-lock search-icon"></i>
+                            <input type="password" id="senha" name="senha" class="form-control search-input" placeholder="Sua senha" required>
+                        </div>
                     </div>
-                    <div style="margin-top: 1.5rem;">
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    
+                    <div id="error-message" class="alert alert-danger" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Usuário ou senha incorretos</span>
+                    </div>
+                    
+                    <div class="form-group mb-0">
+                        <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-sign-in-alt"></i> Entrar
                         </button>
                     </div>
                 </form>
             </div>
+            
+            <div class="login-footer">
+                <p>© 2025 ORION PDV - Todos os direitos reservados</p>
+                <p><small>v1.0.0</small></p>
+            </div>
         </div>
     </div>
-
+    
+    <!-- Notificações -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="assets/js/database.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/core.js"></script>
+    
+    <!-- Script de Login -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar database
-            db.inicializar();
-            db.verificarUsuarioPrincipal();
+            // Limpar sessão atual
+            sessionStorage.removeItem('orion_auth');
             
-            // Redirecionar para dashboard se já estiver autenticado
-            if (auth.verificarAutenticacao()) {
-                window.location.href = 'dashboard.html';
-                return;
-            }
+            // Form de login
+            const loginForm = document.getElementById('form-login');
+            const errorMessage = document.getElementById('error-message');
             
-            // Login
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
+            loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                const usuario = document.getElementById('usuario').value;
+                const username = document.getElementById('username').value;
                 const senha = document.getElementById('senha').value;
                 
-                // Login simplificado - sempre aceita usuário jesus com senha 123
-                if (usuario === "jesus" && senha === "123") {
-                    const dadosSessao = {
-                        username: "jesus",
-                        nome: "Jesus Martins",
-                        perfil: "admin",
-                        timestamp: new Date().toISOString()
-                    };
-                    
-                    // Salvar na sessão
-                    sessionStorage.setItem('orion_auth', JSON.stringify(dadosSessao));
-                    
-                    // Redirecionar
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-                
-                // Se não for o login simplificado, tenta autenticação normal
-                const resultado = auth.login(usuario, senha);
+                // Tentar login
+                const resultado = auth.login(username, senha);
                 
                 if (resultado.sucesso) {
-                    window.location.href = 'dashboard.html';
+                    // Exibir mensagem de sucesso
+                    exibirToast('Login realizado com sucesso', 'success');
+                    
+                    // Redirecionar para dashboard após breve delay
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
                 } else {
-                    const alertDiv = document.getElementById('alertMessage');
-                    alertDiv.innerHTML = `
-                        <div style="background-color: rgba(229, 57, 53, 0.1); border: 1px solid rgba(229, 57, 53, 0.3); color: var(--danger); padding: 0.75rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
-                            <i class="fas fa-exclamation-circle"></i> ${resultado.mensagem}
-                        </div>
-                    `;
+                    // Mostrar mensagem de erro
+                    errorMessage.style.display = 'flex';
+                    errorMessage.querySelector('span').textContent = resultado.mensagem;
+                    
+                    // Limpar senha
+                    document.getElementById('senha').value = '';
                 }
             });
+            
+            // Função para exibir toast
+            function exibirToast(mensagem, tipo) {
+                const toastContainer = document.getElementById('toast-container');
+                
+                const toast = document.createElement('div');
+                toast.className = `toast-notification toast-${tipo}`;
+                
+                toast.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'warning' ? 'exclamation-circle' : tipo === 'info' ? 'info-circle' : 'times-circle'}"></i>
+                        <span>${mensagem}</span>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                // Exibir com animação
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                // Remover após 3 segundos
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        toastContainer.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }
         });
     </script>
 </body>
