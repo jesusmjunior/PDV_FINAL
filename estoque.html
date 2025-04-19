@@ -128,7 +128,7 @@
                     <div class="card">
                         <div class="card-header">
                             <div class="card-title">
-                                <i class="fas fa-exchange-alt mr-2"></i>
+                                <i class="fas fa-exchange-alt"></i>
                                 Registrar Movimentação
                             </div>
                         </div>
@@ -220,7 +220,7 @@
                     <div class="card">
                         <div class="card-header">
                             <div class="card-title">
-                                <i class="fas fa-history mr-2"></i>
+                                <i class="fas fa-history"></i>
                                 Histórico de Movimentações
                             </div>
                             <button class="btn btn-sm btn-outline-primary" id="btn-filtro-historico">
@@ -263,10 +263,10 @@
                                         
                                         <div class="text-right">
                                             <button class="btn btn-outline-primary mr-2" id="btn-limpar-filtro">
-                                                <i class="fas fa-eraser mr-1"></i> Limpar
+                                                <i class="fas fa-eraser"></i> Limpar
                                             </button>
                                             <button class="btn btn-primary" id="btn-aplicar-filtro">
-                                                <i class="fas fa-search mr-1"></i> Aplicar
+                                                <i class="fas fa-search"></i> Aplicar
                                             </button>
                                         </div>
                                     </div>
@@ -366,7 +366,7 @@
                     <div class="card">
                         <div class="card-header">
                             <div class="card-title">
-                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                <i class="fas fa-exclamation-circle"></i>
                                 Produtos com Estoque Crítico
                             </div>
                             <div class="d-flex align-center gap-2">
@@ -537,7 +537,7 @@
             </div>
             <div class="modal-body">
                 <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <i class="fas fa-exclamation-triangle"></i>
                     <span id="confirmacao-mensagem">Tem certeza que deseja continuar?</span>
                 </div>
             </div>
@@ -548,8 +548,15 @@
         </div>
     </div>
     
-    <!-- Toast notifications -->
-    <div class="toast-container" id="toast-container"></div>
+    <!-- Container para notificações toast -->
+    <div class="toast-container" id="toast-container">
+        <div class="toast-notification toast-success show">
+            <i class="fas fa-check-circle"></i>
+            <div class="toast-content">
+                Movimentação de estoque registrada com sucesso.
+            </div>
+        </div>
+    </div>
     
     <!-- Scripts -->
     <script src="js/jquery.min.js"></script>
