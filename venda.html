@@ -3,13 +3,860 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORION PDV - Vendas</title>
+    <title>ORION PDV - Sistema de Caixa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
-    <link rel="stylesheet" href="assets/css/orion-theme.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/scanner.css">
-    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+    <style>
+        :root {
+            /* Cores */
+            --primary: #0B3D91;
+            --primary-light: #1E88E5;
+            --secondary: #1E88E5;
+            --success: #43A047;
+            --warning: #FFB300;
+            --danger: #E53935;
+            --info: #2196F3;
+            --dark: #1E1E1E;
+            --dark-surface: #252526;
+            --surface: #2D2D30;
+            --surface-light: #3E3E42;
+            --border-color: #3E3E42;
+            --text-light: #FFFFFF;
+            --text-muted: #9E9E9E;
+            
+            /* Espaçamento */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            
+            /* Bordas */
+            --border-radius: 0.375rem;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark);
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+        
+        /* Layout Principal */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background-color: var(--dark-surface);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+        
+        .sidebar-menu {
+            flex: 1;
+            padding: var(--spacing-md) 0;
+            overflow-y: auto;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-md);
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        .menu-item i {
+            width: 24px;
+            margin-right: var(--spacing-md);
+            text-align: center;
+        }
+        
+        .menu-item:hover {
+            background-color: var(--surface-light);
+            color: var(--text-light);
+        }
+        
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-light);
+        }
+        
+        .sidebar-footer {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+        }
+        
+        .user-info {
+            max-width: 150px;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        /* Conteúdo Principal */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .topbar {
+            padding: var(--spacing-md);
+            background-color: var(--dark-surface);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .topbar-title h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .page-content {
+            flex: 1;
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+        }
+        
+        /* PDV Layout */
+        .pdv-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: var(--spacing-lg);
+            height: 100%;
+        }
+        
+        .produtos-container {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--dark-surface);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .tab {
+            padding: var(--spacing-md);
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+        
+        .tab.active {
+            color: var(--text-light);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .tab:hover {
+            color: var(--text-light);
+        }
+        
+        .tab-content {
+            padding: var(--spacing-md);
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        /* Filtros */
+        .filters-container {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .search-container {
+            position: relative;
+            flex: 1;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: var(--spacing-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) calc(var(--spacing-md) + 16px);
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            color: var(--text-light);
+        }
+        
+        /* Grid de Produtos */
+        .produtos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .produto-card {
+            background-color: var(--surface);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .produto-card:hover {
+            background-color: var(--surface-light);
+            transform: translateY(-2px);
+        }
+        
+        .produto-img {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .produto-img img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .produto-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .produto-nome {
+            font-weight: 500;
+            margin-bottom: var(--spacing-xs);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .produto-preco {
+            font-weight: 600;
+            color: var(--primary-light);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .produto-estoque {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        /* Scanner */
+        .card {
+            background-color: var(--surface);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-title {
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: var(--spacing-md);
+        }
+        
+        /* Carrinho */
+        .carrinho-container {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--dark-surface);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .carrinho-header {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .carrinho-vazio {
+            padding: var(--spacing-xl);
+            text-align: center;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+        
+        .carrinho-vazio i {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .carrinho-itens {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-md);
+        }
+        
+        .carrinho-item {
+            display: flex;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .carrinho-img {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carrinho-img img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .carrinho-info {
+            flex: 1;
+        }
+        
+        .carrinho-nome {
+            font-weight: 500;
+            margin-bottom: var(--spacing-xs);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .carrinho-detalhes {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        .qtd-input {
+            width: 40px;
+            padding: 0.25rem;
+            text-align: center;
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            color: var(--text-light);
+        }
+        
+        .btn-remove {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            padding: 0 var(--spacing-sm);
+        }
+        
+        .carrinho-footer {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .carrinho-totais {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .totais-linha {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .totais-total {
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-top: var(--spacing-sm);
+            padding-top: var(--spacing-sm);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Formulários */
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-muted);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: var(--spacing-sm);
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            color: var(--text-light);
+        }
+        
+        /* Botões */
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .btn i {
+            margin-right: var(--spacing-xs);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--text-light);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+        }
+        
+        .btn-outline-primary {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
+            color: var(--text-light);
+        }
+        
+        .btn-outline-secondary {
+            background-color: transparent;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: var(--secondary);
+            color: var(--text-light);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--text-light);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Scanner Modal */
+        #modal-scanner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .scanner-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        .scanner-header {
+            padding: var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .scanner-title {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+        
+        #scanner-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: #000;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .scanner-frame {
+            width: 250px;
+            height: 250px;
+            border: 2px solid var(--primary);
+            border-radius: var(--border-radius);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 2px;
+            background-color: var(--primary);
+            transform: translateY(-50%);
+            animation: scanner 2s infinite linear;
+        }
+        
+        @keyframes scanner {
+            0%, 100% {
+                top: 10%;
+            }
+            50% {
+                top: 90%;
+            }
+        }
+        
+        .scanner-controls {
+            position: absolute;
+            bottom: var(--spacing-lg);
+            display: flex;
+            gap: var(--spacing-md);
+        }
+        
+        .scanner-footer {
+            padding: var(--spacing-md);
+            background-color: var(--dark-surface);
+        }
+        
+        #scanner-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .loading {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: var(--primary);
+            animation: spin 1s infinite linear;
+        }
+        
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Recibo Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.show {
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background-color: var(--dark-surface);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: var(--spacing-md);
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .modal-footer {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+        }
+        
+        .recibo {
+            background-color: white;
+            color: black;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: var(--spacing-md);
+            right: var(--spacing-md);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            z-index: 2000;
+        }
+        
+        .toast-notification {
+            background-color: var(--dark-surface);
+            border-left: 4px solid var(--info);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            min-width: 300px;
+            max-width: 400px;
+            box-shadow: var(--box-shadow);
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            border-left-color: var(--success);
+        }
+        
+        .toast-error {
+            border-left-color: var(--danger);
+        }
+        
+        .toast-warning {
+            border-left-color: var(--warning);
+        }
+        
+        /* Utilitários */
+        .d-flex {
+            display: flex;
+        }
+        
+        .align-items-center {
+            align-items: center;
+        }
+        
+        .justify-between {
+            justify-content: space-between;
+        }
+        
+        .gap-2 {
+            gap: var(--spacing-sm);
+        }
+        
+        .gap-3 {
+            gap: var(--spacing-md);
+        }
+        
+        .mb-0 {
+            margin-bottom: 0;
+        }
+        
+        .mb-1 {
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .mb-3 {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .mt-3 {
+            margin-top: var(--spacing-md);
+        }
+        
+        .w-100 {
+            width: 100%;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-muted {
+            color: var(--text-muted);
+        }
+        
+        .text-primary {
+            color: var(--primary-light);
+        }
+        
+        .d-none {
+            display: none;
+        }
+        
+        .d-md-block {
+            display: none;
+        }
+        
+        @media (min-width: 768px) {
+            .d-md-block {
+                display: block;
+            }
+        }
+        
+        /* Responsividade */
+        @media (max-width: 991px) {
+            .pdv-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .sidebar {
+                width: 60px;
+            }
+            
+            .logo span, .menu-item span, .user-info {
+                display: none;
+            }
+            
+            .main-content {
+                width: calc(100% - 60px);
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Container Principal -->
@@ -18,7 +865,7 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <img src="assets/img/logo-small.png" alt="ORION PDV">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMEIzRDkxIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDY0YzEwNi4xIDAgMTkyIDg1LjkgMTkyIDE5MnMtODUuOSAxOTItMTkyIDE5MlM2NCAzNjIuMSA2NCAyNTYgMTQ5LjkgNjQgMjU2IDY0em0wIDMySEM0OC4xIDk2IDk2IDE0OC4xIDk2IDI1NnM1Mi4xIDE2MCAxNjAgMTYwIDE2MC01Mi4xIDE2MC0xNjBTMzYzLjkgOTYgMjU2IDk2eiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNDAgMTUyaDMydjIwOGgtMzJ6bS05NiA5NmgxOTJ2MzJIMTQ0eiIvPjwvc3ZnPg==" alt="ORION PDV">
                     <span>ORION PDV</span>
                 </div>
                 <button id="sidebar-collapse" class="sidebar-toggle d-none d-md-block">
@@ -27,31 +874,31 @@
             </div>
             
             <div class="sidebar-menu">
-                <a href="dashboard.html" class="menu-item">
+                <a href="#" class="menu-item">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="venda.html" class="menu-item active">
+                <a href="#" class="menu-item active">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Vendas PDV</span>
                 </a>
-                <a href="produto.html" class="menu-item">
+                <a href="#" class="menu-item">
                     <i class="fas fa-box"></i>
                     <span>Produtos</span>
                 </a>
-                <a href="estoque.html" class="menu-item">
+                <a href="#" class="menu-item">
                     <i class="fas fa-warehouse"></i>
                     <span>Estoque</span>
                 </a>
-                <a href="cliente.html" class="menu-item">
+                <a href="#" class="menu-item">
                     <i class="fas fa-users"></i>
                     <span>Clientes</span>
                 </a>
-                <a href="relatorio.html" class="menu-item">
+                <a href="#" class="menu-item">
                     <i class="fas fa-chart-bar"></i>
                     <span>Relatórios</span>
                 </a>
-                <a href="config.html" class="menu-item">
+                <a href="#" class="menu-item">
                     <i class="fas fa-cog"></i>
                     <span>Configurações</span>
                 </a>
@@ -63,8 +910,8 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="user-info">
-                        <div class="user-name" id="user-name">Carregando...</div>
-                        <div class="user-role" id="user-role">Carregando...</div>
+                        <div class="user-name" id="user-name">Operador</div>
+                        <div class="user-role" id="user-role">Vendedor</div>
                     </div>
                 </div>
                 <button id="btn-logout" class="sidebar-toggle">
@@ -121,7 +968,8 @@
                                 <div class="card-body">
                                     <div class="d-flex gap-2 mb-3">
                                         <input type="text" id="codigo-barras" class="form-control" placeholder="Digite ou escaneie o código...">
-                                        <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
+                                        <button type="button" id="btn-bus
+                                            <button type="button" id="btn-buscar-codigo" class="btn btn-primary">
                                             <i class="fas fa-search"></i>
                                         </button>
                                     </div>
@@ -274,24 +1122,40 @@
     
     <!-- Áudio de feedback -->
     <audio id="beep-success" class="audio-feedback">
-        <source src="assets/sounds/beep-success.mp3" type="audio/mpeg">
+        <source src="data:audio/mpeg;base64,//uQxAAAEvGLIVT0AAmGYWQqnoAEGACgJAAAAQAAAD/zEjrf+Sjrf+JGMYxj5iN/5X5sU/+pf/8CDBSCMFYCl4QgGMAgg5BwHgfB8HwfBAEAQdMe/y/BwHwd//8hmMiDBSCDhUGUfB6//+YzkMY7WCkEGCkEG9/y/Lz/BwHwfB8HwfB8HwfP/5DOQzkM5DOQzkM5FIYEAAAEAAkQACFMnXXZONjJJOt+jX+x9d8fjL+QyAZbzSUGSheb/QZKTD0mn9BzfVTcIHhYiCNDyUTkH8LqZaFEhA6GWnwfkGy9N6C6eVsQ/Ni7fJE3ElvnXO9I3jy8QVE7TKHpCJ7mLrfKDNisjVpdHt6R7t3///tX//71Cf//9Yh/+/rEt/r9YgMFIKw0JwKw0JwLvKCD/i7ygV3lArvKBe4LwfcF74O8oVvlCt8oU3lCtwXvg7yhW+UK3yhW+UKw0MQKw0MQKw0MQCAIAgD/8hmMpjKYymMpjKYykM5DOQzkM5DOQzmRAIBAIOfB8HfB/wdB3wd8HQd8HfB8HfB3wd8HQd8HfB8HfB0HfB3wfHl5eXl5eXl5DGMYxjGMYuXl5eXl5DGMY4EAQBDGMcCkEHCoMo7Fl5cCAAUA=" type="audio/mpeg">
     </audio>
     <audio id="beep-error" class="audio-feedback">
-        <source src="assets/sounds/beep-error.mp3" type="audio/mpeg">
+        <source src="data:audio/mpeg;base64,//uQxAAAEvGLIVT0AAmGUWQqnoABMACgxAABBAAAA+WQgAAACRDrf+JGMYxjGMY7/ygDB35iRv/KBs/KD/zEjrf+VyGcjpDORyGQgYCYAYCYAYHAQD4PBAIQ+EAfCAPhAHwgD4QD8IA+DwQB4PBAHgeCAQB8Hggd+EAfCAPhCHwhD4Qh8TExMTExOTk5P////lMplMplMplMplMplMZ0MZzGYzGYzGYzGYzGYzGYzGYzGYzGYzGYzGYzGYzGMYxjGexjJd22DaSSTrfo1/tP0Jkwwwy8qkB4FDOBwAzHdTAYAaYMcHYsLNJnRTAIAKLl6LFwwwEgBVszwYYqTYCwBphD0Z0MKW4OGoQoOQvp1pdNLh9H6/3GvQ68X3b9vMqRLnb1/WE26iuxpZ8tSBkiZVPYrCd3sJX5qPpqUMGr+5dT+U5sXPrBUv//7sB337sL/l/jSzUt8aVV6zUuA8DwXw+FIfCkPheF8PniYmJiYnJycn////0ymUymUymUymUymUxnQxnQxmMxmMxmMxmMxmMxmMxmMxmMxmMxmMxmMxmMxjGMYxj9mMl3/MHSSSdb9Gv9iRjsn6KKKX0yYYYY1mC5QucCcXWFnAeARMRShiBHmZ2ZBMCUDW0fLBZYNMDFimLwFsUhXK1kNVixpbUWhhgULmmIcJYGFxvGrOkWWc7Y4HXq15lM5iqYxnEX9I7UYYFVN1NKjyyZlj0ZKPBGVrKI5r8WlNaZvSNJrPapDCKQtC10ixpIsbA61Ebu+z////81////+alv///mpc4AYTIZDIZiYmJiYmJxOJxOJxOJ0Oh0Oh0Oh0OyGQyGQhkMh8Ph8Wj8fkMh8Pj8fj8fj8fj8fj8fj8fj8fj8fjGMYxjGMY7/ygd//////////+YkYxjGO/////KBs//////////KBwYkYxjGO//KBs//////////KBwYkYxjGO//KD/zEjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYxjGMYx0AQaBAEAAA==" type="audio/mpeg">
     </audio>
     
     <!-- Notificações -->
     <div class="toast-container" id="toast-container"></div>
     
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <script src="assets/js/database.js"></script>
-    <script src="assets/js/db-fix.js"></script>
-    <script src="assets/js/auth.js"></script>
-    <script src="assets/js/core.js"></script>
-    <script src="assets/js/barcode-scanner.js"></script>
-    <script src="assets/js/integration.js"></script>
-    <script src="assets/js/venda.js"></script>
-</body>
-</html>
+    <script>
+        // Banco de Dados em memória (simulação)
+        const db = {
+            VERSION: '1.0.0',
+            
+            // Dados simulados
+            _produtos: {
+                'p1': {
+                    id: 'p1',
+                    nome: 'Smartphone Galaxy A23',
+                    descricao: 'Smartphone Samsung Galaxy A23 128GB 4GB RAM',
+                    preco: 1299.90,
+                    estoque: 15,
+                    grupo: 'Eletrônicos',
+                    codigo_barras: '7891234567890',
+                    foto: 'data:image/jpeg;base64,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',
+                    data_cadastro: new Date().toISOString()
+                },
+                'p2': {
+                    id: 'p2',
+                    nome: 'Smart TV 43"',
+                    descricao: 'Smart TV LED 43" Full HD com Wi-Fi',
+                    preco: 1899.90,
+                    estoque: 8,
+                    grupo: 'Eletrônicos',
+                    codigo_barras: '7894561237890',
+                    foto: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAQCAwMDAgQDAwMEBAQEBQkGBQUFBQsICAYJDQsNDQ0LDAwOEBQRDg8TDwwMEhgSExUWFxcXDhEZGxkWGhQWFxb/2wBDAQQEBAUFBQoGBgoWDwwPFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhb/wAARCADAAKADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9U6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAprukaF3YKqjJYnAAp1YfiLWIfD+izX85BWMYjQnlnPQD+fsPWpnJQi5voVCLnJRXUl1PxZoekxl7vU7aPH8KuGc/gOa5O7+M+lKx+z2F1Iv95mVP5gmuB0nQtT+I2ttqOoyXCWTH97MzEAD+7H2Ax0I7fia9W0vQLDSEAtLdEYffkxy5+p/pXn0XicTrU92HbqehWWGwmlL3p9+hz0Pxm0eRsS2d5Evc43D9DXS6X4n0fWMCy1GGRyPuF9rfoaxNa8CWeoK0tk32W4xyFHyN9R/hXA3dne+HLwR3kEkLZ+RiPlb6MOD+BrWdPDYnSXuy7kQqV8Nrblj2PaqKxfDusHWtKWSQATI
