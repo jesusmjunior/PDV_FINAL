@@ -6,251 +6,401 @@
     <title>ORION PDV - Recibo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap">
-    <link rel="stylesheet" href="assets/css/orion-theme.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
-    <style>
-        body {
-            background-color: #f5f5f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-        }
-        
-        .recibo-container {
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            width: 100%;
-            max-width: 500px;
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-        
-        .recibo-header {
-            background-color: var(--primary);
-            color: white;
-            padding: 1rem;
-            text-align: center;
-        }
-        
-        .recibo-content {
-            padding: 1rem;
-        }
-        
-        .actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-        
-        @media print {
-            body {
-                padding: 0;
-                background-color: white;
-            }
-            
-            .recibo-container {
-                box-shadow: none;
-                max-width: 100%;
-            }
-            
-            .actions {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
-    <div class="recibo-container">
-        <div class="recibo-header">
-            <h2>Comprovante de Venda</h2>
+    <!-- Container Principal -->
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="img/logo.svg" alt="ORION PDV">
+                    <span>ORION PDV</span>
+                </div>
+                <button id="sidebar-collapse" class="sidebar-toggle d-none d-md-block">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="venda.html" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Vendas PDV</span>
+                </a>
+                <a href="produto.html" class="menu-item">
+                    <i class="fas fa-box"></i>
+                    <span>Produtos</span>
+                </a>
+                <a href="estoque.html" class="menu-item">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Estoque</span>
+                </a>
+                <a href="cliente.html" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Clientes</span>
+                </a>
+                <a href="relatorio.html" class="menu-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="recibo.html" class="menu-item active">
+                    <i class="fas fa-receipt"></i>
+                    <span>Recibos</span>
+                </a>
+                <a href="config.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-menu" id="user-menu">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name">Carregando...</div>
+                        <div class="user-role" id="user-role">Carregando...</div>
+                    </div>
+                </div>
+                <button id="btn-logout" class="sidebar-toggle">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
         </div>
-        <div class="recibo-content">
-            <div id="recibo">
-                <!-- O conteúdo do recibo será gerado dinamicamente pelo JavaScript -->
-                <div class="text-center text-muted py-5">
-                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                    <p>Carregando dados do recibo...</p>
+        
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <div class="topbar">
+                <div class="topbar-title">
+                    <h1>Emissão de Recibo</h1>
+                </div>
+                <div class="topbar-actions">
+                    <div id="current-date" class="d-none d-md-block">Carregando data...</div>
+                </div>
+            </div>
+            
+            <div class="page-content">
+                <div class="row">
+                    <!-- Formulário de Recibo -->
+                    <div class="col-md-5">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Dados do Recibo</div>
+                            </div>
+                            <div class="card-body">
+                                <form id="form-recibo">
+                                    <!-- ID oculto -->
+                                    <input type="hidden" id="recibo-id">
+                                    
+                                    <div class="form-group">
+                                        <label for="venda-id" class="form-label">Venda Relacionada</label>
+                                        <div class="input-group">
+                                            <select id="venda-id" class="form-control">
+                                                <option value="">Selecionar Venda</option>
+                                                <!-- Vendas serão carregadas dinamicamente -->
+                                            </select>
+                                            <button type="button" id="btn-buscar-venda" class="btn btn-secondary">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="cliente-nome" class="form-label">Cliente</label>
+                                        <div class="input-group">
+                                            <input type="text" id="cliente-nome" class="form-control" placeholder="Nome do cliente" required>
+                                            <button type="button" id="btn-buscar-cliente" class="btn btn-secondary">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="cliente-documento" class="form-label">Documento (CPF/CNPJ)</label>
+                                        <input type="text" id="cliente-documento" class="form-control" placeholder="000.000.000-00">
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="data-emissao" class="form-label">Data de Emissão</label>
+                                                <input type="date" id="data-emissao" class="form-control" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="hora-emissao" class="form-label">Hora</label>
+                                                <input type="time" id="hora-emissao" class="form-control" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="forma-pagamento" class="form-label">Forma de Pagamento</label>
+                                        <select id="forma-pagamento" class="form-control" required>
+                                            <option value="">Selecione</option>
+                                            <option value="dinheiro">Dinheiro</option>
+                                            <option value="cartao_debito">Cartão de Débito</option>
+                                            <option value="cartao_credito">Cartão de Crédito</option>
+                                            <option value="pix">PIX</option>
+                                            <option value="transferencia">Transferência Bancária</option>
+                                            <option value="outro">Outro</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="valor-total" class="form-label">Valor Total (R$)</label>
+                                        <input type="number" id="valor-total" class="form-control" placeholder="0.00" step="0.01" min="0" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="observacoes" class="form-label">Observações (opcional)</label>
+                                        <textarea id="observacoes" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    
+                                    <div class="form-buttons">
+                                        <button type="button" id="btn-limpar" class="btn btn-secondary">
+                                            <i class="fas fa-eraser"></i> Limpar
+                                        </button>
+                                        <button type="button" id="btn-visualizar" class="btn btn-info">
+                                            <i class="fas fa-eye"></i> Visualizar
+                                        </button>
+                                        <button type="submit" id="btn-gerar" class="btn btn-primary">
+                                            <i class="fas fa-receipt"></i> Gerar Recibo
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Visualização do Recibo -->
+                    <div class="col-md-7">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Visualização do Recibo</div>
+                                <div class="card-actions">
+                                    <button id="btn-imprimir" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                    <button id="btn-download-pdf" class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-file-pdf"></i> PDF
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="recibo-preview" class="recibo-container">
+                                    <div class="recibo-header">
+                                        <div class="recibo-logo">
+                                            <img src="img/logo.svg" alt="ORION PDV">
+                                        </div>
+                                        <div class="recibo-titulo">
+                                            <h2>RECIBO</h2>
+                                            <div class="recibo-numero">Nº <span id="preview-numero">00000</span></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="recibo-empresa">
+                                        <h3 id="preview-empresa-nome">NOME DA EMPRESA</h3>
+                                        <div id="preview-empresa-endereco">Endereço Completo, nº 1000 - Bairro - Cidade/UF</div>
+                                        <div id="preview-empresa-cnpj">CNPJ: 00.000.000/0001-00</div>
+                                        <div id="preview-empresa-contato">Tel: (00) 0000-0000 | Email: contato@empresa.com</div>
+                                    </div>
+                                    
+                                    <div class="recibo-divisor"></div>
+                                    
+                                    <div class="recibo-info">
+                                        <div class="recibo-data">
+                                            <strong>Data e Hora:</strong> <span id="preview-data-hora">00/00/0000 às 00:00</span>
+                                        </div>
+                                        <div class="recibo-cliente">
+                                            <strong>Cliente:</strong> <span id="preview-cliente-nome">Nome do Cliente</span>
+                                        </div>
+                                        <div class="recibo-documento">
+                                            <strong>CPF/CNPJ:</strong> <span id="preview-cliente-documento">000.000.000-00</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="recibo-valor">
+                                        <div class="recibo-valor-texto">Recebi(emos) do cliente acima o valor de:</div>
+                                        <div class="recibo-valor-destaque" id="preview-valor-extenso">ZERO REAIS</div>
+                                        <div class="recibo-valor-numerico">
+                                            <strong>Valor:</strong> R$ <span id="preview-valor-numerico">0,00</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="recibo-pagamento">
+                                        <strong>Forma de Pagamento:</strong> <span id="preview-forma-pagamento">Dinheiro</span>
+                                    </div>
+                                    
+                                    <div class="recibo-referente">
+                                        <strong>Referente à:</strong> <span id="preview-referente">Pagamento de Produtos/Serviços</span>
+                                    </div>
+                                    
+                                    <div class="recibo-observacoes" id="preview-observacoes">
+                                        <strong>Observações:</strong> Observações do recibo aparecerão aqui.
+                                    </div>
+                                    
+                                    <div class="recibo-assinatura">
+                                        <div class="recibo-local-data">
+                                            <span id="preview-cidade-uf">Cidade/UF</span>, <span id="preview-data-extenso">00 de mês de 0000</span>
+                                        </div>
+                                        <div class="recibo-assinatura-linha">
+                                            <div class="linha-assinatura"></div>
+                                            <span id="preview-empresa-assinatura">Nome da Empresa</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="recibo-footer">
+                                        <div class="recibo-validacao">
+                                            Para validar este recibo, acesse: www.orionpdv.com.br/validar
+                                        </div>
+                                        <div class="recibo-codigo" id="preview-codigo-validacao">
+                                            Código de validação: 000000000000
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Histórico de Recibos -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Histórico de Recibos</div>
+                                <div class="card-actions">
+                                    <div class="search-container">
+                                        <input type="text" id="busca-recibos" class="form-control form-control-sm" placeholder="Buscar recibos...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Data</th>
+                                                <th>Cliente</th>
+                                                <th>Valor</th>
+                                                <th>Forma de Pagamento</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabela-recibos">
+                                            <tr>
+                                                <td colspan="6" class="text-center">
+                                                    <div class="loading-indicator">
+                                                        <i class="fas fa-spinner fa-spin"></i>
+                                                        <span>Carregando recibos...</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Paginação -->
+                                <div class="pagination-container">
+                                    <ul class="pagination" id="paginacao">
+                                        <!-- Paginação gerada dinamicamente -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="actions">
-        <button id="btn-imprimir" class="btn btn-primary">
-            <i class="fas fa-print"></i> Imprimir
-        </button>
-        <button id="btn-voltar" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left"></i> Voltar
-        </button>
+    <!-- Modal de Busca de Venda -->
+    <div id="modal-busca-venda" class="modal">
+        <div class="modal-content" style="width: 700px; max-width: 95vw;">
+            <div class="modal-header">
+                <h3 class="modal-title">Buscar Venda</h3>
+                <button class="modal-close" data-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="search-container mb-3">
+                    <input type="text" id="busca-vendas-modal" class="form-control" placeholder="Buscar vendas...">
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Data</th>
+                                <th>Cliente</th>
+                                <th>Valor</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-vendas-modal">
+                            <!-- Vendas serão carregadas dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <!-- Notificações -->
-    <div class="toast-container" id="toast-container"></div>
+    <!-- Modal de Busca de Cliente -->
+    <div id="modal-busca-cliente" class="modal">
+        <div class="modal-content" style="width: 700px; max-width: 95vw;">
+            <div class="modal-header">
+                <h3 class="modal-title">Buscar Cliente</h3>
+                <button class="modal-close" data-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="search-container mb-3">
+                    <input type="text" id="busca-clientes-modal" class="form-control" placeholder="Buscar clientes...">
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF/CNPJ</th>
+                                <th>Contato</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-clientes-modal">
+                            <!-- Clientes serão carregados dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Container de notificações -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <!-- Sons -->
+    <audio id="beep-success" src="sounds/beep-success.mp3" preload="auto"></audio>
+    <audio id="beep-error" src="sounds/beep-error.mp3" preload="auto"></audio>
     
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="assets/js/database.js"></script>
-    <script src="assets/js/db-fix.js"></script>
-    <script src="assets/js/auth.js"></script>
-    <script src="assets/js/core.js"></script>
-    <script src="assets/js/recibo.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Botões
-            const btnImprimir = document.getElementById('btn-imprimir');
-            const btnVoltar = document.getElementById('btn-voltar');
-            
-            // Event Listeners
-            btnImprimir.addEventListener('click', function() {
-                window.print();
-            });
-            
-            btnVoltar.addEventListener('click', function() {
-                window.close();
-            });
-            
-            // Verificar se há um ID de venda na URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const vendaId = urlParams.get('venda');
-            
-            if (!vendaId) {
-                document.getElementById('recibo').innerHTML = `
-                    <div class="text-center text-muted py-5">
-                        <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
-                        <p>ID da venda não informado.</p>
-                        <button onclick="window.close();" class="btn btn-outline-primary mt-3">
-                            <i class="fas fa-times"></i> Fechar
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Carregar venda e gerar recibo
-            try {
-                // Verificar se estamos autenticados
-                if (!auth.verificarAutenticacao()) {
-                    // Permitir abrir o recibo mesmo sem autenticação (para casos como envio por e-mail ou link direto)
-                    // Mas tentar carregar o banco de dados
-                    db.inicializar();
-                }
-                
-                const venda = db.getVenda(vendaId);
-                
-                if (!venda) {
-                    document.getElementById('recibo').innerHTML = `
-                        <div class="text-center text-muted py-5">
-                            <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
-                            <p>Venda não encontrada.</p>
-                            <button onclick="window.close();" class="btn btn-outline-primary mt-3">
-                                <i class="fas fa-times"></i> Fechar
-                            </button>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Obter configurações da empresa
-                const config = db.getConfig();
-                
-                // Gerar HTML dos itens
-                let itensHTML = '';
-                venda.itens.forEach((item, index) => {
-                    itensHTML += `
-                        <tr>
-                            <td>${index + 1}. ${item.nome}</td>
-                            <td>${item.quantidade}</td>
-                            <td>R$ ${item.preco.toFixed(2)}</td>
-                            <td class="text-right">R$ ${item.subtotal.toFixed(2)}</td>
-                        </tr>
-                    `;
-                });
-                
-                // Formatar data
-                const data = new Date(venda.data);
-                const dataFormatada = data.toLocaleDateString('pt-BR');
-                const horaFormatada = data.toLocaleTimeString('pt-BR');
-                
-                // Valor recebido e troco (fictícios para o recibo)
-                // Numa implementação real, esses valores seriam armazenados na venda
-                const valorPago = venda.valor_pago || venda.total;
-                const troco = venda.troco || (venda.valor_pago ? venda.valor_pago - venda.total : 0);
-                
-                // Substituir variáveis no HTML
-                const reciboHTML = `
-                    <div style="font-family: monospace; line-height: 1.4; font-size: 12px;">
-                        <div style="text-align: center; margin-bottom: 15px;">
-                            <h3 style="margin: 0; font-size: 16px;">${config.nome_empresa || 'ORION PDV'}</h3>
-                            <p style="margin: 0;">${config.endereco || ''}</p>
-                            <p style="margin: 0;">${config.cidade || ''}</p>
-                            <p style="margin: 0;">CNPJ: ${config.cnpj || ''}</p>
-                            <p style="margin: 0;">${config.telefone || ''}</p>
-                        </div>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <p><strong>CUPOM NÃO FISCAL</strong></p>
-                            <p><strong>Venda:</strong> ${venda.id}</p>
-                            <p><strong>Data:</strong> ${dataFormatada} ${horaFormatada}</p>
-                            <p><strong>Cliente:</strong> ${venda.cliente_nome}</p>
-                            <p><strong>Operador:</strong> ${venda.usuario}</p>
-                        </div>
-                        
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
-                            <thead>
-                                <tr>
-                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Item</th>
-                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Qtd</th>
-                                    <th style="text-align: left; border-bottom: 1px dashed #ccc; padding: 3px 0;">Valor</th>
-                                    <th style="text-align: right; border-bottom: 1px dashed #ccc; padding: 3px 0;">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${itensHTML}
-                            </tbody>
-                        </table>
-                        
-                        <div style="text-align: right; border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
-                            <p><strong>Subtotal:</strong> R$ ${venda.subtotal.toFixed(2)}</p>
-                            <p><strong>Desconto:</strong> R$ ${venda.desconto.toFixed(2)}</p>
-                            <p style="font-size: 14px;"><strong>TOTAL: R$ ${venda.total.toFixed(2)}</strong></p>
-                        </div>
-                        
-                        <div style="border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
-                            <p><strong>Forma de pagamento:</strong> ${venda.forma_pagamento}</p>
-                            <p><strong>Valor pago:</strong> R$ ${valorPago.toFixed(2)}</p>
-                            <p><strong>Troco:</strong> R$ ${troco.toFixed(2)}</p>
-                        </div>
-                        
-                        <div style="text-align: center; border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 15px;">
-                            <p>ORION PDV - Sistema de Gestão de Vendas</p>
-                            <p>${dataFormatada} ${horaFormatada}</p>
-                            <p><strong>OBRIGADO PELA PREFERÊNCIA!</strong></p>
-                            <p>Volte Sempre</p>
-                        </div>
-                    </div>
-                `;
-                
-                document.getElementById('recibo').innerHTML = reciboHTML;
-                
-            } catch (erro) {
-                console.error('Erro ao gerar recibo:', erro);
-                
-                document.getElementById('recibo').innerHTML = `
-                    <div class="text-center text-muted py-5">
-                        <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
-                        <p>Erro ao gerar recibo: ${erro.message}</p>
-                        <button onclick="window.close();" class="btn btn-outline-primary mt-3">
-                            <i class="fas fa-times"></i> Fechar
-                        </button>
-                    </div>
-                `;
-            }
-        });
-    </script>
+    <script src="js/auth.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/recibo.js"></script>
 </body>
 </html>
